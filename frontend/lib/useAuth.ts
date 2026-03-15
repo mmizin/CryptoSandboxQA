@@ -15,7 +15,7 @@ export function useAuth(requireAuth = false) {
     if (!token) {
       setUser(null);
       setLoading(false);
-      if (requireAuth) router.push('/login');
+      if (requireAuth) router.push('/');
       return;
     }
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/users/me`, {
@@ -27,7 +27,7 @@ export function useAuth(requireAuth = false) {
       .catch(() => {
         localStorage.removeItem('token');
         setUser(null);
-        if (requireAuth) router.push('/login');
+        if (requireAuth) router.push('/');
       })
       .finally(() => setLoading(false));
   }, [requireAuth, router]);

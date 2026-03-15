@@ -60,7 +60,7 @@ export default function RegisterPage() {
         </button>
       </form>
       <p style={{ marginTop: '1rem', color: '#8b949e' }}>
-        Have an account? <Link href="/login">Login</Link>
+        Have an account? <Link href="/">Login</Link>
       </p>
     </main>
   );
