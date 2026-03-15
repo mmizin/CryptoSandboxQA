@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  displayName  String?   @map("display_name")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  wallets Wallet[]
+  orders  Order[]
+
+  @@map("users")
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  asset     String
+  balance   Decimal  @default(0) @db.Decimal(20, 8)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, asset])
+  @@map("wallets")
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  symbol        String
+  side          String
+  type          String
+  quantity      Decimal  @db.Decimal(20, 8)
+  price         Decimal? @db.Decimal(20, 8)
+  filledQuantity Decimal @default(0) @map("filled_quantity") @db.Decimal(20, 8)
+  status        String   @default("open")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades Trade[]
+
+  @@map("orders")
+}
+
+model Trade {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  quantity  Decimal  @db.Decimal(20, 8)
+  price     Decimal  @db.Decimal(20, 8)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("trades")
+}
+
+model Ticker {
+  symbol     String   @id
+  lastPrice  Decimal  @map("last_price") @db.Decimal(20, 8)
+  volume24h   Decimal  @default(0) @map("volume_24h") @db.Decimal(20, 8)
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("tickers")
+}
