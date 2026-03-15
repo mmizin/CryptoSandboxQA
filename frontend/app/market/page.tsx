@@ -56,7 +56,7 @@ export default function MarketPage() {
   if (!user) return null;
 
   return (
-    <main style={{ maxWidth: 700, margin: '0 auto', padding: '2rem' }}>
+    <main className="min-h-screen transition-colors duration-200" style={{ maxWidth: 700, margin: '0 auto', padding: '2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
         <Link href="/dashboard">Back to Dashboard</Link>
       </div>
@@ -66,21 +66,21 @@ export default function MarketPage() {
         <p style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>
           {ticker ? `$${ticker.lastPrice.toLocaleString()}` : 'Connecting...'}
         </p>
-        {ticker && <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>Vol 24h: {ticker.volume24h.toLocaleString()}</p>}
+        {ticker && <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Vol 24h: {ticker.volume24h.toLocaleString()}</p>}
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
         <h2>Place Order</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400 }}>
-          <select value={symbol} onChange={(e) => setSymbol(e.target.value)} style={{ padding: '0.5rem', background: '#161b22', border: '1px solid #30363d', borderRadius: 6 }}>
+          <select value={symbol} onChange={(e) => setSymbol(e.target.value)} style={{ padding: '0.5rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 6 }}>
             <option value="BTC_USD">BTC/USD</option>
             <option value="ETH_USD">ETH/USD</option>
           </select>
-          <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} style={{ padding: '0.5rem', background: '#161b22', border: '1px solid #30363d', borderRadius: 6 }}>
+          <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} style={{ padding: '0.5rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 6 }}>
             <option value="buy">Buy</option>
             <option value="sell">Sell</option>
           </select>
-          <select value={orderType} onChange={(e) => setOrderType(e.target.value as 'limit' | 'market')} style={{ padding: '0.5rem', background: '#161b22', border: '1px solid #30363d', borderRadius: 6 }}>
+          <select value={orderType} onChange={(e) => setOrderType(e.target.value as 'limit' | 'market')} style={{ padding: '0.5rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 6 }}>
             <option value="limit">Limit</option>
             <option value="market">Market</option>
           </select>
@@ -98,7 +98,7 @@ export default function MarketPage() {
       <section>
         <h2>Recent Orders ({symbol})</h2>
         {Array.isArray(orders) && orders.length === 0 ? (
-          <p style={{ color: '#8b949e' }}>No orders yet.</p>
+          <p style={{ color: 'var(--text-muted)' }}>No orders yet.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
             {(orders as Array<{ id: string; symbol: string; side: string; quantity: string; price: string | null; status: string }>).slice(0, 10).map((o) => (

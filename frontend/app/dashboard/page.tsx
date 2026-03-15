@@ -41,14 +41,14 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <main style={{ maxWidth: 600, margin: '0 auto', padding: '2rem' }}>
+    <main className="min-h-screen transition-colors duration-200" style={{ maxWidth: 600, margin: '0 auto', padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1>Dashboard</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <span style={{ color: '#8b949e' }}>{user.email}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{user.email}</span>
           <Link href="/market">Market</Link>
           <Link href="/history">History</Link>
-          <button onClick={logout} style={{ background: 'transparent', border: '1px solid #30363d' }}>Logout</button>
+          <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--border)' }}>Logout</button>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           <select
             value={depositAsset}
             onChange={(e) => setDepositAsset(e.target.value)}
-            style={{ padding: '0.5rem', background: '#161b22', border: '1px solid #30363d', borderRadius: 6 }}
+            style={{ padding: '0.5rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 6 }}
           >
             <option value="USD">USD</option>
             <option value="BTC">BTC</option>
@@ -94,8 +94,8 @@ export default function DashboardPage() {
 
       <section>
         <h2 style={{ marginBottom: '1rem' }}>Open Orders</h2>
-        {orders.length === 0 ? (
-          <p style={{ color: '#8b949e' }}>No open orders.</p>
+          {orders.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>No open orders.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(orders as Array<{ id: string; symbol: string; side: string; quantity: string; price: string | null; status: string }>).map((o) => (

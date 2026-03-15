@@ -8,17 +8,41 @@
   margin: 0;
 }
 
+:root,
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --input-bg: #161b22;
+  --border: #30363d;
+  --success: #3fb950;
+  --error: #f85149;
+  --link: #58a6ff;
+}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --input-bg: #ffffff;
+  --border: #e2e8f0;
+  --success: #16a34a;
+  --error: #dc2626;
+  --link: #2563eb;
+}
+
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: system-ui, -apple-system, sans-serif;
-  background: #0d1117;
-  color: #e6edf3;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a {
-  color: #58a6ff;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -31,12 +55,12 @@ button {
   font-size: 1rem;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #30363d;
+  border: 1px solid var(--border);
 }
 
 input {
-  background: #161b22;
-  color: #e6edf3;
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 button {
@@ -56,9 +80,9 @@ button:disabled {
 }
 
 .error {
-  color: #f85149;
+  color: var(--error);
 }
 
 .success {
-  color: #3fb950;
+  color: var(--success);
 }
