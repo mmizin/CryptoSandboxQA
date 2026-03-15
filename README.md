@@ -53,11 +53,27 @@ npm run db:up
 # or: docker compose up -d
 ```
 
-To stop and remove the database container:
+To stop and remove the database container (data in volumes **persists**):
 
 ```bash
 npm run db:down
 ```
+
+**Reset database** (removes all data, including volumes):
+
+```bash
+npm run db:reset
+```
+
+After `db:reset`, run `db:up` then `setup` to start fresh.
+
+**Seed demo data** (demo users with wallets, tickers):
+
+```bash
+npm run db:seed
+```
+
+Creates `demo@example.com` / `password123` and `qa@example.com` / `qa123` with BTC, ETH, USD wallets. Run after `setup` when you want reproducible sample data. Safe to run multiple times (skips existing users).
 
 Or install PostgreSQL locally and ensure a database `cryptosandbox` exists.
 
@@ -94,7 +110,7 @@ npm run frontend:dev  # Frontend on port 3000
 
 ## Usage
 
-1. Register at http://localhost:3000/register
+1. Register at http://localhost:3000/register — or run `npm run db:seed` for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
 2. Login and deposit USD (training mode)
 3. Go to Market to place orders
 4. View order history

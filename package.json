@@ -7,6 +7,8 @@
     "setup": "node scripts/setup.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
+    "db:reset": "docker compose down -v",
+    "db:seed": "npm run db:seed --workspace=backend",
     "backend:dev": "npm run dev --workspace=backend",
     "backend:build": "npm run build --workspace=backend",
     "backend:start": "npm run start --workspace=backend",
