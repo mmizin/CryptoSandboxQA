@@ -81,6 +81,77 @@ function DepositCryptoDropdown() {
   );
 }
 
+function MarketsDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const buttonBase =
+    'rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1 transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={buttonBase}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        Markets
+        <svg
+          className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 min-w-[200px] rounded-lg bg-slate-900/95 py-1 shadow-xl backdrop-blur-sm group-data-[theme=light]:bg-white/95"
+          role="menu"
+        >
+          <Link
+            href="/markets/prices"
+            className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Prices
+          </Link>
+          <Link
+            href="/markets/rankings/spot"
+            className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Spot Rankings
+          </Link>
+          <Link
+            href="/markets/trading-data/overview"
+            className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Trading Data Overview
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BuyCryptoDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -204,6 +275,7 @@ export function Header() {
           <Logo />
           <BuyCryptoDropdown />
           <DepositCryptoDropdown />
+          <MarketsDropdown />
         </div>
 
         <nav className="flex items-center gap-2 sm:gap-4 ml-auto">
@@ -228,7 +300,7 @@ export function Header() {
             <button
               type="button"
               onClick={logout}
-              className="rounded-lg border-0 outline-none focus:outline-none px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200 group-data-[theme=light]:hover:text-slate-900"
+              className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800"
             >
               Logout
             </button>

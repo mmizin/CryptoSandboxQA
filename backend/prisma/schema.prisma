@@ -89,3 +89,16 @@ model Ticker {
 
   @@map("tickers")
 }
+
+model Crypto {
+  id        String   @id @default(uuid())
+  name      String
+  symbol    String   @unique
+  price     Decimal  @db.Decimal(20, 8)
+  change24h Decimal  @map("change_24h") @db.Decimal(10, 4)
+  volume24h Decimal  @map("volume_24h") @db.Decimal(20, 8)
+  popular   Boolean  @default(false)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("cryptos")
+}
