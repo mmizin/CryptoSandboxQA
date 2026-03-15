@@ -5,8 +5,9 @@ import { useAuth } from '@/lib/useAuth';
 import { useTheme } from '@/lib/useTheme';
 
 function Logo() {
+  const { user } = useAuth(false);
   return (
-    <Link href="/" className="flex items-center gap-2.5 group">
+    <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 group">
       <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/30 transition-shadow">
         <svg
           viewBox="0 0 24 24"
