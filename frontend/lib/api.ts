@@ -50,6 +50,35 @@ export const walletsApi = {
     api('/wallets/withdraw', { method: 'POST', body: JSON.stringify({ asset, amount }) }),
 };
 
+export interface CryptoItem {
+  id: string;
+  name: string;
+  symbol: string;
+  price: string;
+  change24h: string;
+  volume24h: string;
+  popular: boolean;
+}
+
+export const cryptosApi = {
+  list: (params?: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const sp = new URLSearchParams();
+    if (params?.limit != null) sp.set('limit', String(params.limit));
+    if (params?.offset != null) sp.set('offset', String(params.offset));
+    if (params?.search) sp.set('search', params.search);
+    if (params?.sortBy) sp.set('sortBy', params.sortBy);
+    if (params?.sortOrder) sp.set('sortOrder', params.sortOrder);
+    const q = sp.toString();
+    return api<{ data: CryptoItem[]; total: number }>(`/cryptos${q ? `?${q}` : ''}`);
+  },
+};
+
 export const ordersApi = {
   list: (params?: { status?: string; symbol?: string }) => {
     const q = new URLSearchParams(params as Record<string, string>).toString();

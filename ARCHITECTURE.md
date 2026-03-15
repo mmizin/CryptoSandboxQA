@@ -167,6 +167,23 @@ sequenceDiagram
 
 ---
 
+## UI Conventions
+
+### Button Styling (Branding)
+
+Use consistent emerald branding for primary/secondary action buttons (dropdown triggers, Back, Logout, Load more, sort headers):
+
+```
+rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none 
+bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 
+group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 
+group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800
+```
+
+For compact buttons (e.g. table headers): use `px-3 py-1.5` instead of `px-4 py-2`.
+
+---
+
 ## QA Scenarios
 
 1. **Auth**: Register → Login → Logout.

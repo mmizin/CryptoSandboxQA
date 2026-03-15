@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 type User = { id: string; email: string; displayName: string | null } | null;
 
@@ -9,6 +9,7 @@ export function useAuth(requireAuth = false) {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -30,7 +31,7 @@ export function useAuth(requireAuth = false) {
         if (requireAuth) router.push('/');
       })
       .finally(() => setLoading(false));
-  }, [requireAuth, router]);
+  }, [requireAuth, router, pathname]);
 
   const logout = () => {
     localStorage.removeItem('token');

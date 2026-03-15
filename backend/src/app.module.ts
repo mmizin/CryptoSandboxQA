@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { WalletsModule } from './wallets/wallets.module';
 import { OrdersModule } from './orders/orders.module';
 import { TickersModule } from './tickers/tickers.module';
+import { CryptosModule } from './cryptos/cryptos.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { AppController } from './app.controller';
 
@@ -22,6 +23,7 @@ import { AppController } from './app.controller';
     AuthModule,
     WalletsModule,
     TickersModule,
+    CryptosModule,
     OrdersModule,
     WebSocketModule,
   ],
