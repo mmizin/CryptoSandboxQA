@@ -28,10 +28,26 @@ model Wallet {
   balance   Decimal  @default(0) @db.Decimal(20, 8)
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
 
   @@unique([userId, asset])
   @@map("wallets")
+}
+
+model WalletTransaction {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  walletId      String   @map("wallet_id")
+  asset         String
+  amount        Decimal  @db.Decimal(20, 8)
+  type          String
+  balanceBefore Decimal  @map("balance_before") @db.Decimal(20, 8)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_transactions")
 }
 
 model Order {

@@ -23,9 +23,12 @@ npm run setup
 
 # 4. Run the app
 npm run dev
+
+# 5. (Optional) Seed demo data (run after setup)
+npm run db:seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and register. Done!
+Open [http://localhost:3000](http://localhost:3000) and register. Done! (Use demo accounts from step 5 if you ran the seed.)
 
 ### Prerequisites
 
@@ -53,11 +56,13 @@ npm run db:up
 # or: docker compose up -d
 ```
 
-To stop and remove the database container (data in volumes **persists**):
+To stop and remove the database container (data **persists** in named volume):
 
 ```bash
 npm run db:down
 ```
+
+Prompts to create a DB dump before stopping if the database has data.
 
 **Reset database** (removes all data, including volumes):
 
@@ -65,13 +70,33 @@ npm run db:down
 npm run db:reset
 ```
 
-After `db:reset`, run `db:up` then `setup` to start fresh.
+After `db:reset`, run `db:up` then `setup` to start fresh. If you created a dump before reset, `setup` will automatically restore it.
+
+**Dump data** (save current DB state before reset, only if DB has data):
+
+```bash
+npm run db:dump
+```
+
+> **Requires `db:up` and `setup` first.** The database must be running with tables created.
+
+Saves to `data/postgres-dump.sql`. Run before `db:reset` to preserve state.
+
+**Restore from dump** (manual restore; also runs automatically during `setup` if dump exists):
+
+```bash
+npm run db:restore
+```
+
+> **Requires `db:up` and `setup` first.** Schema must exist before restoring data.
 
 **Seed demo data** (demo users with wallets, tickers):
 
 ```bash
 npm run db:seed
 ```
+
+> **Requires `setup` first.** Run `npm run setup` before seeding to create the database schema.
 
 Creates `demo@example.com` / `password123` and `qa@example.com` / `qa123` with BTC, ETH, USD wallets. Run after `setup` when you want reproducible sample data. Safe to run multiple times (skips existing users).
 
@@ -83,12 +108,15 @@ Or install PostgreSQL locally and ensure a database `cryptosandbox` exists.
 npm run setup
 ```
 
+> **Requires `db:up` first.** PostgreSQL must be running (Docker or local).
+
 This script:
 
 - Copies `.env.example` → `.env` (only if `.env` doesn't exist)
 - Waits for PostgreSQL to be ready
 - Runs Prisma migrations
 - Generates Prisma client
+- Restores from `data/postgres-dump.sql` if the file exists (e.g. after `db:reset`)
 
 **No manual `.env` editing needed** — defaults work with the Docker Postgres.
 
@@ -111,7 +139,7 @@ npm run frontend:dev  # Frontend on port 3000
 
 ## Usage
 
-1. Register at [http://localhost:3000/register](http://localhost:3000/register) — or run `npm run db:seed` for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
+1. Register at [http://localhost:3000/register](http://localhost:3000/register) — or run `npm run db:seed` (after `setup`) for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
 2. Login and deposit USD (training mode)
 3. Go to Market to place orders
 4. View order history
