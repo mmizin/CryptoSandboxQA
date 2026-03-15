@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Inter } from 'next/font/google';
+import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { RunningBanner } from '@/components/RunningBanner';
 import { ThemeProvider } from '@/lib/useTheme';
@@ -32,7 +33,8 @@ export default function RootLayout({
         <ThemeProvider>
           <RunningBanner />
           <Header />
-          {children}
+          <main>{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
