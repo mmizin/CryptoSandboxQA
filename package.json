@@ -1,0 +1,25 @@
+{
+  "name": "crypto-sandbox-qa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Crypto exchange training platform for QA practice",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "backend:dev": "npm run dev --workspace=backend",
+    "backend:build": "npm run build --workspace=backend",
+    "backend:start": "npm run start --workspace=backend",
+    "frontend:dev": "npm run dev --workspace=frontend",
+    "frontend:build": "npm run build --workspace=frontend",
+    "frontend:start": "npm run start --workspace=frontend",
+    "dev": "npx concurrently \"npm run backend:dev\" \"npm run frontend:dev\""
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
