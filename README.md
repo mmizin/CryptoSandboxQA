@@ -25,7 +25,7 @@ npm run setup
 npm run dev
 ```
 
-Open http://localhost:3000 and register. Done!
+Open [http://localhost:3000](http://localhost:3000) and register. Done!
 
 ### Prerequisites
 
@@ -84,6 +84,7 @@ npm run setup
 ```
 
 This script:
+
 - Copies `.env.example` → `.env` (only if `.env` doesn't exist)
 - Waits for PostgreSQL to be ready
 - Runs Prisma migrations
@@ -110,7 +111,7 @@ npm run frontend:dev  # Frontend on port 3000
 
 ## Usage
 
-1. Register at http://localhost:3000/register — or run `npm run db:seed` for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
+1. Register at [http://localhost:3000/register](http://localhost:3000/register) — or run `npm run db:seed` for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
 2. Login and deposit USD (training mode)
 3. Go to Market to place orders
 4. View order history
@@ -121,22 +122,23 @@ npm run frontend:dev  # Frontend on port 3000
 
 `.env` is auto-created from `.env.example` during `npm run setup`. Override these for custom setup:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/cryptosandbox` | PostgreSQL connection |
-| `JWT_SECRET` | `your-super-secret-jwt-key-change-in-production` | JWT signing secret |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Backend API URL (frontend) |
+
+| Variable              | Default                                                       | Description                |
+| --------------------- | ------------------------------------------------------------- | -------------------------- |
+| `DATABASE_URL`        | `postgresql://postgres:postgres@localhost:5432/cryptosandbox` | PostgreSQL connection      |
+| `JWT_SECRET`          | `your-super-secret-jwt-key-change-in-production`              | JWT signing secret         |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3001`                                       | Backend API URL (frontend) |
+
 
 ---
 
-## API
+### OpenAPI (Swagger)
 
-- `POST /auth/register` - Register
-- `POST /auth/login` - Login
-- `GET /users/me` - Current user (requires JWT)
-- `GET /wallets` - List wallets
-- `POST /wallets/deposit` - Deposit (training)
-- `POST /orders` - Create order
-- WebSocket `/ticker` - Subscribe to `subscribe` event with symbol (e.g. `BTC_USD`), receive `ticker` events
+Interactive API docs are available when the backend is running:
+
+- **Swagger UI**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
+- **OpenAPI JSON**: [http://localhost:3001/api/docs-json](http://localhost:3001/api/docs-json)
+
+Use the Swagger UI "Authorize" button to add your JWT token (from login) to test protected endpoints.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full architecture details.
