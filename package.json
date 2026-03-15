@@ -16,6 +16,7 @@
     "backend:start": "npm run start --workspace=backend",
     "frontend:dev": "npm run dev --workspace=frontend",
     "frontend:build": "npm run build --workspace=frontend",
+    "openapi:generate": "npm run openapi:generate --workspace=backend",
     "frontend:start": "npm run start --workspace=frontend",
     "dev": "npx concurrently \"npm run backend:dev\" \"npm run frontend:dev\""
   },

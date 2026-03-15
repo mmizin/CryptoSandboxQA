@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
+import { createOpenApiConfig } from './openapi.config';
 import { AppModule } from './app.module';
 import { TickersService } from './tickers/tickers.service';
 import { IoAdapter } from '@nestjs/platform-socket.io';
@@ -22,12 +23,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // Swagger UI and OpenAPI JSON
-  const config = new DocumentBuilder()
-    .setTitle('Test Exchange API')
-    .setDescription('Crypto exchange training platform API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  const config = createOpenApiConfig();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 

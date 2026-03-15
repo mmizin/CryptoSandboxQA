@@ -162,11 +162,21 @@ npm run frontend:dev  # Frontend on port 3000
 
 ### OpenAPI (Swagger)
 
+**For testers:** A static OpenAPI spec is available in the repo:
+
+- **Static spec file**: [`docs/openapi.json`](docs/openapi.json) — use this for API testing tools (Postman, Insomnia, REST Assured, etc.). You can import it without running the backend.
+
 Interactive API docs are available when the backend is running:
 
 - **Swagger UI**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
 - **OpenAPI JSON**: [http://localhost:3001/api/docs-json](http://localhost:3001/api/docs-json)
 
 Use the Swagger UI "Authorize" button to add your JWT token (from login) to test protected endpoints.
+
+**For developers:** After changing API routes or DTOs, regenerate the spec with:
+
+```bash
+npm run openapi:generate
+```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full architecture details.
