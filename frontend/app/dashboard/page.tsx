@@ -63,6 +63,7 @@ export default function DashboardPage() {
     'text-lg font-semibold text-white mb-4 group-data-[theme=light]:text-slate-900';
 
   const quickActions = [
+    { href: '/profile', label: 'Profile', desc: 'Edit your photo and account info' },
     { href: '/market', label: 'Trade spot', desc: 'Place orders on the market' },
     { href: '/markets/prices', label: 'View prices', desc: 'Crypto prices and rankings' },
     { href: '/buy-crypto', label: 'Buy crypto', desc: 'Buy and sell with ease' },
