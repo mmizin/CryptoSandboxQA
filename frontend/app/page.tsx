@@ -49,15 +49,12 @@ export default function HomePage() {
         />
         <div className="relative z-10 flex flex-col justify-center px-16 xl:px-24 2xl:px-32">
           <div className="max-w-lg">
-            <span className="inline-block px-4 py-2 rounded-full text-base font-semibold bg-red-500/15 text-red-400 border-2 border-red-500/40 mb-6">
-              For test purposes only
-            </span>
             <h1 className="text-4xl xl:text-5xl font-semibold text-white tracking-tight leading-tight mb-6 group-data-[theme=light]:text-slate-900">
-              Test crypto platforms
-              <span className="block mt-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">without risk</span>
+              Practice crypto trading
+              <span className="block mt-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">for testing purposes</span>
             </h1>
             <p className="text-lg text-slate-400 leading-relaxed group-data-[theme=light]:text-slate-600">
-              A QA sandbox built for <span className="text-slate-300 font-medium group-data-[theme=light]:text-slate-700">UI testing</span>, <span className="text-slate-300 font-medium group-data-[theme=light]:text-slate-700">API validation</span>, and <span className="text-slate-300 font-medium group-data-[theme=light]:text-slate-700">load testing</span>. Isolated. Safe. No real funds.
+              Create a free account to access the QA sandbox. Simulate orders, test strategies, and validate transactions — for testing purposes only, no real funds required.
             </p>
             <div className="mt-12 flex flex-wrap items-center gap-6 text-slate-500 group-data-[theme=light]:text-slate-600">
               <span className="flex items-center gap-2 text-sm">
