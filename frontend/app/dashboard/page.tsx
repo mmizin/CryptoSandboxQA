@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/useAuth';
 import { walletsApi, ordersApi } from '@/lib/api';
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, logout } = useAuth(true);
+  const { user, loading: authLoading } = useAuth(true);
   const [wallets, setWallets] = useState<Array<{ asset: string; balance: string }>>([]);
   const [orders, setOrders] = useState<unknown[]>([]);
   const [depositAsset, setDepositAsset] = useState('USD');
@@ -48,7 +48,6 @@ export default function DashboardPage() {
           <span style={{ color: 'var(--text-muted)' }}>{user.email}</span>
           <Link href="/market">Market</Link>
           <Link href="/history">History</Link>
-          <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--border)' }}>Logout</button>
         </div>
       </div>
 

@@ -54,7 +54,7 @@ function ThemeToggle() {
 }
 
 export function Header() {
-  const { user, loading } = useAuth(false);
+  const { user, loading, logout } = useAuth(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-sm group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/90">
@@ -81,7 +81,15 @@ export function Header() {
                 Sign up
               </Link>
             </>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200 group-data-[theme=light]:hover:text-slate-900"
+            >
+              Logout
+            </button>
+          )}
           <ThemeToggle />
         </nav>
       </div>
