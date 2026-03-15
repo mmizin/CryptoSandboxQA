@@ -31,9 +31,23 @@ export class WalletsService {
     const wallet = await this.getOrCreate(userId, asset);
     const amt = typeof amount === 'number' ? new Decimal(amount) : amount;
     if (amt.lte(0)) throw new BadRequestException('Amount must be positive');
-    return this.prisma.wallet.update({
-      where: { id: wallet.id },
-      data: { balance: { increment: amt } },
+    const balanceBefore = wallet.balance;
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { increment: amt } },
+      });
+      await tx.walletTransaction.create({
+        data: {
+          userId,
+          walletId: wallet.id,
+          asset,
+          amount: amt,
+          type: 'deposit',
+          balanceBefore,
+        },
+      });
+      return updated;
     });
   }
 
@@ -45,9 +59,23 @@ export class WalletsService {
     if (new Decimal(wallet.balance).lt(amt)) {
       throw new BadRequestException('Insufficient balance');
     }
-    return this.prisma.wallet.update({
-      where: { id: wallet.id },
-      data: { balance: { decrement: amt } },
+    const balanceBefore = wallet.balance;
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { decrement: amt } },
+      });
+      await tx.walletTransaction.create({
+        data: {
+          userId,
+          walletId: wallet.id,
+          asset,
+          amount: new Decimal(0).minus(amt),
+          type: 'withdraw',
+          balanceBefore,
+        },
+      });
+      return updated;
     });
   }
 

@@ -6,8 +6,10 @@
   "scripts": {
     "setup": "node scripts/setup.js",
     "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
+    "db:down": "node scripts/db-down.js",
     "db:reset": "docker compose down -v",
+    "db:dump": "node scripts/dump.js",
+    "db:restore": "node scripts/restore.js",
     "db:seed": "npm run db:seed --workspace=backend",
     "backend:dev": "npm run dev --workspace=backend",
     "backend:build": "npm run build --workspace=backend",

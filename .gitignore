@@ -146,3 +146,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# DB dumps (local dev data)
+data/postgres-dump.sql

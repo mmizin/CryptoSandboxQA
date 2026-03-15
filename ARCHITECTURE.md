@@ -51,6 +51,7 @@ flowchart TB
 erDiagram
     users ||--o{ wallets : has
     users ||--o{ orders : places
+    wallets ||--o{ wallet_transactions : has
     orders ||--o{ trades : generates
     
     users {
@@ -68,6 +69,17 @@ erDiagram
         string asset
         decimal balance
         timestamp updatedAt
+    }
+    
+    wallet_transactions {
+        uuid id PK
+        uuid userId FK
+        uuid walletId FK
+        string asset
+        decimal amount
+        string type
+        decimal balanceBefore
+        timestamp createdAt
     }
     
     orders {
@@ -102,6 +114,7 @@ erDiagram
 
 - **users**: id, email (unique), passwordHash, displayName, createdAt, updatedAt
 - **wallets**: id, userId (FK), asset (USD/BTC/ETH), balance. Unique (userId, asset)
+- **wallet_transactions**: id, userId, walletId (FK), asset, amount (positive=deposit, negative=withdraw), type (deposit/withdraw), balanceBefore, createdAt — audit trail for deposits/withdrawals
 - **orders**: id, userId, symbol (e.g. BTC_USD), side (buy/sell), type (limit/market), quantity, price, filledQuantity, status (open/filled/cancelled), createdAt, updatedAt
 - **trades**: id, orderId, quantity, price, createdAt
 - **tickers**: symbol (PK), lastPrice, volume24h, updatedAt (optional; can be in-memory)

@@ -58,6 +58,15 @@ for (let i = 0; i < maxRetries; i++) {
 
 process.chdir(backendDir);
 execSync('npx prisma generate', { stdio: 'inherit', env: envVars });
+
+// Restore from dump if present (e.g. after db:reset when dump was created earlier)
+const dumpPath = path.join(root, 'data', 'postgres-dump.sql');
+if (fs.existsSync(dumpPath)) {
+  console.log('\nRestoring from data/postgres-dump.sql...');
+  const restoreScript = path.join(root, 'scripts', 'restore.js');
+  execSync(`node "${restoreScript}"`, { stdio: 'inherit', cwd: root, env: envVars });
+}
+
 console.log('\nSetup complete! Run: npm run dev');
 }
 main().catch((e) => { console.error(e); process.exit(1); });
