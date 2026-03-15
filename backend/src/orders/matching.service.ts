@@ -36,6 +36,7 @@ export class MatchingService {
 
     const oppositeSide = order.side === 'buy' ? 'sell' : 'buy';
     const limitPrice = order.price != null ? new Decimal(order.price) : null;
+    const lastPrice = await this.getLastPrice(order.symbol);
 
     const candidates = await this.prisma.order.findMany({
       where: {
@@ -43,8 +44,14 @@ export class MatchingService {
         side: oppositeSide,
         status: 'open',
         id: { not: orderId },
-        ...(limitPrice && order.side === 'buy' && { price: { lte: limitPrice } }),
-        ...(limitPrice && order.side === 'sell' && { price: { gte: limitPrice } }),
+        ...(limitPrice &&
+          order.side === 'buy' && {
+            OR: [{ price: { lte: limitPrice } }, { price: null }],
+          }),
+        ...(limitPrice &&
+          order.side === 'sell' && {
+            OR: [{ price: { gte: limitPrice } }, { price: null }],
+          }),
       },
       orderBy: [{ createdAt: 'asc' }, { price: order.side === 'buy' ? 'asc' : 'desc' }],
     });
@@ -55,11 +62,16 @@ export class MatchingService {
       if (counterRemaining.lte(0)) continue;
 
       const counterPrice = counter.price;
-      if (!counterPrice) continue;
-      const matchPrice = Number(counterPrice);
+      const matchPrice =
+        counterPrice != null
+          ? Number(counterPrice)
+          : limitPrice != null
+            ? Number(limitPrice)
+            : lastPrice;
+      if (matchPrice <= 0) continue;
 
-      if (order.side === 'buy' && limitPrice && limitPrice.lt(counterPrice)) continue;
-      if (order.side === 'sell' && limitPrice && limitPrice.gt(counterPrice)) continue;
+      if (order.side === 'buy' && limitPrice != null && limitPrice.lt(matchPrice)) continue;
+      if (order.side === 'sell' && limitPrice != null && limitPrice.gt(matchPrice)) continue;
 
       const fillQty = remaining.lte(counterRemaining) ? remaining : counterRemaining;
       const fillNum = Number(fillQty);
@@ -67,7 +79,7 @@ export class MatchingService {
 
       await this.prisma.$transaction(async (tx) => {
         await tx.trade.create({
-          data: { orderId: order.id, quantity: fillQty, price: counterPrice },
+          data: { orderId: order.id, quantity: fillQty, price: new Decimal(matchPrice) },
         });
         await tx.order.update({
           where: { id: order.id },
