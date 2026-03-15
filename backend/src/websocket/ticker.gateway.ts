@@ -32,13 +32,17 @@ export class TickerGateway implements OnGatewayInit {
   async handleSubscribe(client: Socket, symbol: string) {
     const room = `ticker:${symbol}`;
     client.join(room);
-    const ticker = await this.tickersService.get(symbol);
-    if (ticker) {
-      client.emit('ticker', {
-        symbol: ticker.symbol,
-        lastPrice: Number(ticker.lastPrice),
-        volume24h: Number(ticker.volume24h),
-      });
+    try {
+      const ticker = await this.tickersService.get(symbol);
+      if (ticker) {
+        client.emit('ticker', {
+          symbol: ticker.symbol,
+          lastPrice: Number(ticker.lastPrice),
+          volume24h: Number(ticker.volume24h),
+        });
+      }
+    } catch {
+      // Ignore if tickers table not ready
     }
   }
 
@@ -48,13 +52,17 @@ export class TickerGateway implements OnGatewayInit {
   }
 
   private async broadcastTickers() {
-    const tickers = await this.tickersService.getAll();
-    for (const t of tickers) {
-      this.server.to(`ticker:${t.symbol}`).emit('ticker', {
-        symbol: t.symbol,
-        lastPrice: Number(t.lastPrice),
-        volume24h: Number(t.volume24h),
-      });
+    try {
+      const tickers = await this.tickersService.getAll();
+      for (const t of tickers) {
+        this.server.to(`ticker:${t.symbol}`).emit('ticker', {
+          symbol: t.symbol,
+          lastPrice: Number(t.lastPrice),
+          volume24h: Number(t.volume24h),
+        });
+      }
+    } catch {
+      // Ignore if tickers table not ready
     }
   }
 }
