@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import { Header } from '@/components/Header';
+import { RunningBanner } from '@/components/RunningBanner';
 import { ThemeProvider } from '@/lib/useTheme';
 import './globals.css';
 
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>
+          <RunningBanner />
           <Header />
           {children}
         </ThemeProvider>
