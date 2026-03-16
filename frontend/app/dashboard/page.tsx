@@ -68,6 +68,7 @@ export default function DashboardPage() {
     { href: '/markets/prices', label: 'View prices', desc: 'Crypto prices and rankings' },
     { href: '/buy-crypto', label: 'Buy crypto', desc: 'Buy and sell with ease' },
     { href: '/deposit-cash', label: 'Deposit cash', desc: 'Add funds to your balance' },
+    { href: '/deposit-crypto', label: 'Deposit crypto', desc: 'Deposit BTC, ETH, etc. to your wallet' },
   ];
 
   return (
