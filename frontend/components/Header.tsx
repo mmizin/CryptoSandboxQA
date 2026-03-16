@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { useTheme } from '@/lib/useTheme';
+import { TradeDropdown } from '@/components/TradeDropdown';
 
 function DepositCryptoDropdown() {
   const { user, loading } = useAuth(false);
@@ -372,6 +373,7 @@ export function Header() {
           <BuyCryptoDropdown />
           <DepositCryptoDropdown />
           <MarketsDropdown />
+          <TradeDropdown />
         </div>
 
         <nav className="flex items-center gap-2 sm:gap-4 ml-auto">
