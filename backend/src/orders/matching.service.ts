@@ -51,6 +51,7 @@ export class MatchingService {
     const candidates = await this.prisma.order.findMany({
       where: {
         symbol: order.symbol,
+        marketType: order.marketType,
         side: oppositeSide,
         orderStatus: 'open',
         id: { not: orderId },

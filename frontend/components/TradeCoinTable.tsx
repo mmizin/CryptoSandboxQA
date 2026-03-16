@@ -177,20 +177,22 @@ export function TradeCoinTable({ selectedCoin, onSelectCoin }: TradeCoinTablePro
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-slate-900/95 group-data-[theme=light]:bg-white/95 z-10">
             <tr className="border-b border-slate-700/80 group-data-[theme=light]:border-slate-200">
-              <th className="text-left py-2 px-3">
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="name" label="Coin" />
               </th>
-              <th className="text-left py-2 px-3">
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="symbol" label="Symbol" />
               </th>
-              <th className="text-center py-2 px-3">Chart</th>
-              <th className="text-right py-2 px-3">
+              <th className="text-center py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                Chart
+              </th>
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="price" label="Price" align="right" />
               </th>
-              <th className="text-right py-2 px-3">
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="change24h" label="24h %" align="right" />
               </th>
-              <th className="text-right py-2 px-3">
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="volume24h" label="Volume" align="right" />
               </th>
             </tr>
@@ -206,7 +208,7 @@ export function TradeCoinTable({ selectedCoin, onSelectCoin }: TradeCoinTablePro
                     isSelected ? 'bg-emerald-500/15 ring-1 ring-inset ring-emerald-500/40 group-data-[theme=light]:bg-emerald-50/70' : ''
                   } ${POPULAR_SYMBOLS.includes(coin.symbol) ? 'bg-slate-800/20 group-data-[theme=light]:bg-slate-50/30' : ''}`}
                 >
-                  <td className="py-2 px-3">
+                  <td className="py-3 px-4 text-left">
                     <div className="flex items-center gap-2">
                       <CryptoLogo symbol={coin.symbol} />
                       <span className="font-medium text-white group-data-[theme=light]:text-slate-900">
@@ -214,18 +216,20 @@ export function TradeCoinTable({ selectedCoin, onSelectCoin }: TradeCoinTablePro
                       </span>
                     </div>
                   </td>
-                  <td className="py-2 px-3 text-slate-400 group-data-[theme=light]:text-slate-600">
+                  <td className="py-3 px-4 text-left text-slate-400 group-data-[theme=light]:text-slate-600">
                     {coin.symbol}
                   </td>
-                  <td className="py-2 px-3 flex justify-center">
-                    <MiniSparkline symbol={coin.symbol} price={coin.price} />
+                  <td className="py-3 px-4">
+                    <div className="flex justify-center">
+                      <MiniSparkline symbol={coin.symbol} price={coin.price} />
+                    </div>
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-white group-data-[theme=light]:text-slate-900">
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-white group-data-[theme=light]:text-slate-900">
                     {formatPrice(coin.price)}
                   </td>
-                  <td className="py-2 px-3 text-right">
+                  <td className="py-3 px-4 text-right">
                     <span
-                      className={`font-mono ${
+                      className={`font-mono tabular-nums ${
                         coin.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}
                     >
@@ -233,7 +237,7 @@ export function TradeCoinTable({ selectedCoin, onSelectCoin }: TradeCoinTablePro
                       {coin.change24h.toFixed(2)}%
                     </span>
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-slate-400 group-data-[theme=light]:text-slate-600">
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-400 group-data-[theme=light]:text-slate-600">
                     {formatVol(coin.volume24h)}
                   </td>
                 </tr>

@@ -11,6 +11,7 @@
     "db:dump": "node scripts/dump.js",
     "db:restore": "node scripts/restore.js",
     "db:seed": "npm run db:seed --workspace=backend",
+    "db:migrate": "node scripts/migrate.js",
     "backend:dev": "npm run dev --workspace=backend",
     "backend:build": "npm run build --workspace=backend",
     "backend:start": "npm run start --workspace=backend",

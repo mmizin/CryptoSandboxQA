@@ -4,8 +4,6 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 type TxClient = Parameters<Parameters<PrismaService['$transaction']>[0]>[0];
 
-const ASSETS = ['USD', 'EUR', 'BTC', 'ETH'] as const;
-
 @Injectable()
 export class WalletsService {
   constructor(private prisma: PrismaService) {}
@@ -13,15 +11,19 @@ export class WalletsService {
   private async getAssetBySymbol(asset: string) {
     const a = await this.prisma.asset.findUnique({ where: { symbol: asset.toUpperCase() } });
     if (!a) {
+      const allowed = await this.prisma.asset.findMany({
+        where: { isActive: true },
+        select: { symbol: true },
+      });
+      const list = allowed.map((x) => x.symbol).join(', ') || 'none configured';
       throw new BadRequestException(
-        `Asset "${asset}" not found. Allowed: ${ASSETS.join(', ')}. Run "npm run db:seed" to populate the database.`,
+        `Asset "${asset}" not found. Allowed: ${list}. Run "npm run db:seed" to populate the database.`,
       );
     }
     return a;
   }
 
   async getOrCreate(userId: string, asset: string) {
-    this.validateAsset(asset);
     const assetRow = await this.getAssetBySymbol(asset);
     let balance = await this.prisma.userBalance.findUnique({
       where: { userId_assetId: { userId, assetId: assetRow.id } },
@@ -56,7 +58,6 @@ export class WalletsService {
     amount: number | Decimal,
     options?: { refType?: string; refId?: string; tx?: TxClient },
   ) {
-    this.validateAsset(asset);
     const assetRow = await this.getAssetBySymbol(asset);
     let balance = await this.prisma.userBalance.findUnique({
       where: { userId_assetId: { userId, assetId: assetRow.id } },
@@ -101,7 +102,6 @@ export class WalletsService {
   }
 
   async debit(userId: string, asset: string, amount: number | Decimal) {
-    this.validateAsset(asset);
     const assetRow = await this.getAssetBySymbol(asset);
     const balance = await this.prisma.userBalance.findUnique({
       where: { userId_assetId: { userId, assetId: assetRow.id } },
@@ -147,11 +147,5 @@ export class WalletsService {
     });
     if (!balance) return new Decimal(0);
     return balance.balanceAvailable;
-  }
-
-  private validateAsset(asset: string) {
-    if (!ASSETS.includes(asset as (typeof ASSETS)[number])) {
-      throw new BadRequestException(`Invalid asset. Allowed: ${ASSETS.join(', ')}`);
-    }
   }
 }

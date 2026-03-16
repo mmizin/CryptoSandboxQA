@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { type TradeOrder } from '@/lib/tradeMockData';
 import { ordersApi } from '@/lib/api';
 
@@ -39,6 +39,7 @@ function mapApiOrderToTradeOrder(o: ApiOrder): TradeOrder {
 }
 
 interface TradeOrdersTabsProps {
+  marketType?: 'spot' | 'futures';
   refreshTrigger?: number;
 }
 
@@ -50,16 +51,16 @@ const sortButtonBase =
 
 type SortField = 'symbol' | 'orderType' | 'amount' | 'price' | 'status' | 'createdAt';
 
-export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
+export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger }: TradeOrdersTabsProps) {
   const [orders, setOrders] = useState<TradeOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusChangingId, setStatusChangingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadOrders = useCallback(() => {
     setLoading(true);
-    setError(null);
     ordersApi
-      .list({ limit: 100 })
+      .list({ marketType, limit: 100 })
       .then((res) => {
         const data = (res.data || []) as ApiOrder[];
         setOrders(data.map(mapApiOrderToTradeOrder));
@@ -69,7 +70,24 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
         setError(err instanceof Error ? err.message : 'Failed to load orders');
       })
       .finally(() => setLoading(false));
-  }, [refreshTrigger]);
+  }, [marketType]);
+
+  useEffect(() => {
+    setError(null);
+    loadOrders();
+  }, [loadOrders, refreshTrigger]);
+
+  const handleSetStatus = async (orderId: string, status: string) => {
+    setStatusChangingId(orderId);
+    try {
+      await ordersApi.setStatus(orderId, status);
+      loadOrders();
+    } catch {
+      setError('Failed to update order status');
+    } finally {
+      setStatusChangingId(null);
+    }
+  };
 
   const [activeTab, setActiveTab] = useState<Tab>('active');
   const [coinFilter, setCoinFilter] = useState('');
@@ -84,7 +102,7 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
   const filteredOrders = useMemo(() => {
     let list = orders.filter((o) => {
       if (activeTab === 'active') return o.status === 'open';
-      return o.status === 'filled' || o.status === 'cancelled';
+      return true; // History: show all orders (open, filled, cancelled)
     });
     if (coinFilter) {
       list = list.filter((o) => o.symbol === coinFilter);
@@ -125,30 +143,30 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
 
   const coins = useMemo(() => Array.from(new Set(orders.map((o) => o.symbol))).sort(), [orders]);
 
-  const SortHeader = ({ field, label }: { field: SortField; label: string }) => {
+  const SortHeader = ({ field, label, align = 'left' }: { field: SortField; label: string; align?: 'left' | 'right' }) => {
     const active = sort.by === field;
     return (
       <button
         type="button"
         onClick={() => handleSort(field)}
-        className={`${sortButtonBase} ${active ? 'ring-1 ring-emerald-500/30' : ''}`}
+        className={`${sortButtonBase} w-full min-w-0 ${align === 'right' ? 'justify-end' : 'justify-start'} ${active ? 'ring-1 ring-emerald-500/30' : ''}`}
       >
         {label}
-        {active && <span>{sort.order === 'asc' ? '↑' : '↓'}</span>}
+        {active && <span className="shrink-0">{sort.order === 'asc' ? '↑' : '↓'}</span>}
       </button>
     );
   };
 
   return (
     <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 overflow-hidden group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80">
-      <div className="flex border-b border-slate-700/80 group-data-[theme=light]:border-slate-200">
+      <div className="flex gap-2 p-4 border-b border-slate-700/80 group-data-[theme=light]:border-slate-200">
         <button
           type="button"
           onClick={() => setActiveTab('active')}
-          className={`px-4 py-3 text-sm font-medium transition-colors ${
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none ${
             activeTab === 'active'
-              ? 'bg-emerald-500/15 text-emerald-400 border-b-2 border-emerald-500'
-              : 'text-slate-400 hover:text-white group-data-[theme=light]:hover:text-slate-900'
+              ? 'bg-emerald-500/20 text-emerald-300 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800'
+              : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800'
           }`}
         >
           Active Orders
@@ -156,10 +174,10 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
         <button
           type="button"
           onClick={() => setActiveTab('history')}
-          className={`px-4 py-3 text-sm font-medium transition-colors ${
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none ${
             activeTab === 'history'
-              ? 'bg-emerald-500/15 text-emerald-400 border-b-2 border-emerald-500'
-              : 'text-slate-400 hover:text-white group-data-[theme=light]:hover:text-slate-900'
+              ? 'bg-emerald-500/20 text-emerald-300 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800'
+              : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800'
           }`}
         >
           Order History
@@ -211,23 +229,26 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-700/80 group-data-[theme=light]:border-slate-200">
-              <th className="text-left py-2 px-4">
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="symbol" label="Coin" />
               </th>
-              <th className="text-left py-2 px-4">
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="orderType" label="Order Type" />
               </th>
-              <th className="text-right py-2 px-4">
-                <SortHeader field="amount" label="Amount" />
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                <SortHeader field="amount" label="Amount" align="right" />
               </th>
-              <th className="text-right py-2 px-4">
-                <SortHeader field="price" label="Price" />
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                <SortHeader field="price" label="Price" align="right" />
               </th>
-              <th className="text-left py-2 px-4">
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
                 <SortHeader field="status" label="Status" />
               </th>
-              <th className="text-left py-2 px-4">
-                <SortHeader field="createdAt" label="Date" />
+              <th className="text-right py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                <SortHeader field="createdAt" label="Date" align="right" />
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                Actions
               </th>
             </tr>
           </thead>
@@ -237,19 +258,19 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
                 key={o.id}
                 className="border-b border-slate-800/80 hover:bg-slate-800/60 group-data-[theme=light]:border-slate-100 group-data-[theme=light]:hover:bg-slate-50"
               >
-                <td className="py-3 px-4 font-medium text-white group-data-[theme=light]:text-slate-900">
+                <td className="py-3 px-4 text-left font-medium text-white group-data-[theme=light]:text-slate-900">
                   {o.symbol}
                 </td>
-                <td className="py-3 px-4 text-slate-300 group-data-[theme=light]:text-slate-700 capitalize">
+                <td className="py-3 px-4 text-left text-slate-300 group-data-[theme=light]:text-slate-700 capitalize">
                   {o.orderType.replace('-', ' ')}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-slate-300 group-data-[theme=light]:text-slate-700">
-                  {o.amount}
+                <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-300 group-data-[theme=light]:text-slate-700">
+                  {typeof o.amount === 'number' ? o.amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 8 }) : o.amount}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-slate-300 group-data-[theme=light]:text-slate-700">
-                  {o.price != null ? o.price.toLocaleString() : 'Market'}
+                <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-300 group-data-[theme=light]:text-slate-700">
+                  {o.price != null ? o.price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : 'Market'}
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-3 px-4 text-left">
                   <span
                     className={`capitalize ${
                       o.status === 'open'
@@ -262,8 +283,31 @@ export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
                     {o.status}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-slate-400 group-data-[theme=light]:text-slate-600 text-xs">
+                <td className="py-3 px-4 text-right text-slate-400 group-data-[theme=light]:text-slate-600 text-xs tabular-nums whitespace-nowrap">
                   {new Date(o.createdAt).toLocaleString()}
+                </td>
+                <td className="py-3 px-4">
+                  {(o.status === 'open' || o.status === 'cancelled') && (
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v) handleSetStatus(o.id, v);
+                        e.target.value = '';
+                      }}
+                      disabled={statusChangingId === o.id}
+                      className="rounded border border-slate-600 bg-slate-800/80 px-2 py-1 text-xs text-white focus:border-emerald-500 focus:outline-none group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
+                    >
+                      <option value="">Set status…</option>
+                      {o.status === 'open' && (
+                        <>
+                          <option value="filled">Mark Filled</option>
+                          <option value="cancelled">Cancel</option>
+                        </>
+                      )}
+                      {o.status === 'cancelled' && <option value="open">Reopen</option>}
+                    </select>
+                  )}
                 </td>
               </tr>
             ))}

@@ -184,6 +184,7 @@ model BalanceTransaction {
 model Order {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
+  marketType      String    @default("spot") @map("market_type") // spot, futures
   symbol          String
   side            String // buy, sell
   orderType       String    @map("order_type") // limit, market

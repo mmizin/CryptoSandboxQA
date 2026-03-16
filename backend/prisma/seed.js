@@ -27,9 +27,18 @@ const DEMO_USERS = [
   { email: 'qa@example.com', password: 'qa123', displayName: 'QA Tester' },
 ];
 
-const TICKERS = [
-  { symbol: 'BTC_USD', lastPrice: 50000, volume24h: 0 },
-  { symbol: 'ETH_USD', lastPrice: 3000, volume24h: 0 },
+// Trading pairs + tickers for Spot/Futures. Add more symbols here to enable trading.
+const TRADING_PAIRS_CONFIG = [
+  { symbol: 'BTC_USD', baseSymbol: 'BTC', quoteSymbol: 'USD', lastPrice: 97500 },
+  { symbol: 'ETH_USD', baseSymbol: 'ETH', quoteSymbol: 'USD', lastPrice: 3650 },
+  { symbol: 'SOL_USD', baseSymbol: 'SOL', quoteSymbol: 'USD', lastPrice: 235 },
+  { symbol: 'XRP_USD', baseSymbol: 'XRP', quoteSymbol: 'USD', lastPrice: 2.45 },
+  { symbol: 'BNB_USD', baseSymbol: 'BNB', quoteSymbol: 'USD', lastPrice: 715 },
+  { symbol: 'ADA_USD', baseSymbol: 'ADA', quoteSymbol: 'USD', lastPrice: 1.12 },
+  { symbol: 'DOGE_USD', baseSymbol: 'DOGE', quoteSymbol: 'USD', lastPrice: 0.38 },
+  { symbol: 'AVAX_USD', baseSymbol: 'AVAX', quoteSymbol: 'USD', lastPrice: 42 },
+  { symbol: 'LINK_USD', baseSymbol: 'LINK', quoteSymbol: 'USD', lastPrice: 18.5 },
+  { symbol: 'LTC_USD', baseSymbol: 'LTC', quoteSymbol: 'USD', lastPrice: 95 },
 ];
 
 const ASSET_DEFS = [
@@ -37,14 +46,17 @@ const ASSET_DEFS = [
   { symbol: 'EUR', name: 'Euro', assetType: 'fiat', walletAddress: null },
   { symbol: 'BTC', name: 'Bitcoin', assetType: 'crypto', walletAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
   { symbol: 'ETH', name: 'Ethereum', assetType: 'crypto', walletAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
+  { symbol: 'SOL', name: 'Solana', assetType: 'crypto', walletAddress: null },
+  { symbol: 'XRP', name: 'XRP', assetType: 'crypto', walletAddress: null },
+  { symbol: 'BNB', name: 'BNB', assetType: 'crypto', walletAddress: null },
+  { symbol: 'ADA', name: 'Cardano', assetType: 'crypto', walletAddress: null },
+  { symbol: 'DOGE', name: 'Dogecoin', assetType: 'crypto', walletAddress: null },
+  { symbol: 'AVAX', name: 'Avalanche', assetType: 'crypto', walletAddress: null },
+  { symbol: 'LINK', name: 'Chainlink', assetType: 'crypto', walletAddress: null },
+  { symbol: 'LTC', name: 'Litecoin', assetType: 'crypto', walletAddress: null },
 ];
 
-const TRADING_PAIRS = [
-  { symbol: 'BTC_USD', baseSymbol: 'BTC', quoteSymbol: 'USD' },
-  { symbol: 'ETH_USD', baseSymbol: 'ETH', quoteSymbol: 'USD' },
-];
-
-const DEMO_BALANCES = { BTC: 0.5, ETH: 5, USD: 10000 };
+const DEMO_BALANCES = { BTC: 0.5, ETH: 5, SOL: 10, XRP: 1000, BNB: 1, ADA: 500, DOGE: 10000, AVAX: 50, LINK: 100, LTC: 5, USD: 10000 };
 
 // 100+ cryptocurrencies for Markets pages
 const CRYPTOS = [
@@ -214,7 +226,7 @@ async function main() {
   console.log(`  → ${ASSET_DEFS.length} assets`);
 
   // 2. Create trading pairs
-  for (const tp of TRADING_PAIRS) {
+  for (const tp of TRADING_PAIRS_CONFIG) {
     await prisma.tradingPair.upsert({
       where: { symbol: tp.symbol },
       create: {
@@ -225,17 +237,17 @@ async function main() {
       update: {},
     });
   }
-  console.log(`  → ${TRADING_PAIRS.length} trading pairs`);
+  console.log(`  → ${TRADING_PAIRS_CONFIG.length} trading pairs`);
 
-  // 3. Create tickers
-  for (const t of TICKERS) {
+  // 3. Create tickers (required for market orders - last price)
+  for (const tp of TRADING_PAIRS_CONFIG) {
     await prisma.ticker.upsert({
-      where: { symbol: t.symbol },
-      create: t,
-      update: { lastPrice: t.lastPrice },
+      where: { symbol: tp.symbol },
+      create: { symbol: tp.symbol, lastPrice: tp.lastPrice, volume24h: 0 },
+      update: { lastPrice: tp.lastPrice },
     });
   }
-  console.log(`  → ${TICKERS.length} tickers`);
+  console.log(`  → ${TRADING_PAIRS_CONFIG.length} tickers`);
 
   // 4. Create users and user_balances
   for (const u of DEMO_USERS) {

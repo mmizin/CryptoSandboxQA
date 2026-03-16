@@ -53,12 +53,13 @@ export default function TradeSpotPage() {
             <TradePriceChart coin={selectedCoin} />
             <TradeOrderEntry
               selectedCoin={selectedCoin}
+              marketType="spot"
               onOrderSubmitted={() => setOrdersRefreshKey((k) => k + 1)}
             />
           </div>
         </div>
 
-        <TradeOrdersTabs refreshTrigger={ordersRefreshKey} />
+        <TradeOrdersTabs marketType="spot" refreshTrigger={ordersRefreshKey} />
       </div>
     </main>
   );

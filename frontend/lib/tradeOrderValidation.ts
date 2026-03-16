@@ -9,6 +9,7 @@ export interface OrderFormState {
   orderType: OrderType;
   side: 'buy' | 'sell';
   amount: string;
+  amountInUsd: boolean; // true = amount is USD to spend (buy only), false = amount is crypto quantity
   price: string;
   stopPrice: string;
 }
@@ -70,7 +71,15 @@ export function validateOrderForm(
   if (!amountErr && !isNaN(amount) && amount > 0) {
     const base = baseSymbol || 'BTC';
     if (state.side === 'buy') {
-      const cost = state.orderType === 'market' ? amount * currentPrice : amount * parseFloat(state.price || '0');
+      let cost: number;
+      let quantity: number;
+      if (state.amountInUsd) {
+        cost = amount;
+        quantity = currentPrice > 0 ? amount / currentPrice : 0;
+      } else {
+        quantity = amount;
+        cost = state.orderType === 'market' ? amount * currentPrice : amount * parseFloat(state.price || '0');
+      }
       const balance = balances[quoteSymbol] ?? 0;
       if (cost > balance) {
         errors.balance = `Insufficient ${quoteSymbol} balance. Available: ${balance.toLocaleString()}`;

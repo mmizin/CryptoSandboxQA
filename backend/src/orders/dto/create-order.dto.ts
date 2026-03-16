@@ -1,10 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsPositive, IsString, Matches } from 'class-validator';
 
 export class CreateOrderDto {
-  @ApiProperty({ enum: ['BTC_USD', 'ETH_USD'], example: 'BTC_USD' })
-  @IsIn(['BTC_USD', 'ETH_USD'])
+  @ApiProperty({ example: 'BTC_USD', description: 'Trading pair (BASE_QUOTE format)' })
+  @IsString()
+  @Matches(/^[A-Z0-9]+_[A-Z0-9]+$/, { message: 'Symbol must be in BASE_QUOTE format (e.g. BTC_USD)' })
   symbol: string;
+
+  @ApiPropertyOptional({ enum: ['spot', 'futures'], default: 'spot', description: 'Market type' })
+  @IsOptional()
+  @IsIn(['spot', 'futures'])
+  marketType?: string;
 
   @ApiProperty({ enum: ['buy', 'sell'], example: 'buy' })
   @IsIn(['buy', 'sell'])
@@ -24,4 +30,12 @@ export class CreateOrderDto {
   @IsNumber()
   @IsPositive()
   price?: number;
+
+  @ApiPropertyOptional({
+    enum: ['open', 'filled', 'cancelled'],
+    description: 'Initial order status for testing (no counterparty). Default: open',
+  })
+  @IsOptional()
+  @IsIn(['open', 'filled', 'cancelled'])
+  initialStatus?: string;
 }

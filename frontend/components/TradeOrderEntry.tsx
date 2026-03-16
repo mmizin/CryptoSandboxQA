@@ -9,25 +9,26 @@ import {
 import { type TradeCoin } from '@/lib/tradeMockData';
 import { ordersApi, walletsApi } from '@/lib/api';
 
-const TRADABLE_SYMBOLS = ['BTC', 'ETH'];
-
 interface TradeOrderEntryProps {
   selectedCoin: TradeCoin | null;
+  marketType?: 'spot' | 'futures';
   onOrderSubmitted?: () => void;
 }
 
 const buttonBase =
-  'rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800';
+  'rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700';
 
-export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEntryProps) {
+export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubmitted }: TradeOrderEntryProps) {
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('');
+  const [amountInUsd, setAmountInUsd] = useState(false);
   const [price, setPrice] = useState('');
   const [stopPrice, setStopPrice] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [initialStatus, setInitialStatus] = useState<'open' | 'filled' | 'cancelled'>('open');
   const [balances, setBalances] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -56,10 +57,6 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
     }
 
     const symbol = selectedCoin.symbol.toUpperCase();
-    if (!TRADABLE_SYMBOLS.includes(symbol)) {
-      setError(`Trading available only for ${TRADABLE_SYMBOLS.join(' and ')}`);
-      return;
-    }
 
     if (orderType === 'stop-limit') {
       setError('Stop-limit orders are not yet supported. Use limit order.');
@@ -70,6 +67,7 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
       orderType,
       side,
       amount,
+      amountInUsd: side === 'buy' && amountInUsd,
       price,
       stopPrice,
     };
@@ -88,14 +86,21 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
       return;
     }
 
+    const quantity =
+      side === 'buy' && amountInUsd && currentPrice > 0
+        ? Math.round((parseFloat(amount) / currentPrice) * 1e8) / 1e8
+        : parseFloat(amount);
+
     setSubmitLoading(true);
     try {
       await ordersApi.create({
         symbol: `${symbol}_USD`,
         side,
         type: orderType,
-        quantity: parseFloat(amount),
+        quantity,
         price: orderType === 'limit' ? parseFloat(price) : undefined,
+        marketType,
+        initialStatus: initialStatus !== 'open' ? initialStatus : undefined,
       });
       setSuccess('Order placed successfully');
       setAmount('');
@@ -138,10 +143,10 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
               key={t}
               type="button"
               onClick={() => setOrderType(t)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg capitalize transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg capitalize transition-colors border-0 outline-none focus:outline-none ${
                 orderType === t
-                  ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
-                  : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
+                  ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800'
+                  : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800'
               }`}
             >
               {t.replace('-', ' ')}
@@ -152,10 +157,10 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
           <button
             type="button"
             onClick={() => setSide('buy')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
               side === 'buy'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                : 'bg-slate-800/50 text-slate-400 border border-slate-600 group-data-[theme=light]:border-slate-300'
+                ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800'
+                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
             }`}
           >
             Buy
@@ -163,24 +168,37 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
           <button
             type="button"
             onClick={() => setSide('sell')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
               side === 'sell'
-                ? 'bg-red-500/20 text-red-400 border border-red-500/40'
-                : 'bg-slate-800/50 text-slate-400 border border-slate-600 group-data-[theme=light]:border-slate-300'
+                ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
+                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
             }`}
           >
             Sell
           </button>
         </div>
         <div>
-          <label className="block text-xs text-slate-400 mb-1 group-data-[theme=light]:text-slate-600">
-            Amount
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
+              Amount
+            </label>
+            {side === 'buy' && (
+              <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer group-data-[theme=light]:text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={amountInUsd}
+                  onChange={(e) => setAmountInUsd(e.target.checked)}
+                  className="rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
+                />
+                <span>in USD</span>
+              </label>
+            )}
+          </div>
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
+            placeholder={side === 'buy' && amountInUsd ? '0.00 (USD to spend)' : `0.00 (${selectedCoin?.symbol ?? 'crypto'})`}
             step="any"
             min="0"
             required
@@ -221,6 +239,20 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
             />
           </div>
         )}
+        <div>
+          <label className="block text-xs text-slate-400 mb-1 group-data-[theme=light]:text-slate-600">
+            Order status (testing)
+          </label>
+          <select
+            value={initialStatus}
+            onChange={(e) => setInitialStatus(e.target.value as 'open' | 'filled' | 'cancelled')}
+            className={inputClass}
+          >
+            <option value="open">Open</option>
+            <option value="filled">Filled</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         {success && <p className="text-sm text-emerald-400">{success}</p>}
         <div className="flex gap-2 pt-1">

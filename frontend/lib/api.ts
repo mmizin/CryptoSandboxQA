@@ -150,17 +150,19 @@ export const cryptosApi = {
 };
 
 export const ordersApi = {
-  list: (params?: { status?: string; symbol?: string; from?: string; to?: string; limit?: number; offset?: number }) => {
+  list: (params?: { marketType?: string; status?: string; symbol?: string; from?: string; to?: string; limit?: number; offset?: number }) => {
     const filtered = Object.fromEntries(
       Object.entries(params || {}).filter(([, v]) => v != null && v !== '')
     );
     const q = new URLSearchParams(filtered as Record<string, string>).toString();
     return api<{ data: unknown[]; total: number }>(`/orders${q ? `?${q}` : ''}`);
   },
-  create: (data: { symbol: string; side: string; type: string; quantity: number; price?: number }) =>
+  create: (data: { symbol: string; side: string; type: string; quantity: number; price?: number; marketType?: string; initialStatus?: string }) =>
     api('/orders', { method: 'POST', body: JSON.stringify(data) }),
   cancel: (orderId: string) =>
     api(`/orders/${orderId}/cancel`, { method: 'POST' }),
+  setStatus: (orderId: string, status: string) =>
+    api(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };
 
 export const twoFactorApi = {

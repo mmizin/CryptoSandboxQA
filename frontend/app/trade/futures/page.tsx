@@ -42,7 +42,7 @@ export default function TradeFuturesPage() {
           </h1>
         </div>
         <p className="text-slate-400 group-data-[theme=light]:text-slate-600 mb-6">
-          Select a coin to view chart and place orders. Orders use the same spot engine (BTC, ETH).
+          Select a coin to view chart and place orders.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-3 mb-6">
@@ -53,12 +53,13 @@ export default function TradeFuturesPage() {
             <TradePriceChart coin={selectedCoin} />
             <TradeOrderEntry
               selectedCoin={selectedCoin}
+              marketType="futures"
               onOrderSubmitted={() => setOrdersRefreshKey((k) => k + 1)}
             />
           </div>
         </div>
 
-        <TradeOrdersTabs refreshTrigger={ordersRefreshKey} />
+        <TradeOrdersTabs marketType="futures" refreshTrigger={ordersRefreshKey} />
       </div>
     </main>
   );

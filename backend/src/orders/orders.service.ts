@@ -4,8 +4,6 @@ import { WalletsService } from '../wallets/wallets.service';
 import { MatchingService } from './matching.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
-const SYMBOLS = ['BTC_USD', 'ETH_USD'] as const;
-
 @Injectable()
 export class OrdersService {
   constructor(
@@ -16,10 +14,26 @@ export class OrdersService {
 
   async create(
     userId: string,
-    data: { symbol: string; side: string; type: string; quantity: number; price?: number },
+    data: {
+      symbol: string;
+      side: string;
+      type: string;
+      quantity: number;
+      price?: number;
+      marketType?: string;
+      initialStatus?: string;
+    },
   ) {
-    if (!SYMBOLS.includes(data.symbol as typeof SYMBOLS[number])) {
-      throw new BadRequestException(`Invalid symbol. Allowed: ${SYMBOLS.join(', ')}`);
+    const pair = await this.prisma.tradingPair.findFirst({
+      where: { symbol: data.symbol, isActive: true },
+    });
+    if (!pair) {
+      const pairs = await this.prisma.tradingPair.findMany({
+        where: { isActive: true },
+        select: { symbol: true },
+      });
+      const allowed = pairs.map((p) => p.symbol).join(', ') || 'none configured';
+      throw new BadRequestException(`Invalid symbol. Allowed: ${allowed}`);
     }
     if (!['buy', 'sell'].includes(data.side)) {
       throw new BadRequestException('Side must be buy or sell');
@@ -32,39 +46,150 @@ export class OrdersService {
       throw new BadRequestException('Limit orders require a positive price');
     }
 
+    const marketType = data.marketType ?? 'spot';
+    const initialStatus = data.initialStatus ?? 'open';
+
     const [base, quote] = data.symbol.split('_');
-    if (data.side === 'sell') {
-      const balance = await this.walletsService.getBalance(userId, base);
-      if (new Decimal(balance).lt(data.quantity)) {
-        throw new BadRequestException('Insufficient balance');
-      }
-    } else {
-      const price = data.type === 'market'
-        ? await this.matchingService.getLastPrice(data.symbol)
-        : data.price!;
-      const cost = data.quantity * Number(price);
-      const balance = await this.walletsService.getBalance(userId, quote);
-      if (new Decimal(balance).lt(cost)) {
-        throw new BadRequestException('Insufficient balance');
+    if (initialStatus !== 'cancelled') {
+      if (data.side === 'sell') {
+        const balance = await this.walletsService.getBalance(userId, base);
+        if (new Decimal(balance).lt(data.quantity)) {
+          throw new BadRequestException('Insufficient balance');
+        }
+      } else {
+        const price = data.type === 'market'
+          ? await this.matchingService.getLastPrice(data.symbol)
+          : data.price!;
+        const cost = data.quantity * Number(price);
+        const balance = await this.walletsService.getBalance(userId, quote);
+        if (new Decimal(balance).lt(cost)) {
+          throw new BadRequestException('Insufficient balance');
+        }
       }
     }
 
-    const order = await this.prisma.order.create({
-      data: {
-        userId,
-        symbol: data.symbol,
-        side: data.side,
-        orderType: data.type,
-        quantity: data.quantity,
-        price: data.price != null ? data.price : null,
-        filledQuantity: 0,
-        orderStatus: 'open',
-      },
-    });
+    let order;
+    if (initialStatus === 'filled') {
+      const price =
+        data.type === 'market'
+          ? Number(await this.matchingService.getLastPrice(data.symbol))
+          : data.price!;
+      const cost = data.quantity * price;
+      const [base, quoteAsset] = data.symbol.split('_');
 
-    await this.matchingService.matchOrder(order.id);
+      order = await this.prisma.order.create({
+        data: {
+          userId,
+          marketType,
+          symbol: data.symbol,
+          side: data.side,
+          orderType: data.type,
+          quantity: data.quantity,
+          price: data.price != null ? data.price : price,
+          filledQuantity: data.quantity,
+          orderStatus: 'filled',
+          completedAt: new Date(),
+        },
+      });
+
+      if (data.side === 'buy') {
+        await this.walletsService.credit(userId, base, data.quantity);
+        await this.walletsService.debit(userId, quoteAsset, cost);
+      } else {
+        await this.walletsService.debit(userId, base, data.quantity);
+        await this.walletsService.credit(userId, quoteAsset, cost);
+      }
+    } else if (initialStatus === 'cancelled') {
+      order = await this.prisma.order.create({
+        data: {
+          userId,
+          marketType,
+          symbol: data.symbol,
+          side: data.side,
+          orderType: data.type,
+          quantity: data.quantity,
+          price: data.price != null ? data.price : null,
+          filledQuantity: 0,
+          orderStatus: 'cancelled',
+          completedAt: new Date(),
+        },
+      });
+    } else {
+      order = await this.prisma.order.create({
+        data: {
+          userId,
+          marketType,
+          symbol: data.symbol,
+          side: data.side,
+          orderType: data.type,
+          quantity: data.quantity,
+          price: data.price != null ? data.price : null,
+          filledQuantity: 0,
+          orderStatus: 'open',
+        },
+      });
+      await this.matchingService.matchOrder(order.id);
+    }
+
     const updated = await this.prisma.order.findUnique({
       where: { id: order.id },
+      include: { tradesAsTaker: true, tradesAsMaker: true },
+    });
+    return updated ? this.mapOrderForResponse(updated) : null;
+  }
+
+  async setStatus(userId: string, orderId: string, status: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+    });
+    if (!order) throw new BadRequestException('Order not found');
+    if (!['open', 'filled', 'cancelled'].includes(status)) {
+      throw new BadRequestException('Status must be open, filled, or cancelled');
+    }
+
+    if (status === 'filled') {
+      if (order.orderStatus === 'filled') throw new BadRequestException('Order is already filled');
+      const [base, quote] = order.symbol.split('_');
+      const price = order.price != null ? Number(order.price) : Number(await this.matchingService.getLastPrice(order.symbol));
+      const cost = Number(order.quantity) * price;
+      const qty = Number(order.quantity);
+
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          filledQuantity: order.quantity,
+          orderStatus: 'filled',
+          completedAt: new Date(),
+        },
+      });
+
+      if (order.side === 'buy') {
+        await this.walletsService.credit(userId, base, qty);
+        await this.walletsService.debit(userId, quote, cost);
+      } else {
+        await this.walletsService.debit(userId, base, qty);
+        await this.walletsService.credit(userId, quote, cost);
+      }
+    } else if (status === 'cancelled') {
+      if (order.orderStatus !== 'open') {
+        throw new BadRequestException('Only open orders can be cancelled');
+      }
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { orderStatus: 'cancelled', completedAt: new Date() },
+      });
+    } else if (status === 'open') {
+      if (order.orderStatus !== 'cancelled') {
+        throw new BadRequestException('Only cancelled orders can be reopened (testing)');
+      }
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { orderStatus: 'open', completedAt: null, filledQuantity: 0 },
+      });
+    }
+
+    const updated = await this.prisma.order.findUnique({
+      where: { id: orderId },
       include: { tradesAsTaker: true, tradesAsMaker: true },
     });
     return updated ? this.mapOrderForResponse(updated) : null;
@@ -89,6 +214,7 @@ export class OrdersService {
   async findByUser(
     userId: string,
     filters?: {
+      marketType?: string;
       status?: string;
       symbol?: string;
       from?: string;
@@ -102,11 +228,13 @@ export class OrdersService {
 
     const where: {
       userId: string;
+      marketType?: string;
       orderStatus?: string;
       symbol?: string;
       createdAt?: { gte?: Date; lte?: Date };
     } = { userId };
 
+    if (filters?.marketType) where.marketType = filters.marketType;
     if (filters?.status) where.orderStatus = filters.status;
     if (filters?.symbol) where.symbol = filters.symbol;
     if (filters?.from || filters?.to) {

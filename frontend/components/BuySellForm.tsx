@@ -39,8 +39,6 @@ const initialState: FormState = {
   cvv: '',
 };
 
-const TRADABLE_SYMBOLS = ['BTC', 'ETH'] as const;
-
 export function BuySellForm() {
   const { user } = useAuth(false);
   const [mode, setMode] = useState<'buy' | 'sell'>('buy');
@@ -93,13 +91,6 @@ export function BuySellForm() {
       return;
     }
     const symbol = state.currency.toUpperCase();
-    if (!TRADABLE_SYMBOLS.includes(symbol as (typeof TRADABLE_SYMBOLS)[number])) {
-      setSubmitMessage({
-        type: 'error',
-        text: `Trading is only available for ${TRADABLE_SYMBOLS.join(' and ')}.`,
-      });
-      return;
-    }
 
     setErrors({});
     setSubmitLoading(true);

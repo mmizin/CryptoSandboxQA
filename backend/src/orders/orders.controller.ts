@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { SetOrderStatusDto } from './dto/set-order-status.dto';
 
 @ApiTags('orders')
 @ApiBearerAuth()
@@ -24,7 +25,18 @@ export class OrdersController {
       type: dto.type,
       quantity: dto.quantity,
       price: dto.price,
+      marketType: dto.marketType,
+      initialStatus: dto.initialStatus,
     });
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Set order status (testing)' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  @ApiBody({ type: SetOrderStatusDto })
+  @ApiResponse({ status: 200, description: 'Returns updated order' })
+  async setStatus(@CurrentUser() user: { id: string }, @Param('id') orderId: string, @Body() dto: SetOrderStatusDto) {
+    return this.ordersService.setStatus(user.id, orderId, dto.status);
   }
 
   @Post(':id/cancel')
@@ -37,6 +49,7 @@ export class OrdersController {
 
   @Get()
   @ApiOperation({ summary: 'List orders' })
+  @ApiQuery({ name: 'marketType', required: false, description: 'Filter by market: spot or futures' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'symbol', required: false })
   @ApiQuery({ name: 'from', required: false, description: 'ISO date' })
@@ -46,6 +59,7 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Returns filtered orders' })
   async list(
     @CurrentUser() user: { id: string },
+    @Query('marketType') marketType?: string,
     @Query('status') status?: string,
     @Query('symbol') symbol?: string,
     @Query('from') from?: string,
@@ -54,6 +68,7 @@ export class OrdersController {
     @Query('offset') offset?: string,
   ) {
     return this.ordersService.findByUser(user.id, {
+      marketType,
       status,
       symbol,
       from,
