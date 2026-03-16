@@ -107,8 +107,8 @@ export function TradingCharts() {
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'rgb(226 232 240)' }}
-                formatter={(value: number) => [
-                  `${formatVolume(value)} (${totalVolume > 0 ? ((value / totalVolume) * 100).toFixed(1) : 0}%)`,
+                formatter={(value) => [
+                  `${formatVolume(Number(value ?? 0))} (${totalVolume > 0 ? ((Number(value ?? 0) / totalVolume) * 100).toFixed(1) : 0}%)`,
                   'Volume',
                 ]}
               />
@@ -144,7 +144,7 @@ export function TradingCharts() {
                   border: '1px solid rgb(51 65 85)',
                   borderRadius: '8px',
                 }}
-                formatter={(value: number) => formatVolume(value)}
+                formatter={(value) => formatVolume(Number(value ?? 0))}
                 labelFormatter={(label) => `${label} - 24h Vol`}
               />
               <Bar dataKey="volume" fill="#10b981" radius={[0, 4, 4, 0]} maxBarSize={24} />

@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
   const quickActions = [
     { href: '/profile', label: 'Profile', desc: 'Edit your photo and account info' },
-    { href: '/market', label: 'Trade spot', desc: 'Place orders on the market' },
+    { href: '/trade/spot', label: 'Trade spot', desc: 'Place orders on the market' },
     { href: '/markets/prices', label: 'View prices', desc: 'Crypto prices and rankings' },
     { href: '/buy-crypto', label: 'Buy crypto', desc: 'Buy and sell with ease' },
     { href: '/deposit-cash', label: 'Deposit cash', desc: 'Add funds to your balance' },
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <h2 className={cardTitle}>Open Orders</h2>
             <div className="flex gap-2">
-              <Link href="/market" className={buttonBase}>
+              <Link href="/trade/spot" className={buttonBase}>
                 Market
               </Link>
               <Link href="/history" className={buttonBase}>

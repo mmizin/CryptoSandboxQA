@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -66,8 +66,6 @@ const tooltipStyle = {
 };
 
 export function DashboardCharts({ wallets, loading = false }: DashboardChartsProps) {
-  const [pieActiveIndex, setPieActiveIndex] = useState<number | undefined>();
-
   const pieData = useMemo(() => {
     const values = wallets.map((w) => Math.max(0, parseFloat(w.balance)));
     const total = values.reduce((s, v) => s + v, 0) || 1;
@@ -170,9 +168,6 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
                     innerRadius={40}
                     outerRadius={70}
                     paddingAngle={2}
-                    activeIndex={pieActiveIndex}
-                    onMouseEnter={(_, i) => setPieActiveIndex(i)}
-                    onMouseLeave={() => setPieActiveIndex(undefined)}
                   >
                     {pieData.map((e, i) => (
                       <Cell key={e.name} fill={e.fill} stroke="transparent" data-testid={`pie-segment-${e.name}`} />
@@ -180,8 +175,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
                   </Pie>
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    formatter={(value: number, name: string, props: { payload: { percent: string } }) => [
-                      `${Number(value).toFixed(4)} (${props.payload.percent}%)`,
+                    formatter={(value, name, props) => [
+                      `${Number(value ?? 0).toFixed(4)} (${(props?.payload as { percent?: string })?.percent ?? '0'}%)`,
                       name,
                     ]}
                   />
@@ -212,7 +207,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
                 <BarChart data={barData} layout="vertical" margin={{ left: 0, right: 20 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="asset" width={36} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [Number(v).toFixed(4), 'Balance']} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [Number(v ?? 0).toFixed(4), 'Balance']} />
                   <Bar dataKey="balance" radius={[0, 4, 4, 0]} maxBarSize={28} fill="#10b981" />
                 </BarChart>
               </ResponsiveContainer>
