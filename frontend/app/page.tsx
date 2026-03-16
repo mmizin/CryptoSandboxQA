@@ -3,29 +3,73 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api';
+import { authApi, twoFactorApi } from '@/lib/api';
+import { TwoFactorVerificationModal } from '@/components/TwoFactorVerificationModal';
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [show2fa, setShow2fa] = useState(false);
+  const [twoFaError, setTwoFaError] = useState('');
+  const [resendSuccess, setResendSuccess] = useState(false);
   const router = useRouter();
+
+  const performLogin = async () => {
+    const { access_token } = await authApi.login(email, password);
+    localStorage.setItem('token', access_token);
+    router.push('/dashboard');
+    router.refresh();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { access_token } = await authApi.login(email, password);
-      localStorage.setItem('token', access_token);
-      router.push('/dashboard');
-      router.refresh();
+      if (twoFactorApi.is2FaRequired()) {
+        setShow2fa(true);
+        setLoading(false);
+        return;
+      }
+      await performLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handle2faSubmit = async (code: string) => {
+    setTwoFaError('');
+    setLoading(true);
+    try {
+      const result = await twoFactorApi.verify(
+        { tempToken: '', code },
+        { email, password }
+      );
+      setShow2fa(false);
+      localStorage.setItem('token', result.access_token);
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err) {
+      setTwoFaError(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handle2faResend = async () => {
+    setTwoFaError('');
+    setResendSuccess(true);
+    setTimeout(() => setResendSuccess(false), 3000);
+  };
+
+  const handle2faClose = () => {
+    setShow2fa(false);
+    setTwoFaError('');
+    setResendSuccess(false);
   };
 
   return (
@@ -152,6 +196,16 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <TwoFactorVerificationModal
+        isOpen={show2fa}
+        onClose={handle2faClose}
+        onSubmit={handle2faSubmit}
+        onResend={handle2faResend}
+        loading={loading}
+        error={twoFaError}
+        resendSuccess={resendSuccess}
+      />
     </div>
   );
 }
