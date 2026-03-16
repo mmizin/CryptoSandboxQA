@@ -584,6 +584,15 @@
         "summary": "List orders",
         "parameters": [
           {
+            "name": "marketType",
+            "required": false,
+            "in": "query",
+            "description": "Filter by market: spot or futures",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "status",
             "required": false,
             "in": "query",
@@ -637,6 +646,46 @@
         "responses": {
           "200": {
             "description": "Returns filtered orders"
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "patch": {
+        "operationId": "OrdersController_setStatus",
+        "summary": "Set order status (testing)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns updated order"
           }
         },
         "tags": [
@@ -1532,6 +1581,7 @@
             "type": "string",
             "enum": [
               "USD",
+              "EUR",
               "BTC",
               "ETH"
             ],
@@ -1553,11 +1603,17 @@
         "properties": {
           "symbol": {
             "type": "string",
+            "example": "BTC_USD",
+            "description": "Trading pair (BASE_QUOTE format)"
+          },
+          "marketType": {
+            "type": "string",
             "enum": [
-              "BTC_USD",
-              "ETH_USD"
+              "spot",
+              "futures"
             ],
-            "example": "BTC_USD"
+            "default": "spot",
+            "description": "Market type"
           },
           "side": {
             "type": "string",
@@ -1585,6 +1641,15 @@
             "example": 50000,
             "minimum": 0,
             "description": "Required for limit orders"
+          },
+          "initialStatus": {
+            "type": "string",
+            "enum": [
+              "open",
+              "filled",
+              "cancelled"
+            ],
+            "description": "Initial order status for testing (no counterparty). Default: open"
           }
         },
         "required": [
@@ -1592,6 +1657,23 @@
           "side",
           "type",
           "quantity"
+        ]
+      },
+      "SetOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "filled",
+              "cancelled"
+            ],
+            "description": "Target status (testing only)"
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "DepositFiatDto": {
