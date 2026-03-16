@@ -16,19 +16,29 @@ export class MatchingService {
     return ticker ? Number(ticker.lastPrice) : 0;
   }
 
-  private async getOrCreateWallet(tx: Prisma.TransactionClient, userId: string, asset: string) {
-    let w = await tx.wallet.findUnique({ where: { userId_asset: { userId, asset } } });
-    if (!w) {
-      w = await tx.wallet.create({ data: { userId, asset, balance: 0 } });
+  private async getOrCreateBalance(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    assetSymbol: string,
+  ) {
+    const asset = await tx.asset.findUnique({ where: { symbol: assetSymbol } });
+    if (!asset) throw new Error(`Asset ${assetSymbol} not found`);
+    let b = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: asset.id } },
+    });
+    if (!b) {
+      b = await tx.userBalance.create({
+        data: { userId, assetId: asset.id, balanceAvailable: 0, balanceLocked: 0 },
+      });
     }
-    return w;
+    return b;
   }
 
   async matchOrder(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
-    if (!order || order.status !== 'open') return;
+    if (!order || order.orderStatus !== 'open') return;
 
     const [base, quote] = order.symbol.split('_');
     let remaining = new Decimal(order.quantity).minus(order.filledQuantity);
@@ -42,7 +52,7 @@ export class MatchingService {
       where: {
         symbol: order.symbol,
         side: oppositeSide,
-        status: 'open',
+        orderStatus: 'open',
         id: { not: orderId },
         ...(limitPrice &&
           order.side === 'buy' && {
@@ -79,41 +89,53 @@ export class MatchingService {
 
       await this.prisma.$transaction(async (tx) => {
         await tx.trade.create({
-          data: { orderId: order.id, quantity: fillQty, price: new Decimal(matchPrice) },
+          data: {
+            symbol: order.symbol,
+            takerOrderId: order.id,
+            makerOrderId: counter.id,
+            takerUserId: order.userId,
+            makerUserId: counter.userId,
+            quantity: fillQty,
+            price: new Decimal(matchPrice),
+          },
         });
+        const newOrderStatus = remaining.eq(fillQty) ? 'filled' : 'open';
+        const newCounterStatus = counterRemaining.eq(fillQty) ? 'filled' : 'open';
         await tx.order.update({
           where: { id: order.id },
           data: {
             filledQuantity: { increment: fillQty },
-            status: remaining.eq(fillQty) ? 'filled' : 'open',
+            orderStatus: newOrderStatus,
+            ...(newOrderStatus !== 'open' && { completedAt: new Date() }),
           },
         });
         await tx.order.update({
           where: { id: counter.id },
           data: {
             filledQuantity: { increment: fillQty },
-            status: counterRemaining.eq(fillQty) ? 'filled' : 'open',
+            orderStatus: newCounterStatus,
+            ...(newCounterStatus !== 'open' && { completedAt: new Date() }),
           },
         });
 
-        const walletUpdate = async (uid: string, asset: string, delta: Decimal) => {
-          const w = await this.getOrCreateWallet(tx, uid, asset);
-          await tx.wallet.update({
-            where: { id: w.id },
-            data: { balance: { increment: delta } },
+        const balanceUpdate = async (uid: string, assetSym: string, delta: Decimal) => {
+          const b = await this.getOrCreateBalance(tx, uid, assetSym);
+          await tx.userBalance.update({
+            where: { id: b.id },
+            data: { balanceAvailable: { increment: delta } },
           });
         };
 
         if (order.side === 'buy') {
-          await walletUpdate(order.userId, base, fillQty);
-          await walletUpdate(order.userId, quote, new Decimal(-fillNum * matchPrice));
-          await walletUpdate(counter.userId, base, new Decimal(0).minus(fillQty));
-          await walletUpdate(counter.userId, quote, new Decimal(fillNum * matchPrice));
+          await balanceUpdate(order.userId, base, fillQty);
+          await balanceUpdate(order.userId, quote, new Decimal(-fillNum * matchPrice));
+          await balanceUpdate(counter.userId, base, new Decimal(0).minus(fillQty));
+          await balanceUpdate(counter.userId, quote, new Decimal(fillNum * matchPrice));
         } else {
-          await walletUpdate(order.userId, base, new Decimal(0).minus(fillQty));
-          await walletUpdate(order.userId, quote, new Decimal(fillNum * matchPrice));
-          await walletUpdate(counter.userId, base, fillQty);
-          await walletUpdate(counter.userId, quote, new Decimal(-fillNum * matchPrice));
+          await balanceUpdate(order.userId, base, new Decimal(0).minus(fillQty));
+          await balanceUpdate(order.userId, quote, new Decimal(fillNum * matchPrice));
+          await balanceUpdate(counter.userId, base, fillQty);
+          await balanceUpdate(counter.userId, quote, new Decimal(-fillNum * matchPrice));
         }
 
         await this.tickersService.setLastPrice(order.symbol, matchPrice, fillNum);

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Prisma seed: creates demo users, wallets, and tickers for QA practice.
+ * Prisma seed: creates assets, trading pairs, tickers, demo users, user_balances, and cryptos.
  * Run: npx prisma db seed (from backend/) or npm run db:seed (from root)
  */
 const path = require('path');
 const fs = require('fs');
 
-// Load root .env (project has .env at root, not in backend/)
+// Load root .env
 const envPath = path.join(__dirname, '../../.env');
 if (fs.existsSync(envPath)) {
   fs.readFileSync(envPath, 'utf8')
@@ -32,10 +32,20 @@ const TICKERS = [
   { symbol: 'ETH_USD', lastPrice: 3000, volume24h: 0 },
 ];
 
-const ASSETS = ['BTC', 'ETH', 'USD'];
+const ASSET_DEFS = [
+  { symbol: 'USD', name: 'US Dollar', assetType: 'fiat', walletAddress: null },
+  { symbol: 'BTC', name: 'Bitcoin', assetType: 'crypto', walletAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
+  { symbol: 'ETH', name: 'Ethereum', assetType: 'crypto', walletAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
+];
 
-// 100+ cryptocurrencies for Markets pages (mock data)
-// popular: true for top coins (BTC, ETH, etc.) - used for highlighting
+const TRADING_PAIRS = [
+  { symbol: 'BTC_USD', baseSymbol: 'BTC', quoteSymbol: 'USD' },
+  { symbol: 'ETH_USD', baseSymbol: 'ETH', quoteSymbol: 'USD' },
+];
+
+const DEMO_BALANCES = { BTC: 0.5, ETH: 5, USD: 10000 };
+
+// 100+ cryptocurrencies for Markets pages
 const CRYPTOS = [
   { name: 'Bitcoin', symbol: 'BTC', price: 97500, change24h: 2.34, volume24h: 48500000000, popular: true },
   { name: 'Ethereum', symbol: 'ETH', price: 3650, change24h: -1.2, volume24h: 18200000000, popular: true },
@@ -190,7 +200,33 @@ const CRYPTOS = [
 async function main() {
   console.log('Seeding database...');
 
-  // Create tickers first (no dependencies)
+  // 1. Create assets (USD, BTC, ETH)
+  const assetMap = {};
+  for (const a of ASSET_DEFS) {
+    const asset = await prisma.asset.upsert({
+      where: { symbol: a.symbol },
+      create: a,
+      update: { name: a.name, walletAddress: a.walletAddress },
+    });
+    assetMap[a.symbol] = asset.id;
+  }
+  console.log(`  → ${ASSET_DEFS.length} assets`);
+
+  // 2. Create trading pairs
+  for (const tp of TRADING_PAIRS) {
+    await prisma.tradingPair.upsert({
+      where: { symbol: tp.symbol },
+      create: {
+        symbol: tp.symbol,
+        baseAssetId: assetMap[tp.baseSymbol],
+        quoteAssetId: assetMap[tp.quoteSymbol],
+      },
+      update: {},
+    });
+  }
+  console.log(`  → ${TRADING_PAIRS.length} trading pairs`);
+
+  // 3. Create tickers
   for (const t of TICKERS) {
     await prisma.ticker.upsert({
       where: { symbol: t.symbol },
@@ -200,11 +236,11 @@ async function main() {
   }
   console.log(`  → ${TICKERS.length} tickers`);
 
-  // Create users and wallets
+  // 4. Create users and user_balances
   for (const u of DEMO_USERS) {
     const existing = await prisma.user.findUnique({
       where: { email: u.email.toLowerCase() },
-      include: { wallets: true },
+      include: { balances: true },
     });
 
     if (existing) {
@@ -221,21 +257,21 @@ async function main() {
       },
     });
 
-    // Create wallets with starter balances for QA practice
-    const balances = { BTC: 0.5, ETH: 5, USD: 10000 };
-    for (const asset of ASSETS) {
-      await prisma.wallet.create({
+    for (const asset of ASSET_DEFS) {
+      const amount = DEMO_BALANCES[asset.symbol] ?? 0;
+      await prisma.userBalance.create({
         data: {
           userId: user.id,
-          asset,
-          balance: balances[asset] ?? 0,
+          assetId: assetMap[asset.symbol],
+          balanceAvailable: amount,
+          balanceLocked: 0,
         },
       });
     }
-    console.log(`  → User ${u.email} + wallets`);
+    console.log(`  → User ${u.email} + balances`);
   }
 
-  // Seed cryptos for Markets pages (100+)
+  // 5. Seed cryptos for Markets pages
   for (const c of CRYPTOS) {
     await prisma.crypto.upsert({
       where: { symbol: c.symbol },

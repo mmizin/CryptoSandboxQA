@@ -54,17 +54,20 @@ export class OrdersService {
         userId,
         symbol: data.symbol,
         side: data.side,
-        type: data.type,
+        orderType: data.type,
         quantity: data.quantity,
         price: data.price != null ? data.price : null,
         filledQuantity: 0,
-        status: 'open',
+        orderStatus: 'open',
       },
     });
 
     await this.matchingService.matchOrder(order.id);
-    const updated = await this.prisma.order.findUnique({ where: { id: order.id } });
-    return updated;
+    const updated = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      include: { tradesAsTaker: true, tradesAsMaker: true },
+    });
+    return updated ? this.mapOrderForResponse(updated) : null;
   }
 
   async cancel(userId: string, orderId: string) {
@@ -72,31 +75,41 @@ export class OrdersService {
       where: { id: orderId, userId },
     });
     if (!order) throw new BadRequestException('Order not found');
-    if (order.status !== 'open') {
+    if (order.orderStatus !== 'open') {
       throw new BadRequestException('Only open orders can be cancelled');
     }
-    return this.prisma.order.update({
+    const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: 'cancelled' },
+      data: { orderStatus: 'cancelled', completedAt: new Date() },
+      include: { tradesAsTaker: true, tradesAsMaker: true },
     });
+    return this.mapOrderForResponse(updated);
   }
 
   async findByUser(userId: string, filters?: { status?: string; symbol?: string }) {
-    return this.prisma.order.findMany({
+    const orders = await this.prisma.order.findMany({
       where: {
         userId,
-        ...(filters?.status && { status: filters.status }),
+        ...(filters?.status && { orderStatus: filters.status }),
         ...(filters?.symbol && { symbol: filters.symbol }),
       },
       orderBy: { createdAt: 'desc' },
-      include: { trades: true },
+      include: { tradesAsTaker: true, tradesAsMaker: true },
     });
+    return orders.map((o) => this.mapOrderForResponse(o));
   }
 
   async findById(userId: string, orderId: string) {
-    return this.prisma.order.findFirst({
+    const order = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
-      include: { trades: true },
+      include: { tradesAsTaker: true, tradesAsMaker: true },
     });
+    return order ? this.mapOrderForResponse(order) : null;
+  }
+
+  private mapOrderForResponse(order: { tradesAsTaker: unknown[]; tradesAsMaker: unknown[] } & Record<string, unknown>) {
+    const { tradesAsTaker, tradesAsMaker, orderType, orderStatus, ...rest } = order;
+    const trades = [...(tradesAsTaker || []), ...(tradesAsMaker || [])];
+    return { ...rest, type: orderType, status: orderStatus, trades };
   }
 }

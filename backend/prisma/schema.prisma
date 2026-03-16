@@ -7,85 +7,233 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  displayName  String?   @map("display_name")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+// =============================================================================
+// USERS & AUTH
+// =============================================================================
 
-  wallets Wallet[]
-  orders  Order[]
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  displayName      String?   @map("display_name")
+  emailVerifiedAt  DateTime? @map("email_verified_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  profile           UserProfile?
+  twoFactor         UserTwoFactor?
+  sessions          UserSession[]
+  paymentMethods    UserPaymentMethod[]
+  balances          UserBalance[]
+  orders            Order[]
+  depositsFiat      DepositFiat[]
+  depositsCrypto    DepositCrypto[]
+  withdrawals       Withdrawal[]
+  balanceTransactions BalanceTransaction[]
+  tradesAsTaker     Trade[] @relation("TakerTrades")
+  tradesAsMaker     Trade[] @relation("MakerTrades")
 
   @@map("users")
 }
 
-model Wallet {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  asset     String
-  balance   Decimal  @default(0) @db.Decimal(20, 8)
-  updatedAt DateTime @updatedAt @map("updated_at")
+model UserProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  photoUrl            String?  @map("photo_url")
+  username            String?  @unique
+  verificationStatus  String   @map("verification_status") @default("unverified")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions WalletTransaction[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, asset])
-  @@map("wallets")
+  @@map("user_profiles")
 }
 
-model WalletTransaction {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  walletId      String   @map("wallet_id")
-  asset         String
-  amount        Decimal  @db.Decimal(20, 8)
-  type          String
-  balanceBefore Decimal  @map("balance_before") @db.Decimal(20, 8)
-  createdAt     DateTime @default(now()) @map("created_at")
+model UserTwoFactor {
+  id          String    @id @default(uuid())
+  userId      String    @unique @map("user_id")
+  secret      String
+  backupCodes Json      @default("[]") @map("backup_codes")
+  enabled     Boolean   @default(false)
+  enabledAt   DateTime? @map("enabled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("wallet_transactions")
+  @@map("user_two_factor")
 }
 
-model Order {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  symbol        String
-  side          String
-  type          String
-  quantity      Decimal  @db.Decimal(20, 8)
-  price         Decimal? @db.Decimal(20, 8)
-  filledQuantity Decimal @default(0) @map("filled_quantity") @db.Decimal(20, 8)
-  status        String   @default("open")
+model UserSession {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  tokenHash  String   @map("token_hash")
+  userAgent  String?  @map("user_agent")
+  ipAddress  String?  @map("ip_address") @db.Inet
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model UserPaymentMethod {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  type           String // card, sepa, applepay
+  maskedDetails  Json     @map("masked_details")
+  isDefault      Boolean  @default(false) @map("is_default")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deposits DepositFiat[]
+
+  @@map("user_payment_methods")
+}
+
+// =============================================================================
+// ASSETS & TRADING PAIRS
+// =============================================================================
+
+model Asset {
+  id             String   @id @default(uuid())
+  symbol         String   @unique
+  name           String
+  assetType      String   @map("asset_type") // crypto, fiat
+  walletAddress  String?  @map("wallet_address")
+  decimals       Int      @default(8)
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  balances        UserBalance[]
+  balanceTransactions BalanceTransaction[]
+  depositsCrypto  DepositCrypto[]
+  withdrawals     Withdrawal[]
+  tradingPairsBase  TradingPair[] @relation("BaseAsset")
+  tradingPairsQuote TradingPair[] @relation("QuoteAsset")
+
+  @@map("assets")
+}
+
+model TradingPair {
+  symbol        String  @id
+  baseAssetId   String  @map("base_asset_id")
+  quoteAssetId  String  @map("quote_asset_id")
+  isActive      Boolean @default(true) @map("is_active")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trades Trade[]
+  baseAsset  Asset @relation("BaseAsset", fields: [baseAssetId], references: [id])
+  quoteAsset Asset @relation("QuoteAsset", fields: [quoteAssetId], references: [id])
+  orders     Order[]
+  tickers    Ticker[]
+
+  @@map("trading_pairs")
+}
+
+// =============================================================================
+// BALANCES & TRANSACTIONS
+// =============================================================================
+
+model UserBalance {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  assetId           String   @map("asset_id")
+  balanceAvailable  Decimal  @default(0) @map("balance_available") @db.Decimal(30, 8)
+  balanceLocked     Decimal  @default(0) @map("balance_locked") @db.Decimal(30, 8)
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset        Asset                 @relation(fields: [assetId], references: [id])
+  transactions BalanceTransaction[]
+
+  @@unique([userId, assetId])
+  @@map("user_balances")
+}
+
+model BalanceTransaction {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  balanceId      String   @map("balance_id")
+  assetId        String   @map("asset_id")
+  type           String // deposit, withdraw, trade_buy, trade_sell, order_lock, order_unlock, trade_fee, transfer
+  amount         Decimal  @db.Decimal(30, 8)
+  balanceBefore  Decimal  @map("balance_before") @db.Decimal(30, 8)
+  balanceAfter   Decimal  @map("balance_after") @db.Decimal(30, 8)
+  refType        String?  @map("ref_type")
+  refId          String?  @map("ref_id")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance UserBalance @relation(fields: [balanceId], references: [id], onDelete: Cascade)
+  asset   Asset       @relation(fields: [assetId], references: [id])
+
+  @@map("balance_transactions")
+}
+
+// =============================================================================
+// ORDERS & TRADES
+// =============================================================================
+
+model Order {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  symbol          String
+  side            String // buy, sell
+  orderType       String    @map("order_type") // limit, market
+  quantity        Decimal   @db.Decimal(30, 8)
+  price           Decimal?  @db.Decimal(30, 8)
+  filledQuantity  Decimal   @default(0) @map("filled_quantity") @db.Decimal(30, 8)
+  orderStatus     String    @default("open") @map("order_status") // open, partially_filled, filled, cancelled, rejected, expired
+  failureReason   String?   @map("failure_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  completedAt     DateTime? @map("completed_at")
+
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tradingPair  TradingPair? @relation(fields: [symbol], references: [symbol])
+  tradesAsTaker Trade[] @relation("TakerOrder")
+  tradesAsMaker Trade[] @relation("MakerOrder")
 
   @@map("orders")
 }
 
 model Trade {
-  id        String   @id @default(uuid())
-  orderId   String   @map("order_id")
-  quantity  Decimal  @db.Decimal(20, 8)
-  price     Decimal  @db.Decimal(20, 8)
-  createdAt DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid())
+  symbol         String
+  takerOrderId   String   @map("taker_order_id")
+  makerOrderId   String   @map("maker_order_id")
+  takerUserId    String   @map("taker_user_id")
+  makerUserId    String   @map("maker_user_id")
+  quantity       Decimal  @db.Decimal(30, 8)
+  price          Decimal  @db.Decimal(30, 8)
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  takerOrder Order @relation("TakerOrder", fields: [takerOrderId], references: [id], onDelete: Cascade)
+  makerOrder Order @relation("MakerOrder", fields: [makerOrderId], references: [id], onDelete: Cascade)
+  takerUser  User  @relation("TakerTrades", fields: [takerUserId], references: [id], onDelete: Cascade)
+  makerUser  User  @relation("MakerTrades", fields: [makerUserId], references: [id], onDelete: Cascade)
 
   @@map("trades")
 }
 
+// =============================================================================
+// TICKERS & MARKET LISTINGS
+// =============================================================================
+
 model Ticker {
   symbol     String   @id
-  lastPrice  Decimal  @map("last_price") @db.Decimal(20, 8)
-  volume24h   Decimal  @default(0) @map("volume_24h") @db.Decimal(20, 8)
+  lastPrice  Decimal  @map("last_price") @db.Decimal(30, 8)
+  volume24h  Decimal  @default(0) @map("volume_24h") @db.Decimal(30, 8)
   updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tradingPair TradingPair? @relation(fields: [symbol], references: [symbol])
 
   @@map("tickers")
 }
@@ -101,4 +249,69 @@ model Crypto {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("cryptos")
+}
+
+// =============================================================================
+// DEPOSITS & WITHDRAWALS
+// =============================================================================
+
+model DepositFiat {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  fiatCurrency       String   @map("fiat_currency")
+  amount             Decimal  @db.Decimal(20, 2)
+  fee                Decimal  @default(0) @db.Decimal(20, 2)
+  paymentMethodId    String?  @map("payment_method_id")
+  paymentMethodType  String?  @map("payment_method_type")
+  status             String   @default("pending") // pending, processing, completed, failed, cancelled
+  failureReason      String?  @map("failure_reason")
+  externalRef        String?  @map("external_ref")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  completedAt        DateTime? @map("completed_at")
+
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod  UserPaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("deposits_fiat")
+}
+
+model DepositCrypto {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  assetId        String   @map("asset_id")
+  amount         Decimal  @db.Decimal(30, 8)
+  walletAddress  String   @map("wallet_address")
+  txHash         String?  @map("tx_hash")
+  confirmations  Int      @default(0)
+  status         String   @default("pending") // pending, confirming, completed, failed, cancelled
+  failureReason  String?  @map("failure_reason")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  completedAt    DateTime? @map("completed_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@map("deposits_crypto")
+}
+
+model Withdrawal {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  assetId       String   @map("asset_id")
+  amount        Decimal  @db.Decimal(30, 8)
+  destination   String
+  fee           Decimal  @default(0) @db.Decimal(30, 8)
+  status        String   @default("pending") // pending, processing, completed, failed, cancelled
+  failureReason String?  @map("failure_reason")
+  txHash        String?  @map("tx_hash")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  completedAt   DateTime? @map("completed_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@map("withdrawals")
 }
