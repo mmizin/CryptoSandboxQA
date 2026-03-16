@@ -107,7 +107,7 @@ export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger }: TradeOr
     if (coinFilter) {
       list = list.filter((o) => o.symbol === coinFilter);
     }
-    if (statusFilter) {
+    if (activeTab === 'history' && statusFilter) {
       list = list.filter((o) => o.status === statusFilter);
     }
     if (dateFrom) {
@@ -197,18 +197,18 @@ export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger }: TradeOr
               </option>
             ))}
           </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
-            className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none w-36 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
-          >
-            <option value="">All statuses</option>
-            <option value="open">Open</option>
-            <option value="filled">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
           {activeTab === 'history' && (
             <>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
+                className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none w-36 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
+              >
+                <option value="">All statuses</option>
+                <option value="open">Open</option>
+                <option value="filled">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
               <input
                 type="date"
                 value={dateFrom}
