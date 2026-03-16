@@ -56,7 +56,7 @@ export function MarketsCryptoTable({
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, total, loading, error, loadMore } = useCryptos({
+  const { data, total, loading, error, goNext, goPrev, canGoNext, canGoPrev } = useCryptos({
     limit,
     search: searchDebounced,
     sortBy: sort.by,
@@ -235,14 +235,23 @@ const sortButtonBase =
         <div className="p-4 text-center text-slate-400 animate-pulse">Loading more...</div>
       )}
 
-      {data.length > 0 && data.length < total && !loading && (
-        <div className="p-4 text-center">
+      {data.length > 0 && (canGoPrev || canGoNext) && !loading && (
+        <div className="p-4 flex items-center justify-center gap-2 border-t border-slate-700/80 group-data-[theme=light]:border-slate-200">
           <button
             type="button"
-            onClick={loadMore}
-            className="rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1 transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800"
+            onClick={goPrev}
+            disabled={!canGoPrev}
+            className="rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1 transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700"
           >
-            Load more ({total - data.length} remaining)
+            ← Previous
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={!canGoNext}
+            className="rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1 transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700"
+          >
+            Next →
           </button>
         </div>
       )}
