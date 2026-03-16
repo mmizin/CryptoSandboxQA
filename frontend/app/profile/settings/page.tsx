@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/lib/useTheme';
 import { mockUser } from '@/lib/mockUser';
+import { TwoFactorSettingsSection } from '@/components/TwoFactorSettingsSection';
 
 const cardClass =
   'rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 transition-colors group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80';
@@ -100,12 +101,14 @@ export default function SettingsPage() {
             </form>
           </section>
 
+          <TwoFactorSettingsSection />
+
           <section className={cardClass}>
             <h2 className="text-lg font-semibold text-white mb-4 group-data-[theme=light]:text-slate-900">
               Appearance
             </h2>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
                 <p className="font-medium text-white group-data-[theme=light]:text-slate-900">Dark mode</p>
                 <p className="text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
                   Toggle between light and dark theme
@@ -114,12 +117,12 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-slate-700 transition-colors group-data-[theme=light]:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 group-data-[theme=light]:focus:ring-offset-white"
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full bg-slate-700 p-0.5 transition-colors group-data-[theme=light]:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 ring-inset"
                 aria-label="Toggle dark mode"
               >
                 <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                    theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                  className={`inline-block h-5 w-5 shrink-0 rounded-full bg-white shadow transition-transform ${
+                    theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
