@@ -47,77 +47,20 @@ flowchart TB
 
 ## Database Tables
 
-```mermaid
-erDiagram
-    users ||--o{ wallets : has
-    users ||--o{ orders : places
-    wallets ||--o{ wallet_transactions : has
-    orders ||--o{ trades : generates
-    
-    users {
-        uuid id PK
-        string email UK
-        string passwordHash
-        string displayName
-        timestamp createdAt
-        timestamp updatedAt
-    }
-    
-    wallets {
-        uuid id PK
-        uuid userId FK
-        string asset
-        decimal balance
-        timestamp updatedAt
-    }
-    
-    wallet_transactions {
-        uuid id PK
-        uuid userId FK
-        uuid walletId FK
-        string asset
-        decimal amount
-        string type
-        decimal balanceBefore
-        timestamp createdAt
-    }
-    
-    orders {
-        uuid id PK
-        uuid userId FK
-        string symbol
-        string side
-        string type
-        decimal quantity
-        decimal price
-        decimal filledQuantity
-        string status
-        timestamp createdAt
-        timestamp updatedAt
-    }
-    
-    trades {
-        uuid id PK
-        uuid orderId FK
-        decimal quantity
-        decimal price
-        timestamp createdAt
-    }
-    
-    tickers {
-        string symbol PK
-        decimal lastPrice
-        decimal volume24h
-        timestamp updatedAt
-    }
-```
+The schema has been extended to a production-style design. See [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) for the full design.
 
+**Core tables in use:**
 - **users**: id, email (unique), passwordHash, displayName, createdAt, updatedAt
-- **wallets**: id, userId (FK), asset (USD/BTC/ETH), balance. Unique (userId, asset)
-- **wallet_transactions**: id, userId, walletId (FK), asset, amount (positive=deposit, negative=withdraw), type (deposit/withdraw), balanceBefore, createdAt — audit trail for deposits/withdrawals
-- **orders**: id, userId, symbol (e.g. BTC_USD), side (buy/sell), type (limit/market), quantity, price, filledQuantity, status (open/filled/cancelled), createdAt, updatedAt
-- **trades**: id, orderId, quantity, price, createdAt
-- **tickers**: symbol (PK), lastPrice, volume24h, updatedAt (optional; can be in-memory)
+- **assets**: id, symbol, name, assetType (crypto/fiat), walletAddress (for crypto deposits)
+- **trading_pairs**: symbol (PK), baseAssetId, quoteAssetId — defines tradeable pairs (e.g. BTC_USD)
+- **user_balances**: id, userId, assetId, balanceAvailable, balanceLocked. Unique (userId, assetId)
+- **balance_transactions**: audit trail for all balance changes (deposit, withdraw, trade_*)
+- **orders**: id, userId, symbol, side, orderType (limit/market), quantity, price, filledQuantity, orderStatus, createdAt
+- **trades**: id, takerOrderId, makerOrderId, takerUserId, makerUserId, quantity, price, createdAt
+- **tickers**: symbol (PK), lastPrice, volume24h — last price per trading pair
+- **cryptos**: market listings for Markets pages (100+ coins)
+
+**Additional tables (for future features):** user_profiles, user_two_factor, user_sessions, user_payment_methods, deposits_fiat, deposits_crypto, withdrawals
 
 ---
 

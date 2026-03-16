@@ -72,6 +72,8 @@ npm run db:reset
 
 After `db:reset`, run `db:up` then `setup` to start fresh. If you created a dump before reset, `setup` will automatically restore it.
 
+> **Note:** If you have an existing database and pull schema changes that are incompatible (e.g. major schema redesign), run `db:reset` then `db:up` and `setup` to apply the new schema.
+
 **Dump data** (save current DB state before reset, only if DB has data):
 
 ```bash
