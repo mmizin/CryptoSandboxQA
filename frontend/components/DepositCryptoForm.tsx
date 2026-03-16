@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   validateDepositCryptoForm,
@@ -9,8 +9,8 @@ import {
   DEPOSIT_CRYPTO_AMOUNT_MIN,
   DEPOSIT_CRYPTO_AMOUNT_MAX,
 } from '@/lib/depositCryptoValidation';
-import { getMockWalletAddress } from '@/lib/depositCryptoMockData';
 import { CryptoSearchSelect } from '@/components/CryptoSearchSelect';
+import { depositsApi } from '@/lib/api';
 
 const inputBase =
   'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors';
@@ -33,10 +33,25 @@ export function DepositCryptoForm() {
   } | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const walletAddress = state.crypto ? getMockWalletAddress(state.crypto) : null;
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+
+  useEffect(() => {
+    if (!state.crypto) {
+      setWalletAddress(null);
+      return;
+    }
+    setWalletLoading(true);
+    depositsApi
+      .getCryptoAddress(state.crypto)
+      .then((res) => setWalletAddress(res.walletAddress))
+      .catch(() => setWalletAddress(null))
+      .finally(() => setWalletLoading(false));
+  }, [state.crypto]);
+
   const walletAddressError =
-    state.crypto && !walletAddress
-      ? 'Wallet address unavailable for this asset. (Mock error for QA)'
+    state.crypto && !walletLoading && !walletAddress
+      ? 'Wallet address unavailable for this asset.'
       : null;
 
   const { valid, errors: validatedErrors } = validateDepositCryptoForm(state);
@@ -81,13 +96,11 @@ export function DepositCryptoForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { valid: isValid, errors: errs } = validateDepositCryptoForm(state);
-    const hasWallet = state.crypto && getMockWalletAddress(state.crypto);
-
-    if (!isValid || !hasWallet) {
+    const { valid: isValid } = validateDepositCryptoForm(state);
+    if (!isValid || !walletAddress) {
       setErrors({
-        ...errs,
-        ...(hasWallet ? {} : { walletAddress: walletAddressError || undefined }),
+        ...validateDepositCryptoForm(state).errors,
+        ...(walletAddress ? {} : { walletAddress: walletAddressError || undefined }),
       });
       setTouched({ crypto: true, amount: true });
       return;
@@ -96,26 +109,29 @@ export function DepositCryptoForm() {
     setErrors({});
     setSubmitLoading(true);
     setSubmitMessage(null);
-
-    await new Promise((r) => setTimeout(r, 1500));
-
-    setSubmitLoading(false);
     const amountNum = parseFloat(state.amount);
 
-    // QA: amount 0.12345678 triggers mock error
-    const simulateError = amountNum === 0.12345678;
-    if (simulateError) {
+    try {
+      await depositsApi.depositCrypto({
+        symbol: state.crypto,
+        amount: amountNum,
+        walletAddress,
+      });
+      setSubmitMessage({
+        type: 'success',
+        text: `Deposit successful: ${amountNum.toFixed(8)} ${state.crypto}. Your balance has been updated.`,
+      });
+    } catch (err) {
+      const isQaError = amountNum === 0.12345678;
       setSubmitMessage({
         type: 'error',
-        text: 'Deposit failed. Network error. Please try again. (Mock error for QA)',
+        text: isQaError
+          ? 'Deposit failed. Network error. Please try again. (Mock error for QA)'
+          : err instanceof Error ? err.message : 'Deposit failed',
       });
-      return;
+    } finally {
+      setSubmitLoading(false);
     }
-
-    setSubmitMessage({
-      type: 'success',
-      text: `Deposit simulated: ${amountNum.toFixed(8)} ${state.crypto} to your wallet. Backend integration coming soon.`,
-    });
   };
 
   const handleReset = () => {
@@ -164,7 +180,9 @@ export function DepositCryptoForm() {
             <h3 className="text-sm font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
               Deposit address
             </h3>
-            {walletAddressError ? (
+            {walletLoading ? (
+              <p className="text-sm text-slate-400">Loading deposit address...</p>
+            ) : walletAddressError ? (
               <p className="text-sm text-red-400">{walletAddressError}</p>
             ) : walletAddress ? (
               <>

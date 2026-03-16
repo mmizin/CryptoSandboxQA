@@ -10,6 +10,10 @@ import { TickersModule } from './tickers/tickers.module';
 import { CryptosModule } from './cryptos/cryptos.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { AppController } from './app.controller';
+import { DepositsModule } from './deposits/deposits.module';
+import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   controllers: [AppController],
@@ -26,6 +30,10 @@ import { AppController } from './app.controller';
     CryptosModule,
     OrdersModule,
     WebSocketModule,
+    DepositsModule,
+    PaymentMethodsModule,
+    PortfolioModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}

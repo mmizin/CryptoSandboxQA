@@ -19,7 +19,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns current user"
+            "description": "Returns current user with profile"
           }
         },
         "tags": [
@@ -107,6 +107,200 @@
         },
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "summary": "Logout (invalidate session)",
+        "parameters": [
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session invalidated"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/verify": {
+      "post": {
+        "operationId": "AuthController_verify2Fa",
+        "summary": "Verify 2FA during login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Verify2FaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Returns access token after 2FA verification"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/status": {
+      "get": {
+        "operationId": "AuthController_get2FaStatus",
+        "summary": "Get 2FA status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns { enabled: boolean }"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/setup": {
+      "get": {
+        "operationId": "AuthController_get2FaSetup",
+        "summary": "Get 2FA setup (QR code and secret)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns QR code URL and secret"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/enable": {
+      "post": {
+        "operationId": "AuthController_enable2Fa",
+        "summary": "Enable 2FA after verifying code",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Enable2FaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA enabled, returns backup codes"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/disable": {
+      "post": {
+        "operationId": "AuthController_disable2Fa",
+        "summary": "Disable 2FA",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Disable2FaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA disabled"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/backup-codes": {
+      "get": {
+        "operationId": "AuthController_getBackupCodes",
+        "summary": "Get backup codes (throws - use regenerate)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/2fa/backup-codes/regenerate": {
+      "post": {
+        "operationId": "AuthController_regenerateBackupCodes",
+        "summary": "Regenerate backup codes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns new backup codes"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -220,6 +414,142 @@
         ]
       }
     },
+    "/cryptos": {
+      "get": {
+        "operationId": "CryptosController_list",
+        "summary": "List cryptocurrencies with pagination and filters",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Number of items (1-100)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Offset for pagination",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Filter by name or symbol",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort by: name, symbol, price, change24h, volume24h",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "asc or desc",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns cryptos and total count"
+          }
+        },
+        "tags": [
+          "cryptos"
+        ]
+      }
+    },
+    "/cryptos/{symbol}/price-history": {
+      "get": {
+        "operationId": "CryptosController_getPriceHistory",
+        "summary": "Get price history for symbol",
+        "parameters": [
+          {
+            "name": "symbol",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cryptos"
+        ]
+      }
+    },
+    "/cryptos/{symbol}": {
+      "get": {
+        "operationId": "CryptosController_get",
+        "summary": "Get single cryptocurrency by symbol",
+        "parameters": [
+          {
+            "name": "symbol",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "Crypto not found"
+          }
+        },
+        "tags": [
+          "cryptos"
+        ]
+      }
+    },
     "/orders": {
       "post": {
         "operationId": "OrdersController_create",
@@ -263,6 +593,40 @@
           },
           {
             "name": "symbol",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "ISO date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "ISO date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
             "required": false,
             "in": "query",
             "schema": {
@@ -315,6 +679,104 @@
         ]
       }
     },
+    "/orders/by-date": {
+      "get": {
+        "operationId": "OrdersController_byDate",
+        "summary": "Orders by date range",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/orders/by-coin": {
+      "get": {
+        "operationId": "OrdersController_byCoin",
+        "summary": "Orders by coin/symbol",
+        "parameters": [
+          {
+            "name": "symbol",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/orders/{id}": {
       "get": {
         "operationId": "OrdersController_get",
@@ -337,6 +799,612 @@
         },
         "tags": [
           "orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/deposits/fiat": {
+      "post": {
+        "operationId": "DepositsController_depositFiat",
+        "summary": "Deposit fiat (USD/EUR)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepositFiatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Deposit created and balance updated"
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "DepositsController_listFiat",
+        "summary": "List fiat deposits",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "ISO date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "ISO date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/deposits/fiat/{id}": {
+      "get": {
+        "operationId": "DepositsController_getFiat",
+        "summary": "Get fiat deposit by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/deposits/crypto/address": {
+      "post": {
+        "operationId": "DepositsController_getCryptoAddress",
+        "summary": "Get wallet address for crypto deposit (mock)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/deposits/crypto": {
+      "post": {
+        "operationId": "DepositsController_depositCrypto",
+        "summary": "Create crypto deposit (credits balance in sandbox)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepositCryptoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "DepositsController_listCrypto",
+        "summary": "List crypto deposits",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/deposits/crypto/{id}": {
+      "get": {
+        "operationId": "DepositsController_getCrypto",
+        "summary": "Get crypto deposit by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payment-methods": {
+      "get": {
+        "operationId": "PaymentMethodsController_list",
+        "summary": "List user payment methods",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns payment methods"
+          }
+        },
+        "tags": [
+          "payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "PaymentMethodsController_create",
+        "summary": "Add payment method",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Returns created payment method"
+          }
+        },
+        "tags": [
+          "payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payment-methods/{id}": {
+      "delete": {
+        "operationId": "PaymentMethodsController_delete",
+        "summary": "Remove payment method",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payment-methods/{id}/default": {
+      "patch": {
+        "operationId": "PaymentMethodsController_setDefault",
+        "summary": "Set default payment method",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/portfolio/balances": {
+      "get": {
+        "operationId": "PortfolioController_getBalances",
+        "summary": "Get user balances",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/portfolio/summary": {
+      "get": {
+        "operationId": "PortfolioController_getSummary",
+        "summary": "Get portfolio summary with total value",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/portfolio/allocation": {
+      "get": {
+        "operationId": "PortfolioController_getAllocation",
+        "summary": "Get asset allocation percentages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/transactions": {
+      "get": {
+        "operationId": "TransactionsController_getTransactions",
+        "summary": "Unified transaction history",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "transactions"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/transactions/deposits": {
+      "get": {
+        "operationId": "TransactionsController_getDeposits",
+        "summary": "Deposit history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "transactions"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/transactions/trades": {
+      "get": {
+        "operationId": "TransactionsController_getTrades",
+        "summary": "Trading history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "transactions"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/transactions/withdrawals": {
+      "get": {
+        "operationId": "TransactionsController_getWithdrawals",
+        "summary": "Withdrawal history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "transactions"
         ],
         "security": [
           {
@@ -404,12 +1472,57 @@
           },
           "displayName": {
             "type": "string",
-            "example": "John Doe"
+            "example": "John Doe",
+            "maxLength": 100
           }
         },
         "required": [
           "email",
           "password"
+        ]
+      },
+      "Verify2FaDto": {
+        "type": "object",
+        "properties": {
+          "tempToken": {
+            "type": "string",
+            "description": "Temporary token from login response when 2FA required"
+          },
+          "code": {
+            "type": "string",
+            "example": "123456",
+            "description": "6-digit TOTP code or 8-char backup code"
+          }
+        },
+        "required": [
+          "tempToken",
+          "code"
+        ]
+      },
+      "Enable2FaDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "123456",
+            "description": "6-digit TOTP code from authenticator app"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "Disable2FaDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "123456",
+            "description": "6-digit TOTP code or 8-char backup code"
+          }
+        },
+        "required": [
+          "code"
         ]
       },
       "DepositDto": {
@@ -479,6 +1592,104 @@
           "side",
           "type",
           "quantity"
+        ]
+      },
+      "DepositFiatDto": {
+        "type": "object",
+        "properties": {
+          "fiatCurrency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "EUR"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5,
+            "minimum": 0.01
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "description": "Saved payment method ID"
+          },
+          "paymentMethod": {
+            "type": "object",
+            "description": "Inline payment (when no saved method)",
+            "example": {
+              "type": "card",
+              "last4": "4242",
+              "brand": "visa"
+            }
+          }
+        },
+        "required": [
+          "fiatCurrency",
+          "amount"
+        ]
+      },
+      "AddressRequestDto": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "BTC"
+          }
+        },
+        "required": [
+          "symbol"
+        ]
+      },
+      "DepositCryptoDto": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "BTC"
+          },
+          "amount": {
+            "type": "number",
+            "example": 0.001,
+            "minimum": 0.00001
+          },
+          "walletAddress": {
+            "type": "string",
+            "example": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+          },
+          "txHash": {
+            "type": "string",
+            "description": "Blockchain tx hash for confirmation"
+          }
+        },
+        "required": [
+          "symbol",
+          "amount",
+          "walletAddress"
+        ]
+      },
+      "CreatePaymentMethodDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "card",
+              "sepa",
+              "applepay"
+            ]
+          },
+          "maskedDetails": {
+            "type": "object",
+            "example": {
+              "last4": "4242",
+              "brand": "visa"
+            },
+            "description": "Masked payment details for display"
+          }
+        },
+        "required": [
+          "type",
+          "maskedDetails"
         ]
       }
     }

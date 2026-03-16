@@ -1,13 +1,45 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { getMockOrders, type TradeOrder } from '@/lib/tradeMockData';
+import { useState, useMemo, useEffect } from 'react';
+import { type TradeOrder } from '@/lib/tradeMockData';
+import { ordersApi } from '@/lib/api';
 
 type Tab = 'active' | 'history';
 type OrderStatus = 'open' | 'filled' | 'cancelled';
 
+interface ApiOrder {
+  id: string;
+  symbol: string;
+  side: string;
+  type: string;
+  quantity: string | number;
+  price: string | number | null;
+  filledQuantity?: string | number;
+  status: string;
+  createdAt: string;
+}
+
+function mapApiOrderToTradeOrder(o: ApiOrder): TradeOrder {
+  const baseSymbol = o.symbol.includes('_') ? o.symbol.split('_')[0] : o.symbol;
+  let status: OrderStatus = 'open';
+  if (o.status === 'filled') status = 'filled';
+  else if (o.status === 'partially_filled') status = 'open';
+  else if (['cancelled', 'rejected', 'expired'].includes(o.status)) status = 'cancelled';
+
+  return {
+    id: o.id,
+    symbol: baseSymbol,
+    orderType: (o.type === 'market' ? 'market' : 'limit') as 'market' | 'limit' | 'stop-limit',
+    side: o.side as 'buy' | 'sell',
+    amount: typeof o.quantity === 'number' ? o.quantity : parseFloat(String(o.quantity)) || 0,
+    price: o.price != null ? (typeof o.price === 'number' ? o.price : parseFloat(String(o.price))) : null,
+    status,
+    createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date(o.createdAt).toISOString(),
+  };
+}
+
 interface TradeOrdersTabsProps {
-  orders?: TradeOrder[];
+  refreshTrigger?: number;
 }
 
 const buttonBase =
@@ -18,9 +50,26 @@ const sortButtonBase =
 
 type SortField = 'symbol' | 'orderType' | 'amount' | 'price' | 'status' | 'createdAt';
 
-export function TradeOrdersTabs({ orders: propOrders }: TradeOrdersTabsProps) {
-  const mockOrders = getMockOrders();
-  const orders = propOrders ?? mockOrders;
+export function TradeOrdersTabs({ refreshTrigger }: TradeOrdersTabsProps) {
+  const [orders, setOrders] = useState<TradeOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    ordersApi
+      .list({ limit: 100 })
+      .then((res) => {
+        const data = (res.data || []) as ApiOrder[];
+        setOrders(data.map(mapApiOrderToTradeOrder));
+      })
+      .catch((err) => {
+        setOrders([]);
+        setError(err instanceof Error ? err.message : 'Failed to load orders');
+      })
+      .finally(() => setLoading(false));
+  }, [refreshTrigger]);
 
   const [activeTab, setActiveTab] = useState<Tab>('active');
   const [coinFilter, setCoinFilter] = useState('');
@@ -183,7 +232,7 @@ export function TradeOrdersTabs({ orders: propOrders }: TradeOrdersTabsProps) {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((o) => (
+            {!loading && filteredOrders.map((o) => (
               <tr
                 key={o.id}
                 className="border-b border-slate-800/80 hover:bg-slate-800/60 group-data-[theme=light]:border-slate-100 group-data-[theme=light]:hover:bg-slate-50"
@@ -221,7 +270,17 @@ export function TradeOrdersTabs({ orders: propOrders }: TradeOrdersTabsProps) {
           </tbody>
         </table>
       </div>
-      {filteredOrders.length === 0 && (
+      {error && (
+        <div className="p-8 text-center text-red-400 group-data-[theme=light]:text-red-600">
+          {error}
+        </div>
+      )}
+      {loading && !error && (
+        <div className="p-8 text-center text-slate-500 group-data-[theme=light]:text-slate-500">
+          Loading orders...
+        </div>
+      )}
+      {!loading && !error && filteredOrders.length === 0 && (
         <div className="p-8 text-center text-slate-500 group-data-[theme=light]:text-slate-500">
           No orders found
         </div>

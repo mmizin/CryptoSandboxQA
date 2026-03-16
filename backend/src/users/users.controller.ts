@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -8,15 +9,15 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SessionGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user' })
-  @ApiResponse({ status: 200, description: 'Returns current user' })
+  @ApiResponse({ status: 200, description: 'Returns current user with profile' })
   async me(@CurrentUser() user: { id: string }) {
-    const found = await this.usersService.findById(user.id);
+    const found = await this.usersService.findByIdWithProfile(user.id);
     if (!found) return null;
     const { passwordHash: _, ...result } = found;
     return result;

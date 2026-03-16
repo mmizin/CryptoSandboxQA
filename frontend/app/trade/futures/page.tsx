@@ -17,6 +17,7 @@ export default function TradeFuturesPage() {
   const [selectedCoin, setSelectedCoin] = useState<TradeCoin | null>(
     () => TRADE_COINS[0] ?? null
   );
+  const [ordersRefreshKey, setOrdersRefreshKey] = useState(0);
 
   if (authLoading) {
     return (
@@ -41,7 +42,7 @@ export default function TradeFuturesPage() {
           </h1>
         </div>
         <p className="text-slate-400 group-data-[theme=light]:text-slate-600 mb-6">
-          Futures trading with mock data. Select a coin to view chart and place orders.
+          Select a coin to view chart and place orders. Orders use the same spot engine (BTC, ETH).
         </p>
 
         <div className="grid gap-6 lg:grid-cols-3 mb-6">
@@ -50,11 +51,14 @@ export default function TradeFuturesPage() {
           </div>
           <div className="lg:col-span-2 space-y-4">
             <TradePriceChart coin={selectedCoin} />
-            <TradeOrderEntry selectedCoin={selectedCoin} />
+            <TradeOrderEntry
+              selectedCoin={selectedCoin}
+              onOrderSubmitted={() => setOrdersRefreshKey((k) => k + 1)}
+            />
           </div>
         </div>
 
-        <TradeOrdersTabs />
+        <TradeOrdersTabs refreshTrigger={ordersRefreshKey} />
       </div>
     </main>
   );

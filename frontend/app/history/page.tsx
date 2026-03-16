@@ -11,7 +11,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     if (!user) return;
-    ordersApi.list().then(setOrders).catch(console.error);
+    ordersApi.list().then((res) => setOrders(res.data ?? [])).catch(console.error);
   }, [user]);
 
   if (authLoading) return <p style={{ padding: '2rem' }}>Loading...</p>;
@@ -23,7 +23,7 @@ export default function HistoryPage() {
         <Link href="/dashboard">Back to Dashboard</Link>
       </div>
       <h1>Order History</h1>
-      {Array.isArray(orders) && orders.length === 0 ? (
+      {Array.isArray(orders) && (orders as unknown[]).length === 0 ? (
         <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>No orders.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>

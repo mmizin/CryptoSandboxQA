@@ -12,28 +12,28 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [show2fa, setShow2fa] = useState(false);
+  const [tempToken, setTempToken] = useState('');
   const [twoFaError, setTwoFaError] = useState('');
   const [resendSuccess, setResendSuccess] = useState(false);
   const router = useRouter();
-
-  const performLogin = async () => {
-    const { access_token } = await authApi.login(email, password);
-    localStorage.setItem('token', access_token);
-    router.push('/dashboard');
-    router.refresh();
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      if (twoFactorApi.is2FaRequired()) {
+      const result = await authApi.login(email, password);
+      if ('requires2FA' in result && result.requires2FA && result.tempToken) {
+        setTempToken(result.tempToken);
         setShow2fa(true);
         setLoading(false);
         return;
       }
-      await performLogin();
+      if ('access_token' in result) {
+        localStorage.setItem('token', result.access_token);
+        router.push('/dashboard');
+        router.refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed');
     } finally {
@@ -45,11 +45,9 @@ export default function HomePage() {
     setTwoFaError('');
     setLoading(true);
     try {
-      const result = await twoFactorApi.verify(
-        { tempToken: '', code },
-        { email, password }
-      );
+      const result = await twoFactorApi.verify({ tempToken, code });
       setShow2fa(false);
+      setTempToken('');
       localStorage.setItem('token', result.access_token);
       router.push('/dashboard');
       router.refresh();
