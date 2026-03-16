@@ -14,6 +14,7 @@ import {
   MOCK_CARD_FEE_PERCENT,
   MOCK_SEPA_FEE,
 } from '@/lib/depositCashMockData';
+import { depositsApi } from '@/lib/api';
 
 const inputBase =
   'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors';
@@ -95,31 +96,33 @@ export function DepositCashForm() {
     setErrors({});
     setSubmitLoading(true);
     setSubmitMessage(null);
-
-    // Simulate API call (1.5s)
-    await new Promise((r) => setTimeout(r, 1500));
-
-    setSubmitLoading(false);
     const amountNum = parseFloat(state.amount);
     const currencyInfo = MOCK_CURRENCIES.find((c) => c.code === state.currency);
     const symbol = currencyInfo?.symbol ?? state.currency;
     const fee =
       state.paymentMethod === 'card' ? amountNum * (MOCK_CARD_FEE_PERCENT / 100) : MOCK_SEPA_FEE;
 
-    // Mock: use amount 42.42 to trigger error path (QA testing)
-    const simulateError = amountNum === 42.42;
-    if (simulateError) {
+    try {
+      await depositsApi.depositFiat({
+        fiatCurrency: state.currency,
+        amount: amountNum,
+      });
+      setSubmitMessage({
+        type: 'success',
+        text: `Deposit successful: ${symbol}${amountNum.toFixed(2)} ${state.currency}${fee > 0 ? ` (fee: ${symbol}${fee.toFixed(2)})` : ''}. Your balance has been updated.`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Deposit failed';
+      const isQaError = amountNum === 42.42;
       setSubmitMessage({
         type: 'error',
-        text: 'Deposit failed. Please check your payment details and try again. (Mock error for QA)',
+        text: isQaError
+          ? 'Deposit failed. Please check your payment details and try again. (Mock error for QA)'
+          : msg,
       });
-      return;
+    } finally {
+      setSubmitLoading(false);
     }
-
-    setSubmitMessage({
-      type: 'success',
-      text: `Deposit simulated: ${symbol}${amountNum.toFixed(2)} ${state.currency}${fee > 0 ? ` (fee: ${symbol}${fee.toFixed(2)})` : ''}. Backend integration coming soon.`,
-    });
   };
 
   const handleReset = () => {

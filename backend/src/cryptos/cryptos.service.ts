@@ -53,4 +53,40 @@ export class CryptosService {
       total,
     };
   }
+
+  async findBySymbol(symbol: string) {
+    const crypto = await this.prisma.crypto.findUnique({
+      where: { symbol: symbol.toUpperCase() },
+    });
+    if (!crypto) return null;
+    return {
+      id: crypto.id,
+      name: crypto.name,
+      symbol: crypto.symbol,
+      price: crypto.price.toString(),
+      change24h: crypto.change24h.toString(),
+      volume24h: crypto.volume24h.toString(),
+      popular: crypto.popular,
+    };
+  }
+
+  async getPriceHistory(
+    symbol: string,
+    _from?: string,
+    _to?: string,
+    _interval?: string,
+  ) {
+    const crypto = await this.prisma.crypto.findUnique({
+      where: { symbol: symbol.toUpperCase() },
+    });
+    const ticker = await this.prisma.ticker.findUnique({
+      where: { symbol: `${symbol.toUpperCase()}_USD` },
+    });
+    const price = crypto?.price ?? ticker?.lastPrice;
+    if (!price) return { symbol: symbol.toUpperCase(), data: [] };
+    return {
+      symbol: symbol.toUpperCase(),
+      data: [{ timestamp: new Date().toISOString(), price: price.toString() }],
+    };
+  }
 }

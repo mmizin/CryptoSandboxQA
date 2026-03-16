@@ -2,15 +2,21 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
-const ASSETS = ['USD', 'BTC', 'ETH'] as const;
+type TxClient = Parameters<Parameters<PrismaService['$transaction']>[0]>[0];
+
+const ASSETS = ['USD', 'EUR', 'BTC', 'ETH'] as const;
 
 @Injectable()
 export class WalletsService {
   constructor(private prisma: PrismaService) {}
 
   private async getAssetBySymbol(asset: string) {
-    const a = await this.prisma.asset.findUnique({ where: { symbol: asset } });
-    if (!a) throw new BadRequestException(`Invalid asset. Allowed: ${ASSETS.join(', ')}`);
+    const a = await this.prisma.asset.findUnique({ where: { symbol: asset.toUpperCase() } });
+    if (!a) {
+      throw new BadRequestException(
+        `Asset "${asset}" not found. Allowed: ${ASSETS.join(', ')}. Run "npm run db:seed" to populate the database.`,
+      );
+    }
     return a;
   }
 
@@ -44,7 +50,12 @@ export class WalletsService {
     });
   }
 
-  async credit(userId: string, asset: string, amount: number | Decimal) {
+  async credit(
+    userId: string,
+    asset: string,
+    amount: number | Decimal,
+    options?: { refType?: string; refId?: string; tx?: TxClient },
+  ) {
     this.validateAsset(asset);
     const assetRow = await this.getAssetBySymbol(asset);
     let balance = await this.prisma.userBalance.findUnique({
@@ -59,7 +70,7 @@ export class WalletsService {
     if (amt.lte(0)) throw new BadRequestException('Amount must be positive');
     const balanceBefore = new Decimal(balance.balanceAvailable).add(balance.balanceLocked);
 
-    return this.prisma.$transaction(async (tx) => {
+    const run = async (tx: TxClient): Promise<{ id: string; asset: string; balance: string }> => {
       const updated = await tx.userBalance.update({
         where: { id: balance!.id },
         data: { balanceAvailable: { increment: amt } },
@@ -75,13 +86,18 @@ export class WalletsService {
           amount: amt,
           balanceBefore,
           balanceAfter: totalAfter,
-          refType: null,
-          refId: null,
+          refType: options?.refType ?? null,
+          refId: options?.refId ?? null,
         },
       });
       const total = new Decimal(updated.balanceAvailable).add(updated.balanceLocked);
       return { id: updated.id, asset: updated.asset.symbol, balance: total.toString() };
-    });
+    };
+
+    if (options?.tx) {
+      return run(options.tx);
+    }
+    return this.prisma.$transaction(run);
   }
 
   async debit(userId: string, asset: string, amount: number | Decimal) {

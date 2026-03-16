@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   validateOrderForm,
   type OrderType,
   type OrderFormState,
 } from '@/lib/tradeOrderValidation';
-import { MOCK_BALANCES, type TradeCoin } from '@/lib/tradeMockData';
+import { type TradeCoin } from '@/lib/tradeMockData';
+import { ordersApi, walletsApi } from '@/lib/api';
+
+const TRADABLE_SYMBOLS = ['BTC', 'ETH'];
 
 interface TradeOrderEntryProps {
   selectedCoin: TradeCoin | null;
@@ -25,17 +28,41 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [balances, setBalances] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    walletsApi
+      .list()
+      .then((wallets) => {
+        const map: Record<string, number> = {};
+        for (const w of wallets) {
+          map[w.asset] = parseFloat(w.balance);
+        }
+        setBalances(map);
+      })
+      .catch(() => setBalances({}));
+  }, [success]); // Refetch after successful order
 
   const currentPrice = selectedCoin?.price ?? 0;
-  const balances = MOCK_BALANCES;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     if (!selectedCoin) {
       setError('Select a coin first');
+      return;
+    }
+
+    const symbol = selectedCoin.symbol.toUpperCase();
+    if (!TRADABLE_SYMBOLS.includes(symbol)) {
+      setError(`Trading available only for ${TRADABLE_SYMBOLS.join(' and ')}`);
+      return;
+    }
+
+    if (orderType === 'stop-limit') {
+      setError('Stop-limit orders are not yet supported. Use limit order.');
       return;
     }
 
@@ -52,7 +79,7 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
       currentPrice,
       balances,
       'USD',
-      selectedCoin.symbol
+      symbol
     );
 
     if (!valid) {
@@ -62,21 +89,24 @@ export function TradeOrderEntry({ selectedCoin, onOrderSubmitted }: TradeOrderEn
     }
 
     setSubmitLoading(true);
-
-    // Mock: 90% success, 10% error for QA testing
-    const mockSuccess = Math.random() > 0.1;
-    setTimeout(() => {
+    try {
+      await ordersApi.create({
+        symbol: `${symbol}_USD`,
+        side,
+        type: orderType,
+        quantity: parseFloat(amount),
+        price: orderType === 'limit' ? parseFloat(price) : undefined,
+      });
+      setSuccess('Order placed successfully');
+      setAmount('');
+      setPrice('');
+      setStopPrice('');
+      onOrderSubmitted?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Order failed');
+    } finally {
       setSubmitLoading(false);
-      if (mockSuccess) {
-        setSuccess('Order placed successfully (mock)');
-        setAmount('');
-        setPrice('');
-        setStopPrice('');
-        onOrderSubmitted?.();
-      } else {
-        setError('Order failed (mock error scenario)');
-      }
-    }, 500);
+    }
   };
 
   const handleReset = () => {

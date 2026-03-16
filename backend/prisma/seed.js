@@ -34,6 +34,7 @@ const TICKERS = [
 
 const ASSET_DEFS = [
   { symbol: 'USD', name: 'US Dollar', assetType: 'fiat', walletAddress: null },
+  { symbol: 'EUR', name: 'Euro', assetType: 'fiat', walletAddress: null },
   { symbol: 'BTC', name: 'Bitcoin', assetType: 'crypto', walletAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
   { symbol: 'ETH', name: 'Ethereum', assetType: 'crypto', walletAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
 ];

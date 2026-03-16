@@ -21,7 +21,7 @@ export default function BuyCryptoPage() {
           Buy and Sell
         </h1>
         <p className="text-slate-400 group-data-[theme=light]:text-slate-600 mb-6">
-          Buy and sell crypto with SEPA, card, Apple Pay, and more. Backend integration coming soon.
+          Buy and sell BTC or ETH with USD. Market orders execute immediately.
         </p>
         <BuySellForm />
       </div>

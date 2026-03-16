@@ -17,6 +17,7 @@ export default function TradeSpotPage() {
   const [selectedCoin, setSelectedCoin] = useState<TradeCoin | null>(
     () => TRADE_COINS[0] ?? null
   );
+  const [ordersRefreshKey, setOrdersRefreshKey] = useState(0);
 
   if (authLoading) {
     return (
@@ -50,11 +51,14 @@ export default function TradeSpotPage() {
           </div>
           <div className="lg:col-span-2 space-y-4">
             <TradePriceChart coin={selectedCoin} />
-            <TradeOrderEntry selectedCoin={selectedCoin} />
+            <TradeOrderEntry
+              selectedCoin={selectedCoin}
+              onOrderSubmitted={() => setOrdersRefreshKey((k) => k + 1)}
+            />
           </div>
         </div>
 
-        <TradeOrdersTabs />
+        <TradeOrdersTabs refreshTrigger={ordersRefreshKey} />
       </div>
     </main>
   );

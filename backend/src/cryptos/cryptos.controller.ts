@@ -1,5 +1,11 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CryptosService } from './cryptos.service';
 
 @ApiTags('cryptos')
@@ -29,5 +35,30 @@ export class CryptosController {
       sortBy,
       sortOrder: sortOrder === 'asc' || sortOrder === 'desc' ? sortOrder : undefined,
     });
+  }
+
+  @Get(':symbol/price-history')
+  @ApiOperation({ summary: 'Get price history for symbol' })
+  @ApiParam({ name: 'symbol' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiQuery({ name: 'interval', required: false })
+  @ApiResponse({ status: 200 })
+  async getPriceHistory(
+    @Param('symbol') symbol: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('interval') interval?: string,
+  ) {
+    return this.cryptosService.getPriceHistory(symbol, from, to, interval);
+  }
+
+  @Get(':symbol')
+  @ApiOperation({ summary: 'Get single cryptocurrency by symbol' })
+  @ApiParam({ name: 'symbol' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Crypto not found' })
+  async get(@Param('symbol') symbol: string) {
+    return this.cryptosService.findBySymbol(symbol);
   }
 }

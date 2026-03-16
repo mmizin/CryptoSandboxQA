@@ -86,17 +86,50 @@ export class OrdersService {
     return this.mapOrderForResponse(updated);
   }
 
-  async findByUser(userId: string, filters?: { status?: string; symbol?: string }) {
-    const orders = await this.prisma.order.findMany({
-      where: {
-        userId,
-        ...(filters?.status && { orderStatus: filters.status }),
-        ...(filters?.symbol && { symbol: filters.symbol }),
-      },
-      orderBy: { createdAt: 'desc' },
-      include: { tradesAsTaker: true, tradesAsMaker: true },
-    });
-    return orders.map((o) => this.mapOrderForResponse(o));
+  async findByUser(
+    userId: string,
+    filters?: {
+      status?: string;
+      symbol?: string;
+      from?: string;
+      to?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const limit = Math.min(Math.max(filters?.limit ?? 50, 1), 100);
+    const offset = Math.max(filters?.offset ?? 0, 0);
+
+    const where: {
+      userId: string;
+      orderStatus?: string;
+      symbol?: string;
+      createdAt?: { gte?: Date; lte?: Date };
+    } = { userId };
+
+    if (filters?.status) where.orderStatus = filters.status;
+    if (filters?.symbol) where.symbol = filters.symbol;
+    if (filters?.from || filters?.to) {
+      where.createdAt = {};
+      if (filters.from) where.createdAt.gte = new Date(filters.from);
+      if (filters.to) where.createdAt.lte = new Date(filters.to);
+    }
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+        include: { tradesAsTaker: true, tradesAsMaker: true },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((o) => this.mapOrderForResponse(o)),
+      total,
+    };
   }
 
   async findById(userId: string, orderId: string) {

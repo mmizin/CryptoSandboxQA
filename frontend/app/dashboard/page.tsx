@@ -23,7 +23,7 @@ export default function DashboardPage() {
       .then(setWallets)
       .catch(console.error)
       .finally(() => setWalletsLoading(false));
-    ordersApi.list({ status: 'open' }).then(setOrders).catch(console.error);
+    ordersApi.list({ status: 'open' }).then((res) => setOrders(res.data ?? [])).catch(console.error);
   }, [user]);
 
   const handleDeposit = async (e: React.FormEvent) => {
@@ -150,6 +150,7 @@ export default function DashboardPage() {
                   className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
                 >
                   <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
                   <option value="BTC">BTC</option>
                   <option value="ETH">ETH</option>
                 </select>

@@ -11,6 +11,8 @@ import {
 } from '@/lib/buySellValidation';
 import { getMockPrice, MOCK_FEE_PERCENT } from '@/lib/buySellMockData';
 import { CryptoSearchSelect } from '@/components/CryptoSearchSelect';
+import { ordersApi } from '@/lib/api';
+import { useAuth } from '@/lib/useAuth';
 
 const inputBase =
   'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors';
@@ -37,7 +39,10 @@ const initialState: FormState = {
   cvv: '',
 };
 
+const TRADABLE_SYMBOLS = ['BTC', 'ETH'] as const;
+
 export function BuySellForm() {
+  const { user } = useAuth(false);
   const [mode, setMode] = useState<'buy' | 'sell'>('buy');
   const [state, setState] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -83,22 +88,49 @@ export function BuySellForm() {
       });
       return;
     }
+    if (!user) {
+      setSubmitMessage({ type: 'error', text: 'Please log in to buy or sell crypto.' });
+      return;
+    }
+    const symbol = state.currency.toUpperCase();
+    if (!TRADABLE_SYMBOLS.includes(symbol as (typeof TRADABLE_SYMBOLS)[number])) {
+      setSubmitMessage({
+        type: 'error',
+        text: `Trading is only available for ${TRADABLE_SYMBOLS.join(' and ')}.`,
+      });
+      return;
+    }
+
     setErrors({});
     setSubmitLoading(true);
     setSubmitMessage(null);
 
-    // Simulate slow submission (1.5s)
-    await new Promise((r) => setTimeout(r, 1500));
-
-    setSubmitLoading(false);
-    const amount = parseFloat(state.amount);
+    const usdAmount = parseFloat(state.amount);
     const price = state.currencyPrice || getMockPrice(state.currency);
-    const cryptoAmount = amount / price;
-    const fee = amount * (MOCK_FEE_PERCENT / 100);
-    setSubmitMessage({
-      type: 'success',
-      text: `${mode === 'buy' ? 'Buy' : 'Sell'} order simulated: ${cryptoAmount.toFixed(8)} ${state.currency} for $${amount.toFixed(2)} (fee: $${fee.toFixed(2)}). Backend integration coming soon.`,
-    });
+    const cryptoQuantity = usdAmount / price; // Amount (USD) / price = crypto quantity
+    const orderSymbol = `${symbol}_USD`;
+    const side = mode;
+
+    try {
+      await ordersApi.create({
+        symbol: orderSymbol,
+        side,
+        type: 'market',
+        quantity: cryptoQuantity,
+      });
+      const fee = usdAmount * (MOCK_FEE_PERCENT / 100);
+      setSubmitMessage({
+        type: 'success',
+        text: `${mode === 'buy' ? 'Buy' : 'Sell'} order placed: ${cryptoQuantity.toFixed(8)} ${symbol} ${mode === 'buy' ? `for $${usdAmount.toFixed(2)}` : ''} (fee: $${fee.toFixed(2)}). Balance updated.`,
+      });
+    } catch (err) {
+      setSubmitMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Order failed. Check your balance and try again.',
+      });
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   const handleReset = () => {
