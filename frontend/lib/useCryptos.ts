@@ -11,6 +11,7 @@ export function useCryptos(params: {
 }) {
   const [data, setData] = useState<CryptoItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fetchIdRef = useRef(0);
@@ -21,7 +22,7 @@ export function useCryptos(params: {
   const sortOrder = params.sortOrder ?? 'desc';
 
   const fetchPage = useCallback(
-    async (offset: number, append: boolean) => {
+    async (pageOffset: number, append: boolean) => {
       const id = ++fetchIdRef.current;
       setLoading(true);
       setError(null);
@@ -29,7 +30,7 @@ export function useCryptos(params: {
       try {
         const res = await cryptosApi.list({
           limit,
-          offset,
+          offset: pageOffset,
           search: search || undefined,
           sortBy,
           sortOrder,
@@ -37,6 +38,7 @@ export function useCryptos(params: {
         if (id !== fetchIdRef.current) return 0;
         setData((prev) => (append ? [...prev, ...res.data] : res.data));
         setTotal(res.total);
+        setOffset(pageOffset);
         return res.data.length;
       } catch (err) {
         if (id !== fetchIdRef.current) return 0;
@@ -60,9 +62,34 @@ export function useCryptos(params: {
     fetchPage(dataLengthRef.current, true);
   }, [fetchPage]);
 
+  const goNext = useCallback(() => {
+    const nextOffset = offset + limit;
+    if (nextOffset < total) fetchPage(nextOffset, false);
+  }, [offset, limit, total, fetchPage]);
+
+  const goPrev = useCallback(() => {
+    const prevOffset = Math.max(0, offset - limit);
+    fetchPage(prevOffset, false);
+  }, [offset, limit, fetchPage]);
+
   useEffect(() => {
     fetchPage(0, false);
   }, [fetchPage]);
 
-  return { data, total, loading, error, loadMore, refetch: () => fetchPage(0, false) };
+  const canGoNext = offset + limit < total;
+  const canGoPrev = offset > 0;
+
+  return {
+    data,
+    total,
+    offset,
+    loading,
+    error,
+    loadMore,
+    goNext,
+    goPrev,
+    canGoNext,
+    canGoPrev,
+    refetch: () => fetchPage(0, false),
+  };
 }
