@@ -14,6 +14,7 @@ import { DepositsModule } from './deposits/deposits.module';
 import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   controllers: [AppController],
@@ -34,6 +35,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     PaymentMethodsModule,
     PortfolioModule,
     TransactionsModule,
+    MetricsModule,
   ],
 })
 export class AppModule {}

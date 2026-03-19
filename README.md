@@ -37,6 +37,41 @@ Open [http://localhost:3000](http://localhost:3000) and register. Done! (Use dem
 
 ---
 
+## Docker Compose (Full Stack with Observability)
+
+Production-like stack for **load and performance testing**. Run the backend, PostgreSQL, Prometheus, and Grafana with one command:
+
+```bash
+npm run stack:up
+# or: docker compose --profile observability up -d
+```
+
+To stop all services:
+
+```bash
+npm run stack:down
+# or: docker compose --profile observability down
+```
+
+> **Tip:** `stack:up` includes PostgreSQL — you don't need `npm run db:up`. Use either **Quick Start** (db:up + dev for local backend/frontend) or **stack:up** (full stack in Docker) — not both at once.
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Backend API** | http://localhost:3001 | REST API |
+| **Swagger** | http://localhost:3001/api/docs | Interactive API docs |
+| **Metrics** | http://localhost:3001/metrics | Prometheus metrics (for scraping) |
+| **Prometheus** | http://localhost:9090 | Metrics collection & queries |
+| **Grafana** | http://localhost:3002 | Metrics visualization (login: admin/admin) |
+
+**Validation checklist:**
+1. Backend connects to database — `curl http://localhost:3001/` returns API info
+2. Prometheus scrapes metrics — open http://localhost:9090/targets, target `backend` should be UP
+3. Grafana connects to Prometheus — open http://localhost:3002, add a panel and query `up{job="backend"}`
+
+Ports are configurable via `.env` (e.g. `BACKEND_PORT`, `PROMETHEUS_PORT`, `GRAFANA_PORT`). See [Environment Variables](#environment-variables).
+
+---
+
 ## Detailed Setup
 
 ### 1. Install dependencies

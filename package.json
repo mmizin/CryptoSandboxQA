@@ -5,7 +5,9 @@
   "description": "Crypto exchange training platform for QA practice",
   "scripts": {
     "setup": "node scripts/setup.js",
-    "db:up": "docker compose up -d",
+    "db:up": "node scripts/db-up.js",
+    "stack:up": "docker compose --profile observability up -d",
+    "stack:down": "docker compose --profile observability down",
     "db:down": "node scripts/db-down.js",
     "db:reset": "docker compose down -v",
     "db:dump": "node scripts/dump.js",
