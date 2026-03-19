@@ -35,11 +35,18 @@ export class DepositsController {
   @ApiOperation({ summary: 'Deposit fiat (USD/EUR)' })
   @ApiBody({ type: DepositFiatDto })
   @ApiResponse({ status: 201, description: 'Deposit created and balance updated' })
-  async depositFiat(@CurrentUser() user: { id: string }, @Body() dto: DepositFiatDto) {
+  async depositFiat(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: DepositFiatDto,
+  ) {
+    const auditMetadata = user.impersonatedBy
+      ? { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
     return this.depositsService.depositFiat(user.id, {
       fiatCurrency: dto.fiatCurrency,
       amount: dto.amount,
       paymentMethodId: dto.paymentMethodId,
+      auditMetadata,
     });
   }
 
@@ -85,12 +92,19 @@ export class DepositsController {
   @ApiOperation({ summary: 'Create crypto deposit (credits balance in sandbox)' })
   @ApiBody({ type: DepositCryptoDto })
   @ApiResponse({ status: 201 })
-  async depositCrypto(@CurrentUser() user: { id: string }, @Body() dto: DepositCryptoDto) {
+  async depositCrypto(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: DepositCryptoDto,
+  ) {
+    const auditMetadata = user.impersonatedBy
+      ? { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
     return this.depositsService.depositCrypto(user.id, {
       symbol: dto.symbol,
       amount: dto.amount,
       walletAddress: dto.walletAddress,
       txHash: dto.txHash,
+      auditMetadata,
     });
   }
 

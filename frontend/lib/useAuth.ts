@@ -12,6 +12,7 @@ export type User = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const BACK_TO_ADMIN_KEY = 'back_to_admin';
+const AUTH_CHANGED_EVENT = 'auth:changed';
 
 export function useAuth(requireAuth = false) {
   const [user, setUser] = useState<User>(null);
@@ -52,6 +53,12 @@ export function useAuth(requireAuth = false) {
     refreshUser();
   }, [requireAuth, router, pathname, refreshUser]);
 
+  useEffect(() => {
+    const handler = () => refreshUser();
+    window.addEventListener(AUTH_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handler);
+  }, [refreshUser]);
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem(BACK_TO_ADMIN_KEY);
@@ -83,6 +90,7 @@ export function useAuth(requireAuth = false) {
     localStorage.setItem('token', data.access_token);
     setUser(data.user);
     setImpersonating({ email: data.user.email });
+    window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT));
     router.push('/dashboard');
   };
 
@@ -112,6 +120,7 @@ export function useAuth(requireAuth = false) {
     localStorage.setItem('token', data.access_token);
     setUser(data.user);
     setImpersonating(null);
+    window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT));
     router.push('/dashboard');
   };
 

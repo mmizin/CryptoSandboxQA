@@ -269,6 +269,7 @@ export class OrdersService {
     return {
       data: orders.map((o) => this.mapOrderForResponse(o)),
       total,
+      meta: { total, limit, offset },
     };
   }
 
