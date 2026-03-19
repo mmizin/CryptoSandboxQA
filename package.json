@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "node scripts/setup.js",
     "db:up": "docker compose up -d",
+    "docker:up": "docker compose --profile observability up -d",
     "db:down": "node scripts/db-down.js",
     "db:reset": "docker compose down -v",
     "db:dump": "node scripts/dump.js",
