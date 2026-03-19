@@ -80,6 +80,15 @@ function parseCsvRow(line: string, delimiter: string): string[] {
   return result.map((s) => s.trim());
 }
 
+/** Many tools omit trailing commas when the last column(s) are empty — pad to match header width. */
+function padCsvRowCells(cells: string[], expectedLength: number): string[] {
+  const out = [...cells];
+  while (out.length < expectedLength) {
+    out.push('');
+  }
+  return out;
+}
+
 function detectDelimiter(headerLine: string): ',' | ';' {
   const comma = (headerLine.match(/,/g) || []).length;
   const semi = (headerLine.match(/;/g) || []).length;
@@ -245,15 +254,17 @@ export function parseImportFileContent(
     };
   }
 
+  const expectedCols = IMPORT_CSV_HEADERS.length;
   const rows: AdminCreateUserPayload[] = [];
   for (const line of dataLines) {
-    const cells = parseCsvRow(line, delimiter);
-    if (cells.length !== IMPORT_CSV_HEADERS.length) {
+    const rawCells = parseCsvRow(line, delimiter);
+    if (rawCells.length > expectedCols) {
       return {
         ok: false,
-        fileError: `Invalid CSV: a row has ${cells.length} columns, expected ${IMPORT_CSV_HEADERS.length}`,
+        fileError: `Invalid CSV: a row has ${rawCells.length} columns, expected ${expectedCols}`,
       };
     }
+    const cells = padCsvRowCells(rawCells, expectedCols);
     const prefRaw = cells[12];
     let preferences: Record<string, unknown> | undefined;
     if (prefRaw?.trim()) {
