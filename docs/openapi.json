@@ -121,6 +121,94 @@
             "bearer": []
           }
         ]
+      },
+      "patch": {
+        "operationId": "UsersController_patchUser",
+        "summary": "Update user (admin only, partial)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPatchUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns updated user"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Email already in use"
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "UsersController_putUser",
+        "summary": "Replace user (admin only, full update)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminReplaceUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns updated user"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Email already in use"
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/auth/login": {
@@ -599,6 +687,87 @@
         ]
       }
     },
+    "/admin/users/{userId}/wallets": {
+      "get": {
+        "operationId": "AdminWalletsController_listWallets",
+        "summary": "List user wallets (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns user wallets"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-wallets"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/wallets/{asset}": {
+      "get": {
+        "operationId": "AdminWalletsController_getWallet",
+        "summary": "Get user wallet by asset (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asset",
+            "required": true,
+            "in": "path",
+            "description": "Asset symbol (USD, BTC, ETH)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns wallet"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User or wallet not found"
+          }
+        },
+        "tags": [
+          "admin-wallets"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/cryptos": {
       "get": {
         "operationId": "CryptosController_list",
@@ -1033,6 +1202,150 @@
         },
         "tags": [
           "orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/orders": {
+      "get": {
+        "operationId": "AdminOrdersController_listOrders",
+        "summary": "List user orders (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "marketType",
+            "required": false,
+            "in": "query",
+            "description": "Filter by market: spot or futures",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by order status (open, filled, cancelled)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "required": false,
+            "in": "query",
+            "description": "Filter by trading pair (e.g. BTC_USD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Max results (1-100)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Skip N results for pagination",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns filtered orders"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-orders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/orders/{orderId}": {
+      "get": {
+        "operationId": "AdminOrdersController_getOrder",
+        "summary": "Get user order by ID (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "Order ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns order"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User or order not found"
+          }
+        },
+        "tags": [
+          "admin-orders"
         ],
         "security": [
           {
@@ -1718,6 +2031,143 @@
             }
           }
         }
+      },
+      "AdminPatchUserDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "role": {
+            "type": "string",
+            "example": "user",
+            "enum": [
+              "user",
+              "admin"
+            ]
+          },
+          "photoUrl": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Crypto enthusiast"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "example": "https://mysite.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York, US"
+          },
+          "birthday": {
+            "type": "string",
+            "example": "1990-01-15"
+          },
+          "languageCode": {
+            "type": "string",
+            "example": "en",
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York",
+            "maxLength": 50
+          },
+          "preferences": {
+            "type": "object",
+            "example": {
+              "theme": "dark",
+              "notifications": true
+            }
+          }
+        }
+      },
+      "AdminReplaceUserDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "role": {
+            "type": "string",
+            "example": "user",
+            "enum": [
+              "user",
+              "admin"
+            ]
+          },
+          "photoUrl": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Crypto enthusiast"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "example": "https://mysite.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York, US"
+          },
+          "birthday": {
+            "type": "string",
+            "example": "1990-01-15"
+          },
+          "languageCode": {
+            "type": "string",
+            "example": "en",
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York",
+            "maxLength": 50
+          },
+          "preferences": {
+            "type": "object",
+            "example": {
+              "theme": "dark",
+              "notifications": true
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "email",
+          "role"
+        ]
       },
       "LoginDto": {
         "type": "object",
