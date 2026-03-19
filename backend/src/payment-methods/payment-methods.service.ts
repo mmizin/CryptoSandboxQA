@@ -12,6 +12,12 @@ export class PaymentMethodsService {
     });
   }
 
+  async findByUserAndId(userId: string, id: string) {
+    return this.prisma.userPaymentMethod.findFirst({
+      where: { id, userId },
+    });
+  }
+
   async create(
     userId: string,
     data: { type: string; maskedDetails: Record<string, unknown> },

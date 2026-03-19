@@ -1696,6 +1696,87 @@
         ]
       }
     },
+    "/admin/users/{userId}/payment-methods": {
+      "get": {
+        "operationId": "AdminPaymentMethodsController_listPaymentMethods",
+        "summary": "List user payment methods (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns payment methods"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/payment-methods/{id}": {
+      "get": {
+        "operationId": "AdminPaymentMethodsController_getPaymentMethod",
+        "summary": "Get user payment method by ID (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment method ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns payment method"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User or payment method not found"
+          }
+        },
+        "tags": [
+          "admin-payment-methods"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/portfolio/balances": {
       "get": {
         "operationId": "PortfolioController_getBalances",
