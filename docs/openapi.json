@@ -1590,6 +1590,222 @@
         ]
       }
     },
+    "/admin/users/{userId}/deposits/fiat": {
+      "get": {
+        "operationId": "AdminDepositsController_listFiatDeposits",
+        "summary": "List user fiat deposits (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Max results (1-100)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Skip N results for pagination",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns fiat deposits"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/deposits/fiat/{id}": {
+      "get": {
+        "operationId": "AdminDepositsController_getFiatDeposit",
+        "summary": "Get user fiat deposit by ID (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Deposit ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns fiat deposit"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User or deposit not found"
+          }
+        },
+        "tags": [
+          "admin-deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/deposits/crypto": {
+      "get": {
+        "operationId": "AdminDepositsController_listCryptoDeposits",
+        "summary": "List user crypto deposits (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Max results (1-100)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Skip N results for pagination",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns crypto deposits"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/deposits/crypto/{id}": {
+      "get": {
+        "operationId": "AdminDepositsController_getCryptoDeposit",
+        "summary": "Get user crypto deposit by ID (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Deposit ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns crypto deposit"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User or deposit not found"
+          }
+        },
+        "tags": [
+          "admin-deposits"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/payment-methods": {
       "get": {
         "operationId": "PaymentMethodsController_list",
