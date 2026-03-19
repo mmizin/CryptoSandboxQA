@@ -262,129 +262,228 @@ export default function ImportUsersPage() {
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold text-white group-data-[theme=light]:text-slate-900">
-            Create users from file
-          </h1>
-          <Link href="/dashboard" className={buttonBase}>
-            ← Back to Dashboard
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white group-data-[theme=light]:text-slate-900">
+              Bulk user import
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400 group-data-[theme=light]:text-slate-600">
+              Add many users at once from CSV or JSON. Invalid rows are skipped; the rest keep running.
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-600/80 bg-slate-800/50 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-emerald-500/40 hover:bg-slate-800 hover:text-white group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:border-emerald-300 group-data-[theme=light]:hover:bg-emerald-50/80"
+          >
+            <svg className="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Dashboard
           </Link>
         </div>
 
-        <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80">
-          <p className="mb-4 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
-            Upload a <strong className="text-slate-300 group-data-[theme=light]:text-slate-800">CSV</strong> or{' '}
-            <strong className="text-slate-300 group-data-[theme=light]:text-slate-800">JSON</strong> file, review the
-            counts, then click <strong className="text-slate-300 group-data-[theme=light]:text-slate-800">Start import</strong>{' '}
-            to persist users to the database. Failures do not stop the batch.
-          </p>
-
-          <div className="mb-4 flex flex-wrap items-end gap-4">
-            <button type="button" onClick={downloadTemplate} className={buttonBase}>
-              Download CSV template
-            </button>
-            <label className="flex max-w-md flex-col gap-1 text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
-              <span className="font-medium text-slate-400 group-data-[theme=light]:text-slate-700">
-                Testing: delay between requests (ms)
-              </span>
-              <input
-                id="import-request-delay-ms"
-                type="number"
-                min={0}
-                max={60000}
-                step={50}
-                value={requestDelayMs}
-                onChange={(e) => setRequestDelayMs(Math.max(0, Number(e.target.value) || 0))}
-                className={`${compactInput} w-28`}
-                aria-describedby="import-request-delay-hint"
-                title="Optional pause between each create-user API call"
-              />
-              <p id="import-request-delay-hint" className="text-[11px] leading-snug text-slate-500 group-data-[theme=light]:text-slate-600">
-                <strong className="font-medium text-slate-400 group-data-[theme=light]:text-slate-700">0</strong> = no
-                extra wait (default). Use e.g. <strong className="font-normal">200–500</strong> to slow the import so
-                you can watch progress, or to mimic a slower client. Not needed for normal use.
-              </p>
-            </label>
+        <div className="overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/60 shadow-xl shadow-black/20 ring-1 ring-white/5 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white group-data-[theme=light]:shadow-slate-200/50">
+          <div className="border-b border-slate-700/80 bg-gradient-to-r from-emerald-500/[0.07] via-cyan-500/[0.05] to-transparent px-6 py-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:from-emerald-50/90 group-data-[theme=light]:via-white group-data-[theme=light]:to-slate-50/80">
+            <ol className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+              {[
+                { n: '1', t: 'Upload', d: 'CSV or JSON' },
+                { n: '2', t: 'Review', d: 'Row counts' },
+                { n: '3', t: 'Import', d: 'Saved to DB' },
+              ].map((step) => (
+                <li key={step.n} className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400 ring-1 ring-emerald-500/25 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800 group-data-[theme=light]:ring-emerald-200">
+                    {step.n}
+                  </span>
+                  <span className="text-slate-200 group-data-[theme=light]:text-slate-800">
+                    <span className="font-semibold">{step.t}</span>
+                    <span className="block text-xs font-normal text-slate-500 group-data-[theme=light]:text-slate-500">
+                      {step.d}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          {(phase === 'idle' || phase === 'ready') && (
-            <div className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
-                  Choose file
-                </label>
-                <input
-                  type="file"
-                  accept=".csv,.json,application/json,text/csv"
-                  onChange={onFile}
-                  className={`${inputBase} max-w-xl cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-3 file:py-2 file:text-sm file:text-emerald-300 group-data-[theme=light]:file:bg-emerald-100 group-data-[theme=light]:file:text-emerald-800`}
-                />
-                {fileError && <p className="mt-2 text-sm text-red-400">{fileError}</p>}
-              </div>
-
-              {phase === 'ready' && pending && (
-                <div className="rounded-lg border border-slate-700/80 bg-slate-800/40 p-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50">
-                  <p className="text-sm text-slate-300 group-data-[theme=light]:text-slate-800">
-                    <span className="font-medium">{pending.fileName}</span> —{' '}
-                    <span className="text-emerald-400">{pending.validRows.length}</span> row(s) ready to create
-                    {pending.preFailures.length > 0 && (
-                      <>
-                        {' '}
-                        · <span className="text-amber-400">{pending.preFailures.length}</span> row(s) failed validation
-                        before import
-                      </>
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleStartImport}
-                    disabled={!canRun}
-                    className={`${primaryBtn} mt-4`}
-                  >
-                    Start import
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {phase === 'done' && (
-            <div className="mb-8 mt-2 rounded-xl border border-slate-700/80 bg-slate-800/40 p-5 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50">
-              <p className="mb-3 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
-                Clears the results below and returns you to file selection.
-              </p>
-              <button type="button" onClick={reset} className={buttonBase}>
-                Import another file
+          <div className="space-y-6 p-6 sm:p-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={downloadTemplate}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-all hover:border-emerald-500/35 hover:bg-emerald-500/10 hover:text-emerald-300 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50 group-data-[theme=light]:text-slate-800 group-data-[theme=light]:hover:border-emerald-300 group-data-[theme=light]:hover:bg-emerald-50"
+              >
+                <svg className="h-4 w-4 text-emerald-400/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download CSV template
               </button>
             </div>
-          )}
+
+            <details className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/30 open:border-emerald-500/25 open:ring-1 open:ring-emerald-500/10 open:[&_svg.import-chevron]:rotate-180 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50/80">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-medium text-slate-300 transition-colors hover:text-white [&::-webkit-details-marker]:hidden group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:text-slate-900">
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-slate-500 group-data-[theme=light]:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Advanced &amp; QA
+                  <span className="rounded-md bg-slate-700/50 px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wide text-slate-400 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-slate-500">
+                    Optional
+                  </span>
+                </span>
+                <svg
+                  className="import-chevron h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 group-data-[theme=light]:text-slate-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div className="border-t border-slate-700/60 px-4 pb-4 pt-1 group-data-[theme=light]:border-slate-200">
+                <label className="mt-2 flex max-w-md flex-col gap-2">
+                  <span className="text-xs font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
+                    Delay between API requests (ms)
+                  </span>
+                  <div className="flex flex-wrap items-end gap-3">
+                    <input
+                      id="import-request-delay-ms"
+                      type="number"
+                      min={0}
+                      max={60000}
+                      step={50}
+                      value={requestDelayMs}
+                      onChange={(e) => setRequestDelayMs(Math.max(0, Number(e.target.value) || 0))}
+                      className={`${compactInput} w-28`}
+                      aria-describedby="import-request-delay-hint"
+                    />
+                    <p id="import-request-delay-hint" className="max-w-md text-[11px] leading-relaxed text-slate-500 group-data-[theme=light]:text-slate-500">
+                      <span className="font-medium text-slate-400 group-data-[theme=light]:text-slate-600">0</span> = fastest.
+                      Use <span className="whitespace-nowrap">200–500</span> to watch the progress bar move, or to mimic a slow network.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </details>
+
+            {(phase === 'idle' || phase === 'ready') && (
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-200 group-data-[theme=light]:text-slate-800">
+                    File
+                  </label>
+                  <div className="rounded-xl border border-dashed border-slate-600/90 bg-slate-800/40 p-1 transition-colors hover:border-emerald-500/40 hover:bg-slate-800/60 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-slate-50 group-data-[theme=light]:hover:border-emerald-400/60">
+                    <input
+                      type="file"
+                      accept=".csv,.json,application/json,text/csv"
+                      onChange={onFile}
+                      className={`${inputBase} w-full max-w-xl border-0 bg-transparent cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-emerald-300 group-data-[theme=light]:file:bg-emerald-100 group-data-[theme=light]:file:text-emerald-800`}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500 group-data-[theme=light]:text-slate-500">
+                    Accepted: <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-emerald-400/90 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-emerald-800">.csv</code>{' '}
+                    or <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-emerald-400/90 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-emerald-800">.json</code> · max 5&nbsp;MB
+                  </p>
+                  {fileError && <p className="mt-2 text-sm text-red-400">{fileError}</p>}
+                </div>
+
+                {phase === 'ready' && pending && (
+                  <div className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.08] to-transparent p-5 ring-1 ring-emerald-500/10 group-data-[theme=light]:border-emerald-200 group-data-[theme=light]:from-emerald-50/50 group-data-[theme=light]:to-white group-data-[theme=light]:ring-emerald-100">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-emerald-400/80 group-data-[theme=light]:text-emerald-700">
+                          Ready
+                        </p>
+                        <p className="mt-1 text-sm text-slate-200 group-data-[theme=light]:text-slate-800">
+                          <span className="font-semibold text-white group-data-[theme=light]:text-slate-900">{pending.fileName}</span>
+                        </p>
+                        <p className="mt-2 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                          <span className="font-semibold text-emerald-400 group-data-[theme=light]:text-emerald-600">{pending.validRows.length}</span> to create
+                          {pending.preFailures.length > 0 && (
+                            <>
+                              {' '}
+                              ·{' '}
+                              <span className="font-semibold text-amber-400 group-data-[theme=light]:text-amber-600">
+                                {pending.preFailures.length}
+                              </span>{' '}
+                              skipped (validation)
+                            </>
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleStartImport}
+                        disabled={!canRun}
+                        className={`${primaryBtn} shrink-0 px-8`}
+                      >
+                        Start import
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {phase === 'done' && (
+              <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.12] via-slate-900/40 to-slate-900/60 p-6 ring-1 ring-emerald-500/10 group-data-[theme=light]:border-emerald-200 group-data-[theme=light]:from-emerald-50/90 group-data-[theme=light]:via-white group-data-[theme=light]:to-slate-50 group-data-[theme=light]:ring-emerald-100">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:ring-emerald-200">
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-white group-data-[theme=light]:text-slate-900">
+                        Run another import
+                      </h2>
+                      <p className="mt-1 max-w-md text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                        Clears this report and takes you back to file selection. Your previous results stay in the database.
+                      </p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={reset} className={`${primaryBtn} shrink-0 px-8`}>
+                    New import
+                  </button>
+                </div>
+              </div>
+            )}
 
           {phase === 'running' && (
-            <div className="mt-4">
-              <p className="mb-2 text-sm text-slate-300 group-data-[theme=light]:text-slate-700">
-                Processing user {currentIndex} of {totalToProcess}…
+            <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/[0.06] to-emerald-500/[0.06] p-5 ring-1 ring-cyan-500/10 group-data-[theme=light]:border-cyan-200 group-data-[theme=light]:from-cyan-50/50 group-data-[theme=light]:to-emerald-50/30 group-data-[theme=light]:ring-cyan-100">
+              <p className="text-sm font-medium text-slate-200 group-data-[theme=light]:text-slate-800">
+                Importing… <span className="text-emerald-400 group-data-[theme=light]:text-emerald-600">{currentIndex}</span> /{' '}
+                {totalToProcess}
               </p>
-              <div className="h-2 max-w-md overflow-hidden rounded-full bg-slate-700/80 group-data-[theme=light]:bg-slate-200">
+              <div className="mt-3 h-2.5 max-w-lg overflow-hidden rounded-full bg-slate-700/80 group-data-[theme=light]:bg-slate-200">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-300"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <p className="mt-2 text-sm text-emerald-400 group-data-[theme=light]:text-emerald-600">
-                Succeeded so far: {successCount}
+              <p className="mt-3 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                Created so far:{' '}
+                <span className="font-semibold text-emerald-400 group-data-[theme=light]:text-emerald-600">{successCount}</span>
               </p>
             </div>
           )}
 
           {phase === 'done' && (
-            <div className="mt-8 space-y-8 border-t border-slate-700/80 pt-8 group-data-[theme=light]:border-slate-200">
+            <div className="mt-10 space-y-8 border-t border-slate-700/80 pt-10 group-data-[theme=light]:border-slate-200">
               <div>
-                <h2 className="mb-2 text-lg font-semibold text-white group-data-[theme=light]:text-slate-900">
-                  Summary
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/90 group-data-[theme=light]:text-emerald-700">
+                  Results
+                </p>
+                <h2 className="mt-1 text-xl font-bold tracking-tight text-white group-data-[theme=light]:text-slate-900">
+                  Import summary
                 </h2>
-                <p className="text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
-                  Created: <span className="text-emerald-400">{successCount}</span> · Failed:{' '}
-                  <span className="text-red-400">{failures.length}</span>
+                <p className="mt-2 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                  <span className="font-medium text-emerald-400 group-data-[theme=light]:text-emerald-600">{successCount}</span>{' '}
+                  created ·{' '}
+                  <span className="font-medium text-red-400 group-data-[theme=light]:text-red-600">{failures.length}</span>{' '}
+                  failed
                 </p>
               </div>
 
@@ -563,6 +662,7 @@ export default function ImportUsersPage() {
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </main>
