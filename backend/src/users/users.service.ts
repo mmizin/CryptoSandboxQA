@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { AdminPatchUserDto } from './dto/admin-update-user.dto';
+import { AdminReplaceUserDto } from './dto/admin-replace-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -193,6 +195,115 @@ export class UsersService {
         data: userData,
       });
     }
+
+    const updated = await this.findByIdWithProfile(userId);
+    if (!updated) throw new NotFoundException('User not found');
+    return updated;
+  }
+
+  private async ensureEmailAvailable(email: string, excludeUserId?: string): Promise<void> {
+    const existing = await this.findByEmail(email);
+    if (existing && existing.id !== excludeUserId) {
+      throw new ConflictException('Email already in use');
+    }
+  }
+
+  async updateByAdmin(userId: string, dto: AdminPatchUserDto) {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    if (dto.email !== undefined) {
+      await this.ensureEmailAvailable(dto.email, userId);
+    }
+
+    const userData: Prisma.UserUpdateInput = {};
+    if (dto.displayName !== undefined) userData.displayName = dto.displayName;
+    if (dto.email !== undefined) userData.email = dto.email.toLowerCase();
+    if (dto.role !== undefined) userData.role = dto.role;
+
+    const profileUpdate: Prisma.UserProfileUpdateInput = {};
+    if (dto.photoUrl !== undefined) profileUpdate.photoUrl = dto.photoUrl;
+    if (dto.username !== undefined) profileUpdate.username = dto.username;
+    if (dto.bio !== undefined) profileUpdate.bio = dto.bio;
+    if (dto.fullName !== undefined) profileUpdate.fullName = dto.fullName;
+    if (dto.websiteUrl !== undefined) profileUpdate.websiteUrl = dto.websiteUrl;
+    if (dto.location !== undefined) profileUpdate.location = dto.location;
+    if (dto.birthday !== undefined)
+      profileUpdate.birthday = dto.birthday ? new Date(dto.birthday) : null;
+    if (dto.languageCode !== undefined)
+      profileUpdate.languageCode = dto.languageCode;
+    if (dto.timezone !== undefined) profileUpdate.timezone = dto.timezone;
+    if (dto.preferences !== undefined)
+      profileUpdate.preferences = dto.preferences as object;
+
+    if (Object.keys(profileUpdate).length > 0) {
+      await this.prisma.userProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          ...profileUpdate,
+        } as Prisma.UserProfileUncheckedCreateInput,
+        update: profileUpdate,
+      });
+    }
+
+    if (Object.keys(userData).length > 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: userData,
+      });
+    }
+
+    const updated = await this.findByIdWithProfile(userId);
+    if (!updated) throw new NotFoundException('User not found');
+    return updated;
+  }
+
+  async replaceByAdmin(userId: string, dto: AdminReplaceUserDto) {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    await this.ensureEmailAvailable(dto.email, userId);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          displayName: dto.displayName,
+          email: dto.email.toLowerCase(),
+          role: dto.role,
+        },
+      });
+
+      await tx.userProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          photoUrl: dto.photoUrl ?? null,
+          username: dto.username ?? null,
+          bio: dto.bio ?? null,
+          fullName: dto.fullName ?? null,
+          websiteUrl: dto.websiteUrl ?? null,
+          location: dto.location ?? null,
+          birthday: dto.birthday ? new Date(dto.birthday) : null,
+          languageCode: dto.languageCode ?? 'en',
+          timezone: dto.timezone ?? 'UTC',
+          preferences: (dto.preferences ?? {}) as object,
+        },
+        update: {
+          photoUrl: dto.photoUrl ?? null,
+          username: dto.username ?? null,
+          bio: dto.bio ?? null,
+          fullName: dto.fullName ?? null,
+          websiteUrl: dto.websiteUrl ?? null,
+          location: dto.location ?? null,
+          birthday: dto.birthday ? new Date(dto.birthday) : null,
+          languageCode: dto.languageCode ?? 'en',
+          timezone: dto.timezone ?? 'UTC',
+          preferences: (dto.preferences ?? {}) as object,
+        },
+      });
+    });
 
     const updated = await this.findByIdWithProfile(userId);
     if (!updated) throw new NotFoundException('User not found');
