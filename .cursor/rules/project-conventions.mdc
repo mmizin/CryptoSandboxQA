@@ -1,0 +1,15 @@
+---
+description: Project conventions — follow when implementing features
+globs: "**/*"
+alwaysApply: true
+---
+
+# Project Conventions
+
+When implementing features or making changes:
+
+- Follow [ARCHITECTURE.md](ARCHITECTURE.md) for tech stack and module layout.
+- **Backend API:** [.cursor/rules/api-database-consistency.mdc](.cursor/rules/api-database-consistency.mdc) — persist to PostgreSQL via Prisma; no mock data for persisted entities.
+- **Frontend UI:** [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc) — theme-aware classes (`group-data-[theme=light]`).
+- Use feature branches `feature/<short-description>`; do not commit directly to `main` / `master`.
+- Prefer small, focused changes; avoid unrelated refactors.

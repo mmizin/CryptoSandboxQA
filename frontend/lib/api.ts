@@ -3,6 +3,7 @@ import type {
   TwoFactorBackupCodesResponse,
   Verify2FaRequest,
 } from './twoFactorTypes';
+import type { AdminCreateUserPayload } from './adminUserImport';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -26,10 +27,33 @@ export async function api<T>(
   const res = await fetch(`${API_URL}${path}`, { ...options, headers, credentials: 'include' });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const raw = err.message ?? err.error;
+    const msg = Array.isArray(raw) ? raw.join(', ') : String(raw || `HTTP ${res.status}`);
+    throw new Error(msg);
   }
   return res.json();
 }
+
+function jsonBodyStripUndefined(payload: AdminCreateUserPayload): string {
+  const o: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(payload)) {
+    if (v !== undefined) o[k] = v;
+  }
+  return JSON.stringify(o);
+}
+
+export const adminApi = {
+  createUser: (payload: AdminCreateUserPayload) =>
+    api<{
+      id: string;
+      email: string;
+      displayName: string | null;
+      role: string;
+      profile?: unknown;
+      createdAt?: string;
+      updatedAt?: string;
+    }>('/auth/admin/create-user', { method: 'POST', body: jsonBodyStripUndefined(payload) }),
+};
 
 export const authApi = {
   login: (email: string, password: string) =>

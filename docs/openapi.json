@@ -299,6 +299,43 @@
         ]
       }
     },
+    "/auth/admin/create-user": {
+      "post": {
+        "operationId": "AuthController_createUserAsAdmin",
+        "summary": "Create user with profile (admin only)",
+        "description": "Persists user and optional profile to the database (same rules as register-with-profile). Does not create a session for the new user.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "409": {
+            "description": "Email or username conflict"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/auth/register-with-profile": {
       "post": {
         "operationId": "AuthController_registerWithProfile",
@@ -2643,6 +2680,17 @@
           }
         ]
       }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "MetricsController_metrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "info": {
@@ -2910,6 +2958,79 @@
             "type": "string",
             "example": "Admin User",
             "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123",
+            "minLength": 6
+          },
+          "displayName": {
+            "type": "string",
+            "example": "John Doe",
+            "maxLength": 100
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe",
+            "maxLength": 50
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Doe",
+            "maxLength": 100
+          },
+          "photoUrl": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Crypto enthusiast",
+            "maxLength": 500
+          },
+          "websiteUrl": {
+            "type": "string",
+            "example": "https://mysite.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York"
+          },
+          "birthday": {
+            "type": "string",
+            "example": "1990-01-15",
+            "description": "ISO date (YYYY-MM-DD)"
+          },
+          "languageCode": {
+            "type": "string",
+            "example": "en",
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York",
+            "maxLength": 50
+          },
+          "preferences": {
+            "type": "object",
+            "example": {
+              "theme": "dark",
+              "notifications": true
+            },
+            "description": "JSON object"
           }
         },
         "required": [
