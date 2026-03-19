@@ -9,7 +9,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `backend/` | NestJS API, Prisma schema & migrations, seeds |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
-| `docs/` | Design notes, static `openapi.json` |
+| `docs/` | Design notes, static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md) catalog |
 | Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
 ---
@@ -219,6 +219,8 @@ Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 ---
 
 ## QA scenarios (high level)
+
+Dedicated UI / automation practice surfaces are catalogued in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md).
 
 1. **Auth**: Register → login → optional 2FA → logout (session invalid).
 2. **Admin**: Create admin via API key → impersonate user → end impersonation.
