@@ -2053,6 +2053,114 @@
         ]
       }
     },
+    "/admin/users/{userId}/portfolio/balances": {
+      "get": {
+        "operationId": "AdminPortfolioController_getBalances",
+        "summary": "Get user balances (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns user balances"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/portfolio/summary": {
+      "get": {
+        "operationId": "AdminPortfolioController_getSummary",
+        "summary": "Get user portfolio summary (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns portfolio summary with total value"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{userId}/portfolio/allocation": {
+      "get": {
+        "operationId": "AdminPortfolioController_getAllocation",
+        "summary": "Get user asset allocation (admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns asset allocation percentages"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "admin-portfolio"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/transactions": {
       "get": {
         "operationId": "TransactionsController_getTransactions",
