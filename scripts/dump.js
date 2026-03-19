@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Dump PostgreSQL data to data/postgres-dump.sql (data-only, no schema).
- * Only creates dump if DB has data (users or wallets exist).
+ * Only creates dump if DB has data (users or user_balances exist).
  * Run before db:reset to save state for later restore.
  */
 const fs = require('fs');
@@ -40,7 +40,7 @@ const password = url.password || 'postgres';
 // Check if DB has data (skip dump if empty to avoid overwriting with empty state)
 try {
   const countResult = execSync(
-    'docker exec cryptosandbox-postgres psql -U postgres -d cryptosandbox -t -A -c "SELECT COALESCE((SELECT COUNT(*) FROM users), 0) + COALESCE((SELECT COUNT(*) FROM wallets), 0)"',
+    'docker exec cryptosandbox-postgres psql -U postgres -d cryptosandbox -t -A -c "SELECT COALESCE((SELECT COUNT(*) FROM users), 0) + COALESCE((SELECT COUNT(*) FROM user_balances), 0)"',
     { encoding: 'utf8', env: { ...envVars, PGPASSWORD: password } }
   ).trim();
   const total = parseInt(countResult, 10) || 0;
