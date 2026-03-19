@@ -9,6 +9,8 @@ import { SessionsService } from './sessions.service';
 import { SessionGuard } from './session.guard';
 import { TwoFactorService } from './two-factor.service';
 import { UsersModule } from '../users/users.module';
+import { AdminApiKeyGuard } from './guards/admin-api-key.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 @Module({
   imports: [
@@ -24,7 +26,15 @@ import { UsersModule } from '../users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, SessionsService, TwoFactorService, SessionGuard],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    SessionsService,
+    TwoFactorService,
+    SessionGuard,
+    AdminApiKeyGuard,
+    AdminGuard,
+  ],
+  exports: [AuthService, AdminGuard],
 })
 export class AuthModule {}

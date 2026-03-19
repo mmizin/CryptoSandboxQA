@@ -16,6 +16,7 @@ model User {
   email            String    @unique
   passwordHash     String    @map("password_hash")
   displayName      String?   @map("display_name")
+  role             String    @default("user") // user | admin
   emailVerifiedAt  DateTime? @map("email_verified_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
