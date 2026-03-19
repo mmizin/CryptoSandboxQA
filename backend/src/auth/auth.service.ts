@@ -8,6 +8,7 @@ import { TwoFactorService } from './two-factor.service';
 export interface JwtPayload {
   sub: string;
   email: string;
+  impersonatedBy?: string;
 }
 
 export interface Temp2FaPayload {
@@ -36,6 +37,7 @@ export interface LoginRequires2FaResult {
 
 const JWT_EXPIRY = '7d';
 const TEMP_2FA_EXPIRY = '5m';
+const BACK_TO_ADMIN_EXPIRY = '1h';
 
 @Injectable()
 export class AuthService {
@@ -196,5 +198,68 @@ export class AuthService {
       access_token,
       user: userSafe as AuthResult['user'],
     };
+  }
+
+  async impersonate(
+    adminId: string,
+    targetUserId: string,
+  ): Promise<AuthResult & { backToAdminToken: string }> {
+    const admin = await this.usersService.findById(adminId);
+    if (!admin || admin.role !== 'admin') {
+      throw new UnauthorizedException('Admin access required');
+    }
+
+    const targetUser = await this.usersService.findByIdWithProfile(targetUserId);
+    if (!targetUser) {
+      throw new UnauthorizedException('Target user not found');
+    }
+
+    const impersonationPayload: JwtPayload = {
+      sub: targetUser.id,
+      email: targetUser.email,
+      impersonatedBy: adminId,
+    };
+    const access_token = this.jwtService.sign(impersonationPayload, {
+      expiresIn: JWT_EXPIRY,
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await this.sessionsService.createSession(targetUser.id, access_token, expiresAt);
+
+    const backToAdminPayload = { sub: adminId, purpose: 'back_to_admin' as const };
+    const backToAdminToken = this.jwtService.sign(backToAdminPayload, {
+      expiresIn: BACK_TO_ADMIN_EXPIRY,
+    });
+
+    const { passwordHash: _, ...userSafe } = targetUser;
+    return {
+      access_token,
+      user: userSafe as AuthResult['user'],
+      backToAdminToken,
+    };
+  }
+
+  async endImpersonation(backToAdminToken: string): Promise<AuthResult> {
+    interface BackToAdminPayload {
+      sub: string;
+      purpose?: string;
+    }
+    let payload: BackToAdminPayload;
+    try {
+      payload = this.jwtService.verify<BackToAdminPayload>(backToAdminToken);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired restore token. Please log in again.');
+    }
+    if (payload.purpose !== 'back_to_admin' || !payload.sub) {
+      throw new UnauthorizedException('Invalid restore token');
+    }
+
+    const admin = await this.usersService.findByIdWithProfile(payload.sub);
+    if (!admin || admin.role !== 'admin') {
+      throw new UnauthorizedException('Admin account not found');
+    }
+
+    return this.issueTokenAndSession(admin);
   }
 }

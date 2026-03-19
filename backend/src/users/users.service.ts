@@ -104,6 +104,29 @@ export class UsersService {
     });
   }
 
+  async findAll(search?: string): Promise<
+    Array<{ id: string; email: string; displayName: string | null; role: string }>
+  > {
+    const term = search?.trim();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const orConditions: Prisma.UserWhereInput[] = [];
+    if (term) {
+      orConditions.push({ email: { contains: term, mode: 'insensitive' } });
+      if (uuidRegex.test(term)) {
+        orConditions.push({ id: term });
+      }
+    }
+    const where: Prisma.UserWhereInput = orConditions.length > 0 ? { OR: orConditions } : {};
+
+    const users = await this.prisma.user.findMany({
+      where,
+      select: { id: true, email: true, displayName: true, role: true },
+      orderBy: { email: 'asc' },
+      take: 100,
+    });
+    return users;
+  }
+
   async update(id: string, data: Prisma.UserUpdateInput) {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('User not found');

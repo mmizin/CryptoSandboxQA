@@ -43,6 +43,16 @@ export const authApi = {
       { method: 'POST', body: JSON.stringify({ email, password, displayName }) }
     ),
   logout: () => api<{ success: boolean }>('/auth/logout', { method: 'POST' }),
+  impersonate: (targetUserId: string) =>
+    api<{ access_token: string; user: { id: string; email: string; displayName: string | null }; backToAdminToken: string }>(
+      '/auth/impersonate',
+      { method: 'POST', body: JSON.stringify({ targetUserId }) }
+    ),
+  endImpersonation: (backToAdminToken: string) =>
+    api<{ access_token: string; user: { id: string; email: string; displayName: string | null } }>(
+      '/auth/end-impersonation',
+      { method: 'POST', body: JSON.stringify({ backToAdminToken }) }
+    ),
   verify2Fa: (tempToken: string, code: string) =>
     api<{ access_token: string; user: { id: string; email: string; displayName: string | null } }>(
       '/auth/2fa/verify',
@@ -51,7 +61,11 @@ export const authApi = {
 };
 
 export const usersApi = {
-  me: () => api<{ id: string; email: string; displayName: string | null }>('/users/me'),
+  me: () => api<{ id: string; email: string; displayName: string | null; role?: string }>('/users/me'),
+  list: (search?: string) =>
+    api<Array<{ id: string; email: string; displayName: string | null; role: string }>>(
+      `/users${search ? `?search=${encodeURIComponent(search)}` : ''}`
+    ),
 };
 
 export const walletsApi = {

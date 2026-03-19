@@ -18,8 +18,17 @@ export class OrdersController {
   @ApiOperation({ summary: 'Create order' })
   @ApiBody({ type: CreateOrderDto })
   @ApiResponse({ status: 201, description: 'Returns created order' })
-  async create(@CurrentUser() user: { id: string }, @Body() dto: CreateOrderDto) {
-    return this.ordersService.create(user.id, {
+  async create(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: CreateOrderDto,
+  ) {
+    const auditMetadata =
+      user.impersonatedBy ?
+        { performedByAdmin: true, adminId: user.impersonatedBy } as Record<string, unknown>
+      : undefined;
+    return this.ordersService.create(
+      user.id,
+      {
       symbol: dto.symbol,
       side: dto.side,
       type: dto.type,
@@ -27,7 +36,9 @@ export class OrdersController {
       price: dto.price,
       marketType: dto.marketType,
       initialStatus: dto.initialStatus,
-    });
+    },
+    auditMetadata,
+    );
   }
 
   @Patch(':id/status')
@@ -35,8 +46,16 @@ export class OrdersController {
   @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiBody({ type: SetOrderStatusDto })
   @ApiResponse({ status: 200, description: 'Returns updated order' })
-  async setStatus(@CurrentUser() user: { id: string }, @Param('id') orderId: string, @Body() dto: SetOrderStatusDto) {
-    return this.ordersService.setStatus(user.id, orderId, dto.status);
+  async setStatus(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Param('id') orderId: string,
+    @Body() dto: SetOrderStatusDto,
+  ) {
+    const auditMetadata =
+      user.impersonatedBy ?
+        { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
+    return this.ordersService.setStatus(user.id, orderId, dto.status, auditMetadata);
   }
 
   @Post(':id/cancel')

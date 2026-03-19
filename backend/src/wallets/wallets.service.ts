@@ -56,7 +56,12 @@ export class WalletsService {
     userId: string,
     asset: string,
     amount: number | Decimal,
-    options?: { refType?: string; refId?: string; tx?: TxClient },
+    options?: {
+      refType?: string;
+      refId?: string;
+      tx?: TxClient;
+      auditMetadata?: Record<string, unknown>;
+    },
   ) {
     const assetRow = await this.getAssetBySymbol(asset);
     let balance = await this.prisma.userBalance.findUnique({
@@ -89,6 +94,7 @@ export class WalletsService {
           balanceAfter: totalAfter,
           refType: options?.refType ?? null,
           refId: options?.refId ?? null,
+          metadata: (options?.auditMetadata ?? {}) as object,
         },
       });
       const total = new Decimal(updated.balanceAvailable).add(updated.balanceLocked);
@@ -101,7 +107,12 @@ export class WalletsService {
     return this.prisma.$transaction(run);
   }
 
-  async debit(userId: string, asset: string, amount: number | Decimal) {
+  async debit(
+    userId: string,
+    asset: string,
+    amount: number | Decimal,
+    options?: { auditMetadata?: Record<string, unknown> },
+  ) {
     const assetRow = await this.getAssetBySymbol(asset);
     const balance = await this.prisma.userBalance.findUnique({
       where: { userId_assetId: { userId, assetId: assetRow.id } },
@@ -133,6 +144,7 @@ export class WalletsService {
           balanceAfter: totalAfter,
           refType: null,
           refId: null,
+          metadata: (options?.auditMetadata ?? {}) as object,
         },
       });
       const total = new Decimal(updated.balanceAvailable).add(updated.balanceLocked);

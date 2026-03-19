@@ -22,11 +22,14 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { Enable2FaDto } from './dto/enable-2fa.dto';
 import { Disable2FaDto } from './dto/disable-2fa.dto';
 import { Verify2FaDto } from './dto/verify-2fa.dto';
+import { ImpersonateDto } from './dto/impersonate.dto';
+import { EndImpersonationDto } from './dto/end-impersonation.dto';
 import { TwoFactorService } from './two-factor.service';
 import { SessionsService } from './sessions.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SessionGuard } from './session.guard';
 import { AdminApiKeyGuard } from './guards/admin-api-key.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './current-user.decorator';
 
 function extractBearerToken(authHeader?: string): string | null {
@@ -98,6 +101,25 @@ export class AuthController {
       timezone: dto.timezone,
       preferences: dto.preferences,
     });
+  }
+
+  @Post('impersonate')
+  @UseGuards(JwtAuthGuard, SessionGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Impersonate a user (admin only)' })
+  @ApiBody({ type: ImpersonateDto })
+  @ApiResponse({ status: 201, description: 'Returns target user token and backToAdminToken' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  async impersonate(@CurrentUser() user: { id: string }, @Body() dto: ImpersonateDto) {
+    return this.authService.impersonate(user.id, dto.targetUserId);
+  }
+
+  @Post('end-impersonation')
+  @ApiOperation({ summary: 'End impersonation and return to admin account' })
+  @ApiBody({ type: EndImpersonationDto })
+  @ApiResponse({ status: 200, description: 'Returns admin token' })
+  async endImpersonation(@Body() dto: EndImpersonationDto) {
+    return this.authService.endImpersonation(dto.backToAdminToken);
   }
 
   @Post('logout')
