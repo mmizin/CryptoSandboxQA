@@ -307,21 +307,23 @@ export default function ImportUsersPage() {
             </label>
           </div>
 
-          {(phase === 'idle' || phase === 'ready' || phase === 'done') && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
-                Choose file
-              </label>
-              <input
-                type="file"
-                accept=".csv,.json,application/json,text/csv"
-                onChange={onFile}
-                className={`${inputBase} max-w-xl cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-3 file:py-2 file:text-sm file:text-emerald-300 group-data-[theme=light]:file:bg-emerald-100 group-data-[theme=light]:file:text-emerald-800`}
-              />
-              {fileError && <p className="mt-2 text-sm text-red-400">{fileError}</p>}
+          {(phase === 'idle' || phase === 'ready') && (
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
+                  Choose file
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,.json,application/json,text/csv"
+                  onChange={onFile}
+                  className={`${inputBase} max-w-xl cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-3 file:py-2 file:text-sm file:text-emerald-300 group-data-[theme=light]:file:bg-emerald-100 group-data-[theme=light]:file:text-emerald-800`}
+                />
+                {fileError && <p className="mt-2 text-sm text-red-400">{fileError}</p>}
+              </div>
 
               {phase === 'ready' && pending && (
-                <div className="mt-4 rounded-lg border border-slate-700/80 bg-slate-800/40 p-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50">
+                <div className="rounded-lg border border-slate-700/80 bg-slate-800/40 p-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50">
                   <p className="text-sm text-slate-300 group-data-[theme=light]:text-slate-800">
                     <span className="font-medium">{pending.fileName}</span> —{' '}
                     <span className="text-emerald-400">{pending.validRows.length}</span> row(s) ready to create
@@ -333,13 +335,6 @@ export default function ImportUsersPage() {
                       </>
                     )}
                   </p>
-                  {pending.validRows.length > 0 && (
-                    <p className="mt-2 text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
-                      Emails:{' '}
-                      {pending.validRows.slice(0, 12).map((r) => r.email).join(', ')}
-                      {pending.validRows.length > 12 ? ` … (+${pending.validRows.length - 12} more)` : ''}
-                    </p>
-                  )}
                   <button
                     type="button"
                     onClick={handleStartImport}
@@ -350,12 +345,17 @@ export default function ImportUsersPage() {
                   </button>
                 </div>
               )}
+            </div>
+          )}
 
-              {phase === 'done' && (
-                <button type="button" onClick={reset} className={`${buttonBase} mt-4`}>
-                  Import another file
-                </button>
-              )}
+          {phase === 'done' && (
+            <div className="mb-8 mt-2 rounded-xl border border-slate-700/80 bg-slate-800/40 p-5 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50">
+              <p className="mb-3 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                Clears the results below and returns you to file selection.
+              </p>
+              <button type="button" onClick={reset} className={buttonBase}>
+                Import another file
+              </button>
             </div>
           )}
 
