@@ -283,9 +283,12 @@ export default function ImportUsersPage() {
             <button type="button" onClick={downloadTemplate} className={buttonBase}>
               Download CSV template
             </button>
-            <label className="flex flex-col gap-1 text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
-              <span>Testing: delay between requests (ms)</span>
+            <label className="flex max-w-md flex-col gap-1 text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
+              <span className="font-medium text-slate-400 group-data-[theme=light]:text-slate-700">
+                Testing: delay between requests (ms)
+              </span>
               <input
+                id="import-request-delay-ms"
                 type="number"
                 min={0}
                 max={60000}
@@ -293,7 +296,14 @@ export default function ImportUsersPage() {
                 value={requestDelayMs}
                 onChange={(e) => setRequestDelayMs(Math.max(0, Number(e.target.value) || 0))}
                 className={`${compactInput} w-28`}
+                aria-describedby="import-request-delay-hint"
+                title="Optional pause between each create-user API call"
               />
+              <p id="import-request-delay-hint" className="text-[11px] leading-snug text-slate-500 group-data-[theme=light]:text-slate-600">
+                <strong className="font-medium text-slate-400 group-data-[theme=light]:text-slate-700">0</strong> = no
+                extra wait (default). Use e.g. <strong className="font-normal">200–500</strong> to slow the import so
+                you can watch progress, or to mimic a slower client. Not needed for normal use.
+              </p>
             </label>
           </div>
 
