@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, NotFoundException, Param, Patch, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -19,6 +19,18 @@ export class UsersController {
   async me(@CurrentUser() user: { id: string }) {
     const found = await this.usersService.findByIdWithProfile(user.id);
     if (!found) return null;
+    const { passwordHash: _, ...result } = found;
+    return result;
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({ status: 200, description: 'Returns user with profile' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getById(@Param('id') id: string) {
+    const found = await this.usersService.findByIdWithProfile(id);
+    if (!found) throw new NotFoundException('User not found');
     const { passwordHash: _, ...result } = found;
     return result;
   }
