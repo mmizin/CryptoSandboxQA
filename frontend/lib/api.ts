@@ -42,17 +42,36 @@ function jsonBodyStripUndefined(payload: AdminCreateUserPayload): string {
   return JSON.stringify(o);
 }
 
+/** Response from POST /auth/admin/create-user (user + profile, no password hash). */
+export type AdminCreatedUserResponse = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: string;
+  emailVerifiedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  profile?: {
+    id?: string;
+    username?: string | null;
+    fullName?: string | null;
+    photoUrl?: string | null;
+    bio?: string | null;
+    websiteUrl?: string | null;
+    location?: string | null;
+    birthday?: string | null;
+    languageCode?: string;
+    timezone?: string;
+    preferences?: Record<string, unknown>;
+  } | null;
+};
+
 export const adminApi = {
   createUser: (payload: AdminCreateUserPayload) =>
-    api<{
-      id: string;
-      email: string;
-      displayName: string | null;
-      role: string;
-      profile?: unknown;
-      createdAt?: string;
-      updatedAt?: string;
-    }>('/auth/admin/create-user', { method: 'POST', body: jsonBodyStripUndefined(payload) }),
+    api<AdminCreatedUserResponse>('/auth/admin/create-user', {
+      method: 'POST',
+      body: jsonBodyStripUndefined(payload),
+    }),
 };
 
 export const authApi = {
