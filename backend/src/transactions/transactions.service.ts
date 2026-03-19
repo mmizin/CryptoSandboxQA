@@ -47,15 +47,18 @@ export class TransactionsService {
     return {
       data: data.map((t) => ({
         id: t.id,
+        userId: t.userId,
         type: t.type,
         asset: t.asset.symbol,
         amount: t.amount.toString(),
+        balanceBefore: t.balanceBefore.toString(),
         balanceAfter: t.balanceAfter.toString(),
         refType: t.refType,
         refId: t.refId,
         createdAt: t.createdAt,
       })),
       total,
+      meta: { total, limit, offset },
     };
   }
 
@@ -100,9 +103,12 @@ export class TransactionsService {
         quantity: t.quantity.toString(),
         price: t.price.toString(),
         side: t.takerUserId === userId ? 'taker' : 'maker',
+        takerUserId: t.takerUserId,
+        makerUserId: t.makerUserId,
         createdAt: t.createdAt,
       })),
       total,
+      meta: { total, limit, offset },
     };
   }
 

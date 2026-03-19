@@ -16,7 +16,12 @@ export class DepositsService {
 
   async depositFiat(
     userId: string,
-    data: { fiatCurrency: string; amount: number; paymentMethodId?: string },
+    data: {
+      fiatCurrency: string;
+      amount: number;
+      paymentMethodId?: string;
+      auditMetadata?: Record<string, unknown>;
+    },
   ) {
     if (!FIAT_CURRENCIES.includes(data.fiatCurrency as (typeof FIAT_CURRENCIES)[number])) {
       throw new BadRequestException(`Invalid currency. Allowed: ${FIAT_CURRENCIES.join(', ')}`);
@@ -42,16 +47,22 @@ export class DepositsService {
         },
       });
 
-      await this.walletsService.credit(userId, data.fiatCurrency, Number(amountToCredit), {
+      const creditResult = await this.walletsService.credit(userId, data.fiatCurrency, Number(amountToCredit), {
         refType: 'deposit_fiat',
         refId: dep.id,
         tx,
+        auditMetadata: data.auditMetadata,
       });
 
-      return dep;
+      return { deposit: dep, creditResult };
     });
 
-    return this.mapDepositFiat(deposit);
+    return {
+      deposit: this.mapDepositFiat(deposit.deposit),
+      balance: deposit.creditResult.balance,
+      transaction: deposit.creditResult.transaction,
+      meta: { userId: deposit.deposit.userId },
+    };
   }
 
   async listFiatDeposits(userId: string, params?: { limit?: number; offset?: number; from?: string; to?: string }) {
@@ -76,8 +87,9 @@ export class DepositsService {
     ]);
 
     return {
-      data: data.map(this.mapDepositFiat),
+      data: data.map((d) => this.mapDepositFiat(d)),
       total,
+      meta: { total, limit, offset },
     };
   }
 
@@ -100,6 +112,7 @@ export class DepositsService {
     const walletAddress = asset.walletAddress || this.generateMockAddress(userId, symbol);
 
     return {
+      userId,
       symbol: asset.symbol,
       walletAddress,
       expiresAt: null,
@@ -108,7 +121,13 @@ export class DepositsService {
 
   async depositCrypto(
     userId: string,
-    data: { symbol: string; amount: number; walletAddress: string; txHash?: string },
+    data: {
+      symbol: string;
+      amount: number;
+      walletAddress: string;
+      txHash?: string;
+      auditMetadata?: Record<string, unknown>;
+    },
   ) {
     const asset = await this.prisma.asset.findFirst({
       where: { symbol: data.symbol.toUpperCase(), assetType: 'crypto', isActive: true },
@@ -130,16 +149,22 @@ export class DepositsService {
         },
       });
 
-      await this.walletsService.credit(userId, asset.symbol, data.amount, {
+      const creditResult = await this.walletsService.credit(userId, asset.symbol, data.amount, {
         refType: 'deposit_crypto',
         refId: dep.id,
         tx,
+        auditMetadata: data.auditMetadata,
       });
 
-      return dep;
+      return { deposit: dep, creditResult };
     });
 
-    return this.mapDepositCrypto(deposit);
+    return {
+      deposit: this.mapDepositCryptoWithAsset({ ...deposit.deposit, asset }),
+      balance: deposit.creditResult.balance,
+      transaction: deposit.creditResult.transaction,
+      meta: { userId: deposit.deposit.userId },
+    };
   }
 
   async listCryptoDeposits(userId: string, params?: { limit?: number; offset?: number }) {
@@ -160,6 +185,7 @@ export class DepositsService {
     return {
       data: data.map((d) => this.mapDepositCryptoWithAsset(d)),
       total,
+      meta: { total, limit, offset },
     };
   }
 
@@ -172,9 +198,10 @@ export class DepositsService {
     return this.mapDepositCryptoWithAsset(dep);
   }
 
-  private mapDepositFiat(d: { id: string; fiatCurrency: string; amount: Decimal; fee: Decimal; status: string; createdAt: Date; completedAt: Date | null }) {
+  private mapDepositFiat(d: { id: string; userId: string; fiatCurrency: string; amount: Decimal; fee: Decimal; status: string; createdAt: Date; completedAt: Date | null }) {
     return {
       id: d.id,
+      userId: d.userId,
       fiatCurrency: d.fiatCurrency,
       amount: d.amount.toString(),
       fee: d.fee.toString(),
@@ -184,9 +211,10 @@ export class DepositsService {
     };
   }
 
-  private mapDepositCrypto(d: { id: string; amount: Decimal; walletAddress: string; status: string; createdAt: Date }) {
+  private mapDepositCrypto(d: { id: string; userId: string; amount: Decimal; walletAddress: string; status: string; createdAt: Date }) {
     return {
       id: d.id,
+      userId: d.userId,
       amount: d.amount.toString(),
       walletAddress: d.walletAddress,
       status: d.status,
@@ -195,7 +223,7 @@ export class DepositsService {
   }
 
   private mapDepositCryptoWithAsset(
-    d: { id: string; amount: Decimal; walletAddress: string; status: string; createdAt: Date; asset: { symbol: string } },
+    d: { id: string; userId: string; amount: Decimal; walletAddress: string; status: string; createdAt: Date; asset: { symbol: string } },
   ) {
     return {
       ...this.mapDepositCrypto(d),

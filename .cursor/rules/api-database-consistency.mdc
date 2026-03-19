@@ -1,0 +1,57 @@
+---
+description: API and database consistency requirements for endpoints
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# API and Database Consistency
+
+Whenever creating or modifying API endpoints:
+
+## 1. Database Integration
+- **Always integrate with the database** when the endpoint interacts with data
+- Do NOT use temporary or in-memory data if a database table exists
+
+## 2. Relationships & Schema
+- Use proper foreign keys
+- Respect existing schema constraints
+- Maintain referential integrity
+
+## 3. Consistent Entity Updates
+
+**Deposits:**
+- Insert a record into the deposits table (`deposits_fiat` or `deposits_crypto`)
+- Update the user's balance
+- Create a transaction record in `balance_transactions` with correct `refType` and `refId`
+
+**Orders:**
+- Validate user balance before create
+- Insert order into `orders` table
+- Update balance (lock or reduce funds)
+- Create trade or order history record when applicable
+
+## 4. Data Flow
+- Do not break existing data flow
+- Ensure changes are compatible with current database schema
+- Do not remove or rename fields without updating all related logic
+
+## 5. Transactions & Validation
+- Use DB transactions for multi-step operations (e.g., `prisma.$transaction`)
+- Rollback on failure
+- Validate data before writing to DB
+
+## 6. Schema Changes
+- Clearly explain what needs to change before modifying schema
+- Do NOT modify schema without approval
+
+## 7. API Responses
+- Return actual updated data from DB after any operation
+- Responses must reflect real database state
+
+## 8. Consistency Across Layers
+- Keep controllers, services, and models aligned
+- All related logic must be updated together
+
+## 9. Production Quality
+- No shortcuts
+- No mock logic when real DB is available
