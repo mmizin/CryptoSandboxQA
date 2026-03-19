@@ -16,6 +16,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterWithProfileDto } from './dto/register-with-profile.dto';
 import { Enable2FaDto } from './dto/enable-2fa.dto';
 import { Disable2FaDto } from './dto/disable-2fa.dto';
 import { Verify2FaDto } from './dto/verify-2fa.dto';
@@ -54,6 +55,31 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Returns user and access token' })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto.email, dto.password, dto.displayName);
+  }
+
+  @Post('register-with-profile')
+  @ApiOperation({
+    summary: 'Register new user with optional profile fields',
+    description: 'Creates a user (same as register) plus optional UserProfile fields in one request.',
+  })
+  @ApiBody({ type: RegisterWithProfileDto })
+  @ApiResponse({ status: 201, description: 'Returns user and access token' })
+  async registerWithProfile(@Body() dto: RegisterWithProfileDto) {
+    return this.authService.registerWithProfile({
+      email: dto.email,
+      password: dto.password,
+      displayName: dto.displayName,
+      username: dto.username,
+      fullName: dto.fullName,
+      photoUrl: dto.photoUrl,
+      bio: dto.bio,
+      websiteUrl: dto.websiteUrl,
+      location: dto.location,
+      birthday: dto.birthday,
+      languageCode: dto.languageCode,
+      timezone: dto.timezone,
+      preferences: dto.preferences,
+    });
   }
 
   @Post('logout')

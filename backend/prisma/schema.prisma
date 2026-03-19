@@ -41,6 +41,14 @@ model UserProfile {
   userId              String   @unique @map("user_id")
   photoUrl            String?  @map("photo_url")
   username            String?  @unique
+  bio                 String?
+  fullName            String?  @map("full_name")
+  websiteUrl          String?  @map("website_url")
+  location            String?
+  birthday            DateTime? @db.Date
+  languageCode        String   @default("en") @map("language_code") @db.VarChar(5)
+  timezone            String   @default("UTC") @db.VarChar(50)
+  preferences         Json     @default("{}")
   verificationStatus  String   @map("verification_status") @default("unverified")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
