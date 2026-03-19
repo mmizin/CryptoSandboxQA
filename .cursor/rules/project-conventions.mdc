@@ -9,6 +9,7 @@ alwaysApply: true
 When implementing features or making changes:
 
 - Follow [ARCHITECTURE.md](ARCHITECTURE.md) for tech stack and module layout.
+- **Architecture doc maintenance:** After meaningful changes, update [ARCHITECTURE.md](ARCHITECTURE.md) in the same change set when the overview would be wrong or incomplete — e.g. new/removed Nest modules or controllers, Prisma models or major fields, auth or realtime behavior, main frontend routes, observability/OpenAPI workflow, or tech stack. Skip edits for trivial fixes that do not alter the documented system shape.
 - **Backend API:** [.cursor/rules/api-database-consistency.mdc](.cursor/rules/api-database-consistency.mdc) — persist to PostgreSQL via Prisma; no mock data for persisted entities.
 - **Frontend UI:** [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc) — theme-aware classes (`group-data-[theme=light]`).
 - Use feature branches `feature/<short-description>`; do not commit directly to `main` / `master`.

@@ -1,135 +1,233 @@
 # CryptoSandboxQA — Architecture
 
-A small crypto exchange training platform for QA practice. Simulate trades, validate transactions, and test automation on a safe environment.
+A small crypto exchange training platform for QA practice. Simulate trades, validate transactions, and test automation in a safe environment.
 
-## Tech Stack
+## Repository layout
 
-| Layer | Technology |
-|-------|------------|
-| Backend | NestJS (TypeScript) |
-| Frontend | Next.js (React) |
-| Database | PostgreSQL |
-| Realtime | WebSocket |
+| Path | Role |
+|------|------|
+| `backend/` | NestJS API, Prisma schema & migrations, seeds |
+| `frontend/` | Next.js (App Router) UI |
+| `scripts/` | `setup`, database up/down/dump/restore helpers |
+| `docs/` | Design notes, static `openapi.json` |
+| Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
 ---
 
-## Backend Modules
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | NestJS (TypeScript), Prisma ORM |
+| Database | PostgreSQL |
+| Realtime | Socket.IO (`@nestjs/websockets`, namespace `/ticker`) |
+| Frontend | Next.js (React), Zustand (where used), Socket.IO client |
+| API docs | Swagger UI + OpenAPI JSON (`/api/docs`, `/api/docs-json`) |
+| Metrics | `prom-client` — `GET /metrics` (Prometheus text format) |
+| Tooling | npm workspaces, Docker Compose (Postgres + optional observability stack) |
+
+---
+
+## Backend application
+
+`AppModule` wires global `ConfigModule`, `PrismaModule`, and feature modules.
 
 ```mermaid
 flowchart TB
-    subgraph nestjs [NestJS Backend]
+    subgraph nest [NestJS Backend]
+        PrismaModule[PrismaModule]
         AuthModule[AuthModule]
         UsersModule[UsersModule]
         WalletsModule[WalletsModule]
         OrdersModule[OrdersModule]
         TickersModule[TickersModule]
-        WebSocketModule[WebSocket Gateway]
+        CryptosModule[CryptosModule]
+        WebSocketModule[WebSocketModule]
+        DepositsModule[DepositsModule]
+        PaymentMethodsModule[PaymentMethodsModule]
+        PortfolioModule[PortfolioModule]
+        TransactionsModule[TransactionsModule]
+        MetricsModule[MetricsModule]
     end
-    
+
     AuthModule --> UsersModule
-    WalletsModule --> UsersModule
+    WalletsModule --> PrismaModule
     OrdersModule --> WalletsModule
     OrdersModule --> TickersModule
+    DepositsModule --> WalletsModule
+    PaymentMethodsModule --> UsersModule
+    PortfolioModule --> WalletsModule
+    TransactionsModule --> PrismaModule
     WebSocketModule --> TickersModule
-    nestjs --> PostgreSQL[(PostgreSQL)]
+    CryptosModule --> PrismaModule
+    nest --> PostgreSQL[(PostgreSQL)]
 ```
+
+### Feature modules (implemented)
 
 | Module | Responsibility |
 |--------|----------------|
-| **AuthModule** | Register, login (JWT), password hashing (bcrypt), guards for protected routes |
-| **UsersModule** | User profile CRUD (id, email, displayName) |
-| **WalletsModule** | Per-user wallets: balance per asset (USD, BTC, ETH). Deposit/withdraw for training |
-| **OrdersModule** | Create/cancel/list orders (limit/market). Simple order matching |
-| **TickersModule** | Last price + 24h stats per symbol. Feeds WebSocket |
-| **WebSocketModule** | Broadcasts price updates. Clients subscribe by symbol |
+| **AuthModule** | Register, register-with-profile, login, logout; JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user`; **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
+| **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields |
+| **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit |
+| **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades, balance updates) |
+| **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
+| **CryptosModule** | Read API for `cryptos` table (market listings / markets UI) |
+| **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions` |
+| **PaymentMethodsModule** | User payment methods (`user_payment_methods`); used by fiat deposits |
+| **PortfolioModule** | Authenticated portfolio: balances, summary, allocation |
+| **TransactionsModule** | User-facing transaction history (aggregates deposits, trades, withdrawals as exposed by API) |
+| **WebSocketModule** | **TickerGateway** — Socket.IO namespace `/ticker` |
+| **MetricsModule** | `GET /metrics` for Prometheus |
+
+### Admin HTTP API (JWT + admin role)
+
+Admin controllers use the `admin/users` prefix and require an admin-authenticated session (see Swagger tags). Examples:
+
+- `GET /admin/users/:userId/wallets`, wallets by asset
+- `GET /admin/users/:userId/orders`, order detail
+- `GET /admin/users/:userId/deposits/fiat|crypto` (+ by id)
+- `GET /admin/users/:userId/payment-methods` (+ by id)
+- `GET /admin/users/:userId/portfolio/*` (balances, summary, allocation)
+- `GET /admin/users/:userId/transactions` (+ deposits / trades / withdrawals filters)
 
 ---
 
-## Database Tables
+## Authentication & security (implemented)
 
-The schema has been extended to a production-style design. See [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) for the full design.
-
-**Core tables in use:**
-- **users**: id, email (unique), passwordHash, displayName, createdAt, updatedAt
-- **assets**: id, symbol, name, assetType (crypto/fiat), walletAddress (for crypto deposits)
-- **trading_pairs**: symbol (PK), baseAssetId, quoteAssetId — defines tradeable pairs (e.g. BTC_USD)
-- **user_balances**: id, userId, assetId, balanceAvailable, balanceLocked. Unique (userId, assetId)
-- **balance_transactions**: audit trail for all balance changes (deposit, withdraw, trade_*)
-- **orders**: id, userId, symbol, side, orderType (limit/market), quantity, price, filledQuantity, orderStatus, createdAt
-- **trades**: id, takerOrderId, makerOrderId, takerUserId, makerUserId, quantity, price, createdAt
-- **tickers**: symbol (PK), lastPrice, volume24h — last price per trading pair
-- **cryptos**: market listings for Markets pages (100+ coins)
-
-**Additional tables (for future features):** user_profiles, user_two_factor, user_sessions, user_payment_methods, deposits_fiat, deposits_crypto, withdrawals
+- **JWT** bearer tokens for API access, combined with **SessionGuard** backed by `user_sessions` (logout invalidates session).
+- **Roles**: `user` | `admin` on `users.role`; `AdminGuard` for admin-only routes.
+- **Admin API key**: `ADMIN_API_KEY` + `AdminApiKeyGuard` for bootstrapping admin users (`POST /auth/admin/register`).
+- **2FA**: `UserTwoFactor` model; login may return a temp token until `POST /auth/2fa/verify`.
+- **Impersonation**: Admin receives tokens to act as target user + `backToAdminToken` to revert (`POST /auth/end-impersonation`).
 
 ---
 
-## Services
+## Database (Prisma)
+
+Full DDL lives in `backend/prisma/schema.prisma`. Detailed narrative: [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md).
+
+### Tables in active use
+
+| Area | Models / tables |
+|------|-----------------|
+| Users & auth | `users`, `user_profiles`, `user_two_factor`, `user_sessions` |
+| Payments | `user_payment_methods` |
+| Markets | `assets`, `trading_pairs`, `tickers`, `cryptos` |
+| Balances | `user_balances`, `balance_transactions` |
+| Trading | `orders`, `trades` |
+| Funding | `deposits_fiat`, `deposits_crypto`, `withdrawals` |
+
+Orders support `market_type` (`spot` | `futures`) and rich statuses (`open`, `partially_filled`, `filled`, `cancelled`, etc.) aligned with the Prisma schema.
+
+---
+
+## Key services (reference)
 
 | Service | Module | Responsibility |
 |---------|--------|----------------|
-| **AuthService** | AuthModule | Hash password, validate credentials, issue JWT |
-| **UsersService** | UsersModule | Create user, find by id/email, update profile |
-| **WalletsService** | WalletsModule | Get/create wallet, credit/debit balance |
-| **OrdersService** | OrdersModule | Create order, cancel, list. Validates balance and calls matching |
-| **MatchingService** | OrdersModule | Match orders (FIFO), create trades, update wallets |
-| **TickersService** | TickersModule | Get/set last price per symbol. Used by WebSocket |
-| **WebSocketGateway** | WebSocketModule | Broadcast ticker updates when client subscribes by symbol |
+| **AuthService** | Auth | Credentials, JWT, registration with profile, admin user creation, impersonation |
+| **TwoFactorService** | Auth | 2FA lifecycle |
+| **SessionsService** | Auth | Session persistence and revocation |
+| **UsersService** | Users | User + profile persistence |
+| **WalletsService** | Wallets | Balances, locks, training credits/debits, transaction log |
+| **OrdersService** | Orders | Order lifecycle, validation |
+| **MatchingService** | Orders | Matching, trades, wallet updates |
+| **TickersService** | Tickers | Ticker reads/updates, seed |
+| **DepositsService** | Deposits | Fiat/crypto deposit records + balance updates |
+| **PaymentMethodsService** | Payment methods | CRUD for saved methods |
+| **PortfolioService** | Portfolio | Aggregated holder views |
+| **TransactionsService** | Transactions | History endpoints |
+| **TickerGateway** | WebSocket | Socket.IO subscribe/broadcast |
 
 ---
 
-## WebSocket Flow
+## Realtime: Socket.IO ticker
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Gateway
+    participant Gateway as TickerGateway
     participant TickersService
-    
-    Client->>Gateway: connect + subscribe(BTC_USD)
-    Gateway->>TickersService: get last price
-    TickersService-->>Gateway: price
-    Gateway->>Client: ticker update
-    loop every N ms or on change
-        Gateway->>TickersService: get prices
-        Gateway->>Client: broadcast ticker
+
+    Client->>Gateway: connect (namespace /ticker)
+    Client->>Gateway: subscribe(symbol)
+    Gateway->>TickersService: get(symbol)
+    TickersService-->>Gateway: ticker row
+    Gateway->>Client: emit ticker
+    loop every 2s
+        Gateway->>TickersService: getAll()
+        Gateway->>Client: emit ticker (per subscribed room)
     end
 ```
 
-- Client connects and sends `subscribe: "BTC_USD"` (or similar).
-- Server emits `ticker` events with `{ symbol, lastPrice, volume24h }`.
-- Prices are mock/simulated (no external APIs).
+- **Namespace**: `/ticker` (see `TickerGateway`).
+- **Client → server**: `subscribe` / `unsubscribe` messages with a symbol string (e.g. `BTC_USD`).
+- **Server → client**: `ticker` payload `{ symbol, lastPrice, volume24h }`.
+- Prices are driven from the database (simulated/training data), not external exchange feeds.
 
 ---
 
-## Frontend Structure
+## Frontend (Next.js App Router)
 
-- **App Router** pages: `/login`, `/register`, `/dashboard` (wallets + open orders), `/market` (order book + place order), `/history`.
-- **API client**: REST for auth and orders; WebSocket for live prices.
-- **State**: React state or Zustand for user, wallets, live ticker.
+### Routes implemented under `frontend/app/`
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Landing |
+| `/login`, `/register` | Auth |
+| `/dashboard` | Wallets / trading overview |
+| `/market` | Order book, place orders |
+| `/history` | Order / activity history |
+| `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
+| `/buy-crypto` | Buy UI |
+| `/calculate` | Calculator-style training UI |
+| `/trade/spot`, `/trade/futures` | Trade experiences |
+| `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery |
+| `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
+| `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
+
+Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc).
+
+**API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
 ---
 
-## UI Conventions
+## Observability & ops
 
-### Button Styling (Branding)
+- **Swagger**: served at `/api/docs` after backend start; OpenAPI JSON at `/api/docs-json`.
+- **Static spec**: [docs/openapi.json](docs/openapi.json) for offline tools; regenerate via `npm run openapi:generate` from repo root.
+- **Prometheus**: `GET /metrics` on the API port.
+- **Compose**: `npm run stack:up` — backend + Postgres + Prometheus + Grafana (see [README.md](README.md)).
 
-Use consistent emerald branding for primary/secondary action buttons (dropdown triggers, Back, Logout, Load more, sort headers):
+---
+
+## UI conventions (branding)
+
+Use consistent emerald branding for primary/secondary actions (buttons, dropdowns, table controls):
 
 ```
-rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none 
-bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 
-group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 
+rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none
+bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300
+group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700
 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800
 ```
 
-For compact buttons (e.g. table headers): use `px-3 py-1.5` instead of `px-4 py-2`.
+Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 
 ---
 
-## QA Scenarios
+## QA scenarios (high level)
 
-1. **Auth**: Register → Login → Logout.
-2. **Wallets**: Deposit USD → Verify balance.
-3. **Orders**: Place limit buy → Check order status → Fill (or cancel).
-4. **Realtime**: Connect WebSocket → Subscribe to symbol → Assert ticker updates.
+1. **Auth**: Register → login → optional 2FA → logout (session invalid).
+2. **Admin**: Create admin via API key → impersonate user → end impersonation.
+3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances` and history endpoints.
+4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades.
+5. **Realtime**: Socket.IO `/ticker` → subscribe → assert `ticker` events.
+6. **Observability**: Hit `/metrics`, confirm Grafana/Prometheus in stack profile.
+
+---
+
+## Keeping this document current
+
+When you change stack modules, major routes, database models, or auth behavior, update this file in the same PR so it stays the single overview for humans and agents. See [.cursor/rules/project-conventions.mdc](.cursor/rules/project-conventions.mdc).
