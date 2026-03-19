@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -181,6 +186,58 @@ export class AuthService {
       },
     );
     return this.issueTokenAndSession(user!);
+  }
+
+  /**
+   * Creates a user with optional profile in the database (Prisma) — same as registerWithProfile but no JWT/session.
+   */
+  async createUserWithProfileAsAdmin(data: {
+    email: string;
+    password: string;
+    displayName?: string;
+    username?: string;
+    fullName?: string;
+    photoUrl?: string;
+    bio?: string;
+    websiteUrl?: string;
+    location?: string;
+    birthday?: string;
+    languageCode?: string;
+    timezone?: string;
+    preferences?: Record<string, unknown>;
+  }) {
+    const existing = await this.usersService.findByEmail(data.email.toLowerCase());
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+    if (data.username) {
+      const existingUsername = await this.usersService.findByUsername(data.username);
+      if (existingUsername) {
+        throw new ConflictException('Username already taken');
+      }
+    }
+    const hash = await bcrypt.hash(data.password, 10);
+    const created = await this.usersService.createWithProfile(
+      { email: data.email, passwordHash: hash, displayName: data.displayName },
+      {
+        username: data.username,
+        fullName: data.fullName,
+        photoUrl: data.photoUrl,
+        bio: data.bio,
+        websiteUrl: data.websiteUrl,
+        location: data.location,
+        birthday: data.birthday,
+        languageCode: data.languageCode,
+        timezone: data.timezone,
+        preferences: data.preferences,
+      },
+    );
+    const full = await this.usersService.findByIdWithProfile(created!.id);
+    if (!full) {
+      throw new InternalServerErrorException('User creation failed');
+    }
+    const { passwordHash: _, ...safe } = full;
+    return safe;
   }
 
   private async issueTokenAndSession(

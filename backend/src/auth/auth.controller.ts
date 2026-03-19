@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
+  HttpStatus,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +20,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterWithProfileDto } from './dto/register-with-profile.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { Enable2FaDto } from './dto/enable-2fa.dto';
 import { Disable2FaDto } from './dto/disable-2fa.dto';
@@ -76,6 +79,37 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid or missing admin API key' })
   async createAdmin(@Body() dto: CreateAdminDto) {
     return this.authService.createAdmin(dto.email, dto.password, dto.displayName);
+  }
+
+  @Post('admin/create-user')
+  @UseGuards(JwtAuthGuard, SessionGuard, AdminGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create user with profile (admin only)',
+    description:
+      'Persists user and optional profile to the database (same rules as register-with-profile). Does not create a session for the new user.',
+  })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({ status: 201, description: 'User created' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  @ApiResponse({ status: 409, description: 'Email or username conflict' })
+  async createUserAsAdmin(@Body() dto: CreateUserDto) {
+    return this.authService.createUserWithProfileAsAdmin({
+      email: dto.email,
+      password: dto.password,
+      displayName: dto.displayName,
+      username: dto.username,
+      fullName: dto.fullName,
+      photoUrl: dto.photoUrl,
+      bio: dto.bio,
+      websiteUrl: dto.websiteUrl,
+      location: dto.location,
+      birthday: dto.birthday,
+      languageCode: dto.languageCode,
+      timezone: dto.timezone,
+      preferences: dto.preferences,
+    });
   }
 
   @Post('register-with-profile')
