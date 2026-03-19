@@ -110,6 +110,50 @@ export class AuthService {
     return this.issueTokenAndSession(user);
   }
 
+  async registerWithProfile(data: {
+    email: string;
+    password: string;
+    displayName?: string;
+    username?: string;
+    fullName?: string;
+    photoUrl?: string;
+    bio?: string;
+    websiteUrl?: string;
+    location?: string;
+    birthday?: string;
+    languageCode?: string;
+    timezone?: string;
+    preferences?: Record<string, unknown>;
+  }): Promise<AuthResult> {
+    const existing = await this.usersService.findByEmail(data.email.toLowerCase());
+    if (existing) {
+      throw new UnauthorizedException('Email already registered');
+    }
+    if (data.username) {
+      const existingUsername = await this.usersService.findByUsername(data.username);
+      if (existingUsername) {
+        throw new UnauthorizedException('Username already taken');
+      }
+    }
+    const hash = await bcrypt.hash(data.password, 10);
+    const user = await this.usersService.createWithProfile(
+      { email: data.email, passwordHash: hash, displayName: data.displayName },
+      {
+        username: data.username,
+        fullName: data.fullName,
+        photoUrl: data.photoUrl,
+        bio: data.bio,
+        websiteUrl: data.websiteUrl,
+        location: data.location,
+        birthday: data.birthday,
+        languageCode: data.languageCode,
+        timezone: data.timezone,
+        preferences: data.preferences,
+      },
+    );
+    return this.issueTokenAndSession(user!);
+  }
+
   private async issueTokenAndSession(user: {
     id: string;
     email: string;
