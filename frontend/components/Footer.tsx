@@ -17,6 +17,7 @@ const footerColumns = [
       { label: 'Getting started', href: '/' },
       { label: 'Crypto prices', href: '/markets/prices' },
       { label: 'Crypto calculator', href: '/calculate' },
+      { label: 'Iframe form practice', href: '/qa/iframe-practice' },
     ],
   },
   {

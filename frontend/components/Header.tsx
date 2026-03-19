@@ -210,6 +210,14 @@ function BuyCryptoDropdown() {
           >
             Crypto calculator
           </Link>
+          <Link
+            href="/qa/iframe-practice"
+            className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Iframe form practice
+          </Link>
         </div>
       )}
     </div>

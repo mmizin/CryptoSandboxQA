@@ -182,6 +182,7 @@ sequenceDiagram
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
 | `/buy-crypto` | Buy UI |
 | `/calculate` | Calculator-style training UI |
+| `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
 | `/trade/spot`, `/trade/futures` | Trade experiences |
 | `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery |
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
@@ -225,6 +226,7 @@ Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades.
 5. **Realtime**: Socket.IO `/ticker` → subscribe → assert `ticker` events.
 6. **Observability**: Hit `/metrics`, confirm Grafana/Prometheus in stack profile.
+7. **Iframe forms**: Open `/qa/iframe-practice`, scope automation to the iframe, fill fields with `data-testid` / labels, submit, assert in-frame success.
 
 ---
 
