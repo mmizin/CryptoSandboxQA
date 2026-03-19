@@ -32,15 +32,33 @@ export class WalletsController {
   @ApiOperation({ summary: 'Deposit (training mode)' })
   @ApiBody({ type: DepositDto })
   @ApiResponse({ status: 201, description: 'Returns updated wallet' })
-  async deposit(@CurrentUser() user: { id: string }, @Body() dto: DepositDto) {
-    return this.walletsService.credit(user.id, dto.asset, dto.amount);
+  async deposit(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: DepositDto,
+  ) {
+    const auditMetadata =
+      user.impersonatedBy ?
+        { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
+    return this.walletsService.credit(user.id, dto.asset, dto.amount, {
+      auditMetadata,
+    });
   }
 
   @Post('withdraw')
   @ApiOperation({ summary: 'Withdraw' })
   @ApiBody({ type: DepositDto })
   @ApiResponse({ status: 201, description: 'Returns updated wallet' })
-  async withdraw(@CurrentUser() user: { id: string }, @Body() dto: DepositDto) {
-    return this.walletsService.debit(user.id, dto.asset, dto.amount);
+  async withdraw(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: DepositDto,
+  ) {
+    const auditMetadata =
+      user.impersonatedBy ?
+        { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
+    return this.walletsService.debit(user.id, dto.asset, dto.amount, {
+      auditMetadata,
+    });
   }
 }

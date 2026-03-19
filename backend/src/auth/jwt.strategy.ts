@@ -24,6 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
     const { passwordHash: _, ...result } = user;
+    if (payload.impersonatedBy) {
+      (result as Record<string, unknown>).impersonatedBy = payload.impersonatedBy;
+    }
     return result;
   }
 }

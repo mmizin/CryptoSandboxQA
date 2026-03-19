@@ -1,7 +1,8 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -12,6 +13,15 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 @UseGuards(JwtAuthGuard, SessionGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Get()
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'List users (admin only)' })
+  @ApiQuery({ name: 'search', required: false, description: 'Search by email or user ID' })
+  @ApiResponse({ status: 200, description: 'Returns list of users' })
+  async list(@Query('search') search?: string) {
+    return this.usersService.findAll(search);
+  }
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user' })

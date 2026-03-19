@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { RunningBanner } from '@/components/RunningBanner';
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 import { ThemeProvider } from '@/lib/useTheme';
 import './globals.css';
 
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>
           <RunningBanner />
+          <ImpersonationBanner />
           <Header />
           <main>{children}</main>
           <Footer />

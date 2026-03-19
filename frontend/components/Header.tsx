@@ -250,7 +250,15 @@ function getInitials(displayName: string | null, email: string): string {
   return email.slice(0, 2).toUpperCase();
 }
 
-function ProfileDropdown({ user, logout }: { user: { displayName: string | null; email: string }; logout: () => void }) {
+function ProfileDropdown({
+  user,
+  logout,
+  isAdmin,
+}: {
+  user: { displayName: string | null; email: string };
+  logout: () => void;
+  isAdmin?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -283,6 +291,14 @@ function ProfileDropdown({ user, logout }: { user: { displayName: string | null;
           className="absolute right-0 top-full mt-1.5 min-w-[180px] rounded-lg bg-slate-900/95 py-1 shadow-xl backdrop-blur-sm group-data-[theme=light]:bg-white/95 border border-slate-800/50 group-data-[theme=light]:border-slate-200"
           role="menu"
         >
+          <div className="px-4 py-2 text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
+            {user.email}
+            {isAdmin && (
+              <span className="ml-1.5 rounded bg-amber-500/20 px-1.5 py-0.5 text-amber-400 group-data-[theme=light]:text-amber-600">
+                Admin
+              </span>
+            )}
+          </div>
           <Link
             href="/profile"
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-300 transition-colors hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
@@ -294,6 +310,19 @@ function ProfileDropdown({ user, logout }: { user: { displayName: string | null;
             </svg>
             Profile
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/impersonate"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-300 transition-colors hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Impersonation Portal
+            </Link>
+          )}
           <Link
             href="/profile/portfolio"
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-300 transition-colors hover:bg-slate-800 hover:text-white group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:bg-slate-100"
@@ -395,7 +424,7 @@ export function Header() {
               </Link>
             </>
           ) : (
-            <ProfileDropdown user={user} logout={logout} />
+            <ProfileDropdown user={user} logout={logout} isAdmin={user?.role === 'admin'} />
           )}
           <ThemeToggle />
         </nav>

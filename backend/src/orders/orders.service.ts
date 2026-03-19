@@ -12,6 +12,10 @@ export class OrdersService {
     private matchingService: MatchingService,
   ) {}
 
+  private auditMetadata(meta?: Record<string, unknown>) {
+    return meta ? { auditMetadata: meta } : {};
+  }
+
   async create(
     userId: string,
     data: {
@@ -23,6 +27,7 @@ export class OrdersService {
       marketType?: string;
       initialStatus?: string;
     },
+    auditMetadata?: Record<string, unknown>,
   ) {
     const pair = await this.prisma.tradingPair.findFirst({
       where: { symbol: data.symbol, isActive: true },
@@ -92,12 +97,13 @@ export class OrdersService {
         },
       });
 
+      const audit = this.auditMetadata(auditMetadata);
       if (data.side === 'buy') {
-        await this.walletsService.credit(userId, base, data.quantity);
-        await this.walletsService.debit(userId, quoteAsset, cost);
+        await this.walletsService.credit(userId, base, data.quantity, audit);
+        await this.walletsService.debit(userId, quoteAsset, cost, audit);
       } else {
-        await this.walletsService.debit(userId, base, data.quantity);
-        await this.walletsService.credit(userId, quoteAsset, cost);
+        await this.walletsService.debit(userId, base, data.quantity, audit);
+        await this.walletsService.credit(userId, quoteAsset, cost, audit);
       }
     } else if (initialStatus === 'cancelled') {
       order = await this.prisma.order.create({
@@ -138,7 +144,12 @@ export class OrdersService {
     return updated ? this.mapOrderForResponse(updated) : null;
   }
 
-  async setStatus(userId: string, orderId: string, status: string) {
+  async setStatus(
+    userId: string,
+    orderId: string,
+    status: string,
+    auditMetadata?: Record<string, unknown>,
+  ) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
     });
@@ -163,12 +174,13 @@ export class OrdersService {
         },
       });
 
+      const audit = this.auditMetadata(auditMetadata);
       if (order.side === 'buy') {
-        await this.walletsService.credit(userId, base, qty);
-        await this.walletsService.debit(userId, quote, cost);
+        await this.walletsService.credit(userId, base, qty, audit);
+        await this.walletsService.debit(userId, quote, cost, audit);
       } else {
-        await this.walletsService.debit(userId, base, qty);
-        await this.walletsService.credit(userId, quote, cost);
+        await this.walletsService.debit(userId, base, qty, audit);
+        await this.walletsService.credit(userId, quote, cost, audit);
       }
     } else if (status === 'cancelled') {
       if (order.orderStatus !== 'open') {
