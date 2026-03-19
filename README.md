@@ -153,11 +153,12 @@ npm run frontend:dev  # Frontend on port 3000
 `.env` is auto-created from `.env.example` during `npm run setup`. Override these for custom setup:
 
 
-| Variable              | Default                                                       | Description                |
-| --------------------- | ------------------------------------------------------------- | -------------------------- |
-| `DATABASE_URL`        | `postgresql://postgres:postgres@localhost:5432/cryptosandbox` | PostgreSQL connection      |
-| `JWT_SECRET`          | `your-super-secret-jwt-key-change-in-production`              | JWT signing secret         |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001`                                       | Backend API URL (frontend) |
+| Variable              | Default                                                       | Description                                                         |
+| --------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `DATABASE_URL`        | `postgresql://postgres:postgres@localhost:5432/cryptosandbox` | PostgreSQL connection                                               |
+| `JWT_SECRET`          | `your-super-secret-jwt-key-change-in-production`              | JWT signing secret                                                  |
+| `ADMIN_API_KEY`       | *(empty)*                                                     | Required for `POST /auth/admin/register`. Set a strong value in prod |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3001`                                       | Backend API URL (frontend)                                          |
 
 
 ---

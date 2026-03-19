@@ -6,12 +6,18 @@ import { Prisma } from '@prisma/client';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: { email: string; passwordHash: string; displayName?: string }) {
+  async create(data: {
+    email: string;
+    passwordHash: string;
+    displayName?: string;
+    role?: 'user' | 'admin';
+  }) {
     return this.prisma.user.create({
       data: {
         email: data.email.toLowerCase(),
         passwordHash: data.passwordHash,
         displayName: data.displayName ?? null,
+        role: data.role ?? 'user',
       },
     });
   }
@@ -45,6 +51,7 @@ export class UsersService {
           email: userData.email.toLowerCase(),
           passwordHash: userData.passwordHash,
           displayName: userData.displayName ?? null,
+          role: 'user',
         },
       });
 

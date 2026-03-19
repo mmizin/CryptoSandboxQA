@@ -60,6 +60,39 @@
         ]
       }
     },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_getById",
+        "summary": "Get user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns user with profile"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -96,6 +129,70 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Returns user and access token"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/admin/register": {
+      "post": {
+        "operationId": "AuthController_createAdmin",
+        "summary": "Create admin user (protected by ADMIN_API_KEY)",
+        "description": "Creates an admin user. Requires X-Admin-API-Key header (or Authorization: Bearer <key>) matching ADMIN_API_KEY in .env.",
+        "parameters": [
+          {
+            "name": "X-Admin-API-Key",
+            "in": "header",
+            "description": "Admin API key from ADMIN_API_KEY env",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Returns admin user and access token"
+          },
+          "401": {
+            "description": "Invalid or missing admin API key"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register-with-profile": {
+      "post": {
+        "operationId": "AuthController_registerWithProfile",
+        "summary": "Register new user with optional profile fields",
+        "description": "Creates a user (same as register) plus optional UserProfile fields in one request.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterWithProfileDto"
               }
             }
           }
@@ -1523,6 +1620,102 @@
             "type": "string",
             "example": "John Doe",
             "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateAdminDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "SecurePass123!",
+            "minLength": 6
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Admin User",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RegisterWithProfileDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123",
+            "minLength": 6
+          },
+          "displayName": {
+            "type": "string",
+            "example": "John Doe",
+            "maxLength": 100
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe",
+            "maxLength": 50
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Doe",
+            "maxLength": 100
+          },
+          "photoUrl": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Crypto enthusiast",
+            "maxLength": 500
+          },
+          "websiteUrl": {
+            "type": "string",
+            "example": "https://mysite.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York"
+          },
+          "birthday": {
+            "type": "string",
+            "example": "1990-01-15",
+            "description": "ISO date (YYYY-MM-DD)"
+          },
+          "languageCode": {
+            "type": "string",
+            "example": "en",
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York",
+            "maxLength": 50
+          },
+          "preferences": {
+            "type": "object",
+            "example": {
+              "theme": "dark",
+              "notifications": true
+            },
+            "description": "JSON object"
           }
         },
         "required": [

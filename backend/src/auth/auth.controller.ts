@@ -9,6 +9,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -17,6 +18,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterWithProfileDto } from './dto/register-with-profile.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 import { Enable2FaDto } from './dto/enable-2fa.dto';
 import { Disable2FaDto } from './dto/disable-2fa.dto';
 import { Verify2FaDto } from './dto/verify-2fa.dto';
@@ -24,6 +26,7 @@ import { TwoFactorService } from './two-factor.service';
 import { SessionsService } from './sessions.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SessionGuard } from './session.guard';
+import { AdminApiKeyGuard } from './guards/admin-api-key.guard';
 import { CurrentUser } from './current-user.decorator';
 
 function extractBearerToken(authHeader?: string): string | null {
@@ -55,6 +58,21 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Returns user and access token' })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto.email, dto.password, dto.displayName);
+  }
+
+  @Post('admin/register')
+  @UseGuards(AdminApiKeyGuard)
+  @ApiOperation({
+    summary: 'Create admin user (protected by ADMIN_API_KEY)',
+    description:
+      'Creates an admin user. Requires X-Admin-API-Key header (or Authorization: Bearer <key>) matching ADMIN_API_KEY in .env.',
+  })
+  @ApiHeader({ name: 'X-Admin-API-Key', description: 'Admin API key from ADMIN_API_KEY env' })
+  @ApiBody({ type: CreateAdminDto })
+  @ApiResponse({ status: 201, description: 'Returns admin user and access token' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing admin API key' })
+  async createAdmin(@Body() dto: CreateAdminDto) {
+    return this.authService.createAdmin(dto.email, dto.password, dto.displayName);
   }
 
   @Post('register-with-profile')

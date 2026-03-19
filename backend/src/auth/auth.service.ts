@@ -118,6 +118,25 @@ export class AuthService {
     return this.issueTokenAndSession(user);
   }
 
+  async createAdmin(
+    email: string,
+    password: string,
+    displayName?: string,
+  ): Promise<AuthResult> {
+    const existing = await this.usersService.findByEmail(email.toLowerCase());
+    if (existing) {
+      throw new UnauthorizedException('Email already registered');
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const user = await this.usersService.create({
+      email,
+      passwordHash: hash,
+      displayName,
+      role: 'admin',
+    });
+    return this.issueTokenAndSession(user);
+  }
+
   async registerWithProfile(data: {
     email: string;
     password: string;
