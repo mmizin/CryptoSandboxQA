@@ -18,7 +18,15 @@ export interface Temp2FaPayload {
 
 export interface AuthResult {
   access_token: string;
-  user: { id: string; email: string; displayName: string | null };
+  user: {
+    id: string;
+    email: string;
+    displayName: string | null;
+    emailVerifiedAt?: Date | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+    profile?: unknown;
+  };
 }
 
 export interface LoginRequires2FaResult {
@@ -72,7 +80,8 @@ export class AuthService {
       };
     }
 
-    return this.issueTokenAndSession(user);
+    const userWithProfile = await this.usersService.findByIdWithProfile(user.id);
+    return this.issueTokenAndSession(userWithProfile!);
   }
 
   async verify2Fa(tempToken: string, code: string): Promise<AuthResult> {
@@ -91,13 +100,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid verification code');
     }
 
-    const user = await this.usersService.findById(payload.sub);
-    if (!user) {
+    const userWithProfile = await this.usersService.findByIdWithProfile(payload.sub);
+    if (!userWithProfile) {
       throw new UnauthorizedException('User not found');
     }
 
-    const { passwordHash: _, ...userSafe } = user;
-    return this.issueTokenAndSession(userSafe);
+    return this.issueTokenAndSession(userWithProfile);
   }
 
   async register(email: string, password: string, displayName?: string): Promise<AuthResult> {
@@ -154,11 +162,9 @@ export class AuthService {
     return this.issueTokenAndSession(user!);
   }
 
-  private async issueTokenAndSession(user: {
-    id: string;
-    email: string;
-    displayName: string | null;
-  }): Promise<AuthResult> {
+  private async issueTokenAndSession(
+    user: { id: string; email: string } & Record<string, unknown>,
+  ): Promise<AuthResult> {
     const payload: JwtPayload = { sub: user.id, email: user.email };
     const access_token = this.jwtService.sign(payload, { expiresIn: JWT_EXPIRY });
 
@@ -166,13 +172,10 @@ export class AuthService {
     expiresAt.setDate(expiresAt.getDate() + 7);
     await this.sessionsService.createSession(user.id, access_token, expiresAt);
 
+    const { passwordHash: _, ...userSafe } = user;
     return {
       access_token,
-      user: {
-        id: user.id,
-        email: user.email,
-        displayName: user.displayName,
-      },
+      user: userSafe as AuthResult['user'],
     };
   }
 }
