@@ -39,12 +39,21 @@ Open [http://localhost:3000](http://localhost:3000) and register. Done! (Use dem
 
 ## Docker Compose (Full Stack with Observability)
 
-Run the backend, PostgreSQL, Prometheus, and Grafana with one command:
+Production-like stack for **load and performance testing**. Run the backend, PostgreSQL, Prometheus, and Grafana with one command:
 
 ```bash
-npm run docker:up
+npm run stack:up
 # or: docker compose --profile observability up -d
 ```
+
+To stop all services:
+
+```bash
+npm run stack:down
+# or: docker compose --profile observability down
+```
+
+> **Tip:** `stack:up` includes PostgreSQL — you don't need `npm run db:up`. Use either **Quick Start** (db:up + dev for local backend/frontend) or **stack:up** (full stack in Docker) — not both at once.
 
 | Service | URL | Description |
 |---------|-----|-------------|
@@ -60,8 +69,6 @@ npm run docker:up
 3. Grafana connects to Prometheus — open http://localhost:3002, add a panel and query `up{job="backend"}`
 
 Ports are configurable via `.env` (e.g. `BACKEND_PORT`, `PROMETHEUS_PORT`, `GRAFANA_PORT`). See [Environment Variables](#environment-variables).
-
-To stop all services: `docker compose --profile observability down`
 
 ---
 
