@@ -135,4 +135,67 @@ export class UsersService {
       data,
     });
   }
+
+  async updateProfile(
+    userId: string,
+    dto: {
+      displayName?: string;
+      photoUrl?: string;
+      username?: string;
+      bio?: string;
+      fullName?: string;
+      websiteUrl?: string;
+      location?: string;
+      birthday?: string;
+      languageCode?: string;
+      timezone?: string;
+      preferences?: Record<string, unknown>;
+    },
+  ) {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    const userData: Prisma.UserUpdateInput = {};
+    if (dto.displayName !== undefined) userData.displayName = dto.displayName;
+
+    const profileUpdate: Prisma.UserProfileUpdateInput = {};
+    if (dto.photoUrl !== undefined) profileUpdate.photoUrl = dto.photoUrl;
+    if (dto.username !== undefined) profileUpdate.username = dto.username;
+    if (dto.bio !== undefined) profileUpdate.bio = dto.bio;
+    if (dto.fullName !== undefined) profileUpdate.fullName = dto.fullName;
+    if (dto.websiteUrl !== undefined) profileUpdate.websiteUrl = dto.websiteUrl;
+    if (dto.location !== undefined) profileUpdate.location = dto.location;
+    if (dto.birthday !== undefined)
+      profileUpdate.birthday = dto.birthday ? new Date(dto.birthday) : null;
+    if (dto.languageCode !== undefined)
+      profileUpdate.languageCode = dto.languageCode;
+    if (dto.timezone !== undefined) profileUpdate.timezone = dto.timezone;
+    if (dto.preferences !== undefined)
+      profileUpdate.preferences = dto.preferences as object;
+
+    const hasUserUpdate = Object.keys(userData).length > 0;
+    const hasProfileUpdate = Object.keys(profileUpdate).length > 0;
+
+    if (hasProfileUpdate) {
+      await this.prisma.userProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          ...profileUpdate,
+        } as Prisma.UserProfileUncheckedCreateInput,
+        update: profileUpdate,
+      });
+    }
+
+    if (hasUserUpdate) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: userData,
+      });
+    }
+
+    const updated = await this.findByIdWithProfile(userId);
+    if (!updated) throw new NotFoundException('User not found');
+    return updated;
+  }
 }

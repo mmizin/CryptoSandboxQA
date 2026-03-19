@@ -12,6 +12,36 @@
         }
       }
     },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_list",
+        "summary": "List users (admin only)",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by email or user ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns list of users"
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/users/me": {
       "get": {
         "operationId": "UsersController_me",
@@ -200,6 +230,64 @@
         "responses": {
           "201": {
             "description": "Returns user and access token"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/impersonate": {
+      "post": {
+        "operationId": "AuthController_impersonate",
+        "summary": "Impersonate a user (admin only)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpersonateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Returns target user token and backToAdminToken"
+          },
+          "403": {
+            "description": "Admin access required"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/end-impersonation": {
+      "post": {
+        "operationId": "AuthController_endImpersonation",
+        "summary": "End impersonation and return to admin account",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndImpersonationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns admin token"
           }
         },
         "tags": [
@@ -1583,6 +1671,51 @@
           "displayName": {
             "type": "string",
             "example": "John Doe"
+          },
+          "photoUrl": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Crypto enthusiast"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "example": "https://mysite.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York, US"
+          },
+          "birthday": {
+            "type": "string",
+            "example": "1990-01-15"
+          },
+          "languageCode": {
+            "type": "string",
+            "example": "en",
+            "maxLength": 5
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York",
+            "maxLength": 50
+          },
+          "preferences": {
+            "type": "object",
+            "example": {
+              "theme": "dark",
+              "notifications": true
+            }
           }
         }
       },
@@ -1721,6 +1854,30 @@
         "required": [
           "email",
           "password"
+        ]
+      },
+      "ImpersonateDto": {
+        "type": "object",
+        "properties": {
+          "targetUserId": {
+            "type": "string",
+            "description": "Target user ID to impersonate"
+          }
+        },
+        "required": [
+          "targetUserId"
+        ]
+      },
+      "EndImpersonationDto": {
+        "type": "object",
+        "properties": {
+          "backToAdminToken": {
+            "type": "string",
+            "description": "Token to restore admin session"
+          }
+        },
+        "required": [
+          "backToAdminToken"
         ]
       },
       "Verify2FaDto": {

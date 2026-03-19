@@ -50,7 +50,7 @@ export class UsersController {
   @ApiBody({ type: UpdateProfileDto })
   @ApiResponse({ status: 200, description: 'Returns updated user' })
   async updateProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateProfileDto) {
-    const updated = await this.usersService.update(user.id, { displayName: dto.displayName });
+    const updated = await this.usersService.updateProfile(user.id, dto);
     const { passwordHash: _, ...result } = updated;
     return result;
   }
