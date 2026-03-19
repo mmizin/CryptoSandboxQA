@@ -82,29 +82,12 @@ export class WalletsService {
       where: { userId_assetId: { userId, assetId: assetRow.id } },
       include: { asset: true },
     });
-    if (balance) {
-      const total = new Decimal(balance.balanceAvailable).add(balance.balanceLocked);
-      return {
-        id: balance.id,
-        userId,
-        asset: balance.asset.symbol,
-        balance: total.toString(),
-        balanceAvailable: balance.balanceAvailable.toString(),
-        balanceLocked: balance.balanceLocked.toString(),
-      };
-    }
+    if (balance) return this.formatWalletResponse(balance, userId);
     balance = await this.prisma.userBalance.create({
       data: { userId, assetId: assetRow.id, balanceAvailable: 0, balanceLocked: 0 },
       include: { asset: true },
     });
-    return {
-      id: balance.id,
-      userId,
-      asset: balance.asset.symbol,
-      balance: '0',
-      balanceAvailable: '0',
-      balanceLocked: '0',
-    };
+    return this.formatWalletResponse(balance, userId);
   }
 
   async findAllByUser(userId: string) {
@@ -113,17 +96,32 @@ export class WalletsService {
       include: { asset: true },
       orderBy: { asset: { symbol: 'asc' } },
     });
-    return balances.map((b) => {
-      const total = new Decimal(b.balanceAvailable).add(b.balanceLocked);
-      return {
-        id: b.id,
-        userId,
-        asset: b.asset.symbol,
-        balance: total.toString(),
-        balanceAvailable: b.balanceAvailable.toString(),
-        balanceLocked: b.balanceLocked.toString(),
-      };
+    return balances.map((b) => this.formatWalletResponse(b, userId));
+  }
+
+  async findByUserAndAsset(userId: string, asset: string) {
+    const assetRow = await this.getAssetBySymbol(asset);
+    const balance = await this.prisma.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: assetRow.id } },
+      include: { asset: true },
     });
+    if (!balance) return null;
+    return this.formatWalletResponse(balance, userId);
+  }
+
+  private formatWalletResponse(
+    balance: { id: string; asset: { symbol: string }; balanceAvailable: Decimal; balanceLocked: Decimal },
+    userId: string,
+  ) {
+    const total = new Decimal(balance.balanceAvailable).add(balance.balanceLocked);
+    return {
+      id: balance.id,
+      userId,
+      asset: balance.asset.symbol,
+      balance: total.toString(),
+      balanceAvailable: balance.balanceAvailable.toString(),
+      balanceLocked: balance.balanceLocked.toString(),
+    };
   }
 
   async credit(
