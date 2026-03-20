@@ -26,6 +26,19 @@ await expect(frame.getByTestId('iframe-success')).toBeVisible();
 
 ---
 
+## Portfolio Analytics: drag-and-drop and shuffle (dashboard)
+
+The **Portfolio Analytics** section on [`/dashboard`](../frontend/app/dashboard/page.tsx) (see [`DashboardCharts`](../frontend/components/DashboardCharts.tsx)) exposes six chart/progress blocks in a **sortable grid**:
+
+- **Drag:** Drag **anywhere on the card** (grip, title, padding, or chart area); a **~6px** pointer move starts the drag so simple clicks/tooltips on charts still behave.
+- **Shuffle:** Button **Shuffle blocks** (`data-testid="shuffle-analytics-blocks"`) randomizes block order (retries briefly if the permutation matches the previous order).
+- **Persistence:** Order is saved in **`sessionStorage`** under `portfolio-analytics-block-order` for the lifetime of the browser tab.
+- **Keyboard:** Focus a chart card and use **arrow keys** (@dnd-kit keyboard sensor) to move blocks where supported.
+
+Chart containers keep their existing **`aria-label`** and **`data-testid`** values (e.g. `chart-balance-pie`, `chart-area-portfolio`).
+
+---
+
 ## Backend: delay before DB writes (simulated processing)
 
 Orders and deposits **do not hit PostgreSQL immediately** after validation. The API waits a short, configurable period to mimic real-world payment/settlement or sync latency before the first persist.
