@@ -1,37 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TickersService } from '../tickers/tickers.service';
+import { WalletsService } from '../wallets/wallets.service';
 import { Decimal } from '@prisma/client/runtime/library';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MatchingService {
   constructor(
     private prisma: PrismaService,
     private tickersService: TickersService,
+    private walletsService: WalletsService,
   ) {}
 
   async getLastPrice(symbol: string): Promise<number> {
     const ticker = await this.tickersService.get(symbol);
     return ticker ? Number(ticker.lastPrice) : 0;
-  }
-
-  private async getOrCreateBalance(
-    tx: Prisma.TransactionClient,
-    userId: string,
-    assetSymbol: string,
-  ) {
-    const asset = await tx.asset.findUnique({ where: { symbol: assetSymbol } });
-    if (!asset) throw new Error(`Asset ${assetSymbol} not found`);
-    let b = await tx.userBalance.findUnique({
-      where: { userId_assetId: { userId, assetId: asset.id } },
-    });
-    if (!b) {
-      b = await tx.userBalance.create({
-        data: { userId, assetId: asset.id, balanceAvailable: 0, balanceLocked: 0 },
-      });
-    }
-    return b;
   }
 
   async matchOrder(orderId: string) {
@@ -119,24 +102,45 @@ export class MatchingService {
           },
         });
 
-        const balanceUpdate = async (uid: string, assetSym: string, delta: Decimal) => {
-          const b = await this.getOrCreateBalance(tx, uid, assetSym);
-          await tx.userBalance.update({
-            where: { id: b.id },
-            data: { balanceAvailable: { increment: delta } },
-          });
-        };
+        const reserveForBuy = (b: typeof order) =>
+          b.price != null ? new Decimal(b.price) : new Decimal(matchPrice);
 
         if (order.side === 'buy') {
-          await balanceUpdate(order.userId, base, fillQty);
-          await balanceUpdate(order.userId, quote, new Decimal(-fillNum * matchPrice));
-          await balanceUpdate(counter.userId, base, new Decimal(0).minus(fillQty));
-          await balanceUpdate(counter.userId, quote, new Decimal(fillNum * matchPrice));
+          await this.walletsService.settleBuyFillInTx(
+            tx,
+            order.userId,
+            base,
+            quote,
+            fillQty,
+            new Decimal(matchPrice),
+            reserveForBuy(order),
+          );
+          await this.walletsService.settleSellFillInTx(
+            tx,
+            counter.userId,
+            base,
+            quote,
+            fillQty,
+            new Decimal(matchPrice),
+          );
         } else {
-          await balanceUpdate(order.userId, base, new Decimal(0).minus(fillQty));
-          await balanceUpdate(order.userId, quote, new Decimal(fillNum * matchPrice));
-          await balanceUpdate(counter.userId, base, fillQty);
-          await balanceUpdate(counter.userId, quote, new Decimal(-fillNum * matchPrice));
+          await this.walletsService.settleSellFillInTx(
+            tx,
+            order.userId,
+            base,
+            quote,
+            fillQty,
+            new Decimal(matchPrice),
+          );
+          await this.walletsService.settleBuyFillInTx(
+            tx,
+            counter.userId,
+            base,
+            quote,
+            fillQty,
+            new Decimal(matchPrice),
+            reserveForBuy(counter),
+          );
         }
 
         await this.tickersService.setLastPrice(order.symbol, matchPrice, fillNum);
