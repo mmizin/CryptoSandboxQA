@@ -124,19 +124,56 @@ export class OrdersService {
         },
       });
     } else {
-      order = await this.prisma.order.create({
-        data: {
-          userId,
-          marketType,
-          symbol: data.symbol,
-          side: data.side,
-          orderType: data.type,
-          quantity: data.quantity,
-          price: data.price != null ? data.price : null,
-          filledQuantity: 0,
-          orderStatus: 'open',
-        },
+      const lockRefPrice =
+        data.type === 'limit'
+          ? data.price!
+          : data.side === 'buy'
+            ? await this.matchingService.getLastPrice(data.symbol)
+            : undefined;
+
+      const orderPriceForRow =
+        data.type === 'limit'
+          ? data.price!
+          : data.side === 'buy'
+            ? lockRefPrice!
+            : null;
+
+      order = await this.prisma.$transaction(async (tx) => {
+        const o = await tx.order.create({
+          data: {
+            userId,
+            marketType,
+            symbol: data.symbol,
+            side: data.side,
+            orderType: data.type,
+            quantity: data.quantity,
+            price: orderPriceForRow,
+            filledQuantity: 0,
+            orderStatus: 'open',
+          },
+        });
+        if (data.side === 'sell') {
+          await this.walletsService.lockForOrderInTx(
+            tx,
+            userId,
+            base,
+            new Decimal(data.quantity),
+            o.id,
+            auditMetadata,
+          );
+        } else {
+          await this.walletsService.lockForOrderInTx(
+            tx,
+            userId,
+            quote,
+            new Decimal(data.quantity).mul(lockRefPrice!),
+            o.id,
+            auditMetadata,
+          );
+        }
+        return o;
       });
+
       await this.matchingService.matchOrder(order.id);
     }
 
@@ -164,42 +201,111 @@ export class OrdersService {
     if (status === 'filled') {
       if (order.orderStatus === 'filled') throw new BadRequestException('Order is already filled');
       const [base, quote] = order.symbol.split('_');
-      const price = order.price != null ? Number(order.price) : Number(await this.matchingService.getLastPrice(order.symbol));
-      const cost = Number(order.quantity) * price;
-      const qty = Number(order.quantity);
+      const priceNum =
+        order.price != null ? Number(order.price) : Number(await this.matchingService.getLastPrice(order.symbol));
+      const remainingQty = new Decimal(order.quantity).minus(order.filledQuantity);
+      const reservePerUnit =
+        order.side === 'buy'
+          ? order.price != null
+            ? new Decimal(order.price)
+            : new Decimal(priceNum)
+          : new Decimal(0);
 
-      await this.prisma.order.update({
-        where: { id: orderId },
-        data: {
-          filledQuantity: order.quantity,
-          orderStatus: 'filled',
-          completedAt: new Date(),
-        },
+      await this.prisma.$transaction(async (tx) => {
+        if (remainingQty.gt(0)) {
+          if (order.side === 'buy') {
+            await this.walletsService.settleBuyFillInTx(
+              tx,
+              userId,
+              base,
+              quote,
+              remainingQty,
+              new Decimal(priceNum),
+              reservePerUnit,
+            );
+          } else {
+            await this.walletsService.settleSellFillInTx(
+              tx,
+              userId,
+              base,
+              quote,
+              remainingQty,
+              new Decimal(priceNum),
+            );
+          }
+        }
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            filledQuantity: order.quantity,
+            orderStatus: 'filled',
+            completedAt: new Date(),
+          },
+        });
       });
-
-      const audit = this.auditMetadata(auditMetadata);
-      if (order.side === 'buy') {
-        await this.walletsService.credit(userId, base, qty, audit);
-        await this.walletsService.debit(userId, quote, cost, audit);
-      } else {
-        await this.walletsService.debit(userId, base, qty, audit);
-        await this.walletsService.credit(userId, quote, cost, audit);
-      }
     } else if (status === 'cancelled') {
       if (order.orderStatus !== 'open') {
         throw new BadRequestException('Only open orders can be cancelled');
       }
-      await this.prisma.order.update({
-        where: { id: orderId },
-        data: { orderStatus: 'cancelled', completedAt: new Date() },
+      const [base, quote] = order.symbol.split('_');
+      const remainingQty = new Decimal(order.quantity).minus(order.filledQuantity);
+      await this.prisma.$transaction(async (tx) => {
+        if (remainingQty.gt(0)) {
+          if (order.side === 'sell') {
+            await this.walletsService.unlockForOrderInTx(tx, userId, base, remainingQty, orderId, auditMetadata);
+          } else {
+            const p =
+              order.price != null
+                ? new Decimal(order.price)
+                : new Decimal(await this.matchingService.getLastPrice(order.symbol));
+            await this.walletsService.unlockForOrderInTx(
+              tx,
+              userId,
+              quote,
+              remainingQty.mul(p),
+              orderId,
+              auditMetadata,
+            );
+          }
+        }
+        await tx.order.update({
+          where: { id: orderId },
+          data: { orderStatus: 'cancelled', completedAt: new Date() },
+        });
       });
     } else if (status === 'open') {
       if (order.orderStatus !== 'cancelled') {
         throw new BadRequestException('Only cancelled orders can be reopened (testing)');
       }
-      await this.prisma.order.update({
-        where: { id: orderId },
-        data: { orderStatus: 'open', completedAt: null, filledQuantity: 0 },
+      const [base, quote] = order.symbol.split('_');
+      await this.prisma.$transaction(async (tx) => {
+        if (order.side === 'sell') {
+          await this.walletsService.lockForOrderInTx(
+            tx,
+            userId,
+            base,
+            new Decimal(order.quantity),
+            orderId,
+            auditMetadata,
+          );
+        } else {
+          const p =
+            order.price != null
+              ? new Decimal(order.price)
+              : new Decimal(await this.matchingService.getLastPrice(order.symbol));
+          await this.walletsService.lockForOrderInTx(
+            tx,
+            userId,
+            quote,
+            new Decimal(order.quantity).mul(p),
+            orderId,
+            auditMetadata,
+          );
+        }
+        await tx.order.update({
+          where: { id: orderId },
+          data: { orderStatus: 'open', completedAt: null, filledQuantity: 0 },
+        });
       });
     }
 
@@ -218,10 +324,26 @@ export class OrdersService {
     if (order.orderStatus !== 'open') {
       throw new BadRequestException('Only open orders can be cancelled');
     }
-    const updated = await this.prisma.order.update({
-      where: { id: orderId },
-      data: { orderStatus: 'cancelled', completedAt: new Date() },
-      include: { tradesAsTaker: true, tradesAsMaker: true },
+    const [base, quote] = order.symbol.split('_');
+    const remainingQty = new Decimal(order.quantity).minus(order.filledQuantity);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (remainingQty.gt(0)) {
+        if (order.side === 'sell') {
+          await this.walletsService.unlockForOrderInTx(tx, userId, base, remainingQty, orderId);
+        } else {
+          const p =
+            order.price != null
+              ? new Decimal(order.price)
+              : new Decimal(await this.matchingService.getLastPrice(order.symbol));
+          await this.walletsService.unlockForOrderInTx(tx, userId, quote, remainingQty.mul(p), orderId);
+        }
+      }
+      return tx.order.update({
+        where: { id: orderId },
+        data: { orderStatus: 'cancelled', completedAt: new Date() },
+        include: { tradesAsTaker: true, tradesAsMaker: true },
+      });
     });
     return this.mapOrderForResponse(updated);
   }

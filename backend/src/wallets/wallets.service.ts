@@ -415,4 +415,192 @@ export class WalletsService {
     if (!balance) return new Decimal(0);
     return balance.balanceAvailable;
   }
+
+  /** Move funds from available → locked when an open order is placed. */
+  async lockForOrderInTx(
+    tx: TxClient,
+    userId: string,
+    asset: string,
+    amount: Decimal,
+    orderId: string,
+    auditMetadata?: Record<string, unknown>,
+  ): Promise<void> {
+    if (amount.lte(0)) return;
+    const meta = (auditMetadata ?? {}) as object;
+    const assetRow = await this.getAssetBySymbol(asset);
+    let balance = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: assetRow.id } },
+    });
+    if (!balance) {
+      balance = await tx.userBalance.create({
+        data: { userId, assetId: assetRow.id, balanceAvailable: 0, balanceLocked: 0 },
+      });
+    }
+    const avail = new Decimal(balance.balanceAvailable);
+    if (avail.lt(amount)) {
+      throw new BadRequestException('Insufficient balance');
+    }
+    const balanceBefore = avail.add(balance.balanceLocked);
+    const updated = await tx.userBalance.update({
+      where: { id: balance.id },
+      data: {
+        balanceAvailable: { decrement: amount },
+        balanceLocked: { increment: amount },
+      },
+      include: { asset: true },
+    });
+    const balanceAfter = new Decimal(updated.balanceAvailable).add(updated.balanceLocked);
+    await tx.balanceTransaction.create({
+      data: {
+        userId,
+        balanceId: balance.id,
+        assetId: assetRow.id,
+        type: 'order_lock',
+        amount,
+        balanceBefore,
+        balanceAfter,
+        refType: 'order',
+        refId: orderId,
+        metadata: meta,
+      },
+    });
+  }
+
+  /** Move funds from locked → available when an order is cancelled or remaining reservation is released. */
+  async unlockForOrderInTx(
+    tx: TxClient,
+    userId: string,
+    asset: string,
+    amount: Decimal,
+    orderId: string,
+    auditMetadata?: Record<string, unknown>,
+  ): Promise<void> {
+    if (amount.lte(0)) return;
+    const meta = (auditMetadata ?? {}) as object;
+    const assetRow = await this.getAssetBySymbol(asset);
+    const balance = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: assetRow.id } },
+    });
+    if (!balance) {
+      throw new BadRequestException('Balance not found');
+    }
+    const locked = new Decimal(balance.balanceLocked);
+    if (locked.lt(amount)) {
+      throw new BadRequestException('Insufficient locked balance');
+    }
+    const balanceBefore = new Decimal(balance.balanceAvailable).add(balance.balanceLocked);
+    const updated = await tx.userBalance.update({
+      where: { id: balance.id },
+      data: {
+        balanceLocked: { decrement: amount },
+        balanceAvailable: { increment: amount },
+      },
+      include: { asset: true },
+    });
+    const balanceAfter = new Decimal(updated.balanceAvailable).add(updated.balanceLocked);
+    await tx.balanceTransaction.create({
+      data: {
+        userId,
+        balanceId: balance.id,
+        assetId: assetRow.id,
+        type: 'order_unlock',
+        amount,
+        balanceBefore,
+        balanceAfter,
+        refType: 'order',
+        refId: orderId,
+        metadata: meta,
+      },
+    });
+  }
+
+  /** Seller: consume locked base, credit quote available. */
+  async settleSellFillInTx(
+    tx: TxClient,
+    userId: string,
+    baseAsset: string,
+    quoteAsset: string,
+    fillQty: Decimal,
+    matchPrice: Decimal,
+  ): Promise<void> {
+    const baseRow = await this.getAssetBySymbol(baseAsset);
+    const quoteRow = await this.getAssetBySymbol(quoteAsset);
+    const baseBal = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: baseRow.id } },
+    });
+    if (!baseBal) {
+      throw new BadRequestException('Balance not found');
+    }
+    if (new Decimal(baseBal.balanceLocked).lt(fillQty)) {
+      throw new BadRequestException('Insufficient locked base for sell');
+    }
+    let quoteBal = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: quoteRow.id } },
+    });
+    if (!quoteBal) {
+      quoteBal = await tx.userBalance.create({
+        data: { userId, assetId: quoteRow.id, balanceAvailable: 0, balanceLocked: 0 },
+      });
+    }
+    const quoteCredit = fillQty.mul(matchPrice);
+    await tx.userBalance.update({
+      where: { id: baseBal.id },
+      data: { balanceLocked: { decrement: fillQty } },
+    });
+    await tx.userBalance.update({
+      where: { id: quoteBal.id },
+      data: { balanceAvailable: { increment: quoteCredit } },
+    });
+  }
+
+  /**
+   * Buyer: release quote reserved at `reservePricePerUnit`, pay `matchPrice`, credit base.
+   * Excess reservation returns to available when match is better than the reserved price.
+   */
+  async settleBuyFillInTx(
+    tx: TxClient,
+    userId: string,
+    baseAsset: string,
+    quoteAsset: string,
+    fillQty: Decimal,
+    matchPrice: Decimal,
+    reservePricePerUnit: Decimal,
+  ): Promise<void> {
+    const reservedReleased = fillQty.mul(reservePricePerUnit);
+    const availDelta = reservedReleased.minus(fillQty.mul(matchPrice));
+
+    const quoteRow = await this.getAssetBySymbol(quoteAsset);
+    const baseRow = await this.getAssetBySymbol(baseAsset);
+
+    const quoteBal = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: quoteRow.id } },
+    });
+    if (!quoteBal) {
+      throw new BadRequestException('Quote balance not found');
+    }
+    if (new Decimal(quoteBal.balanceLocked).lt(reservedReleased)) {
+      throw new BadRequestException('Insufficient locked quote for buy');
+    }
+
+    await tx.userBalance.update({
+      where: { id: quoteBal.id },
+      data: {
+        balanceLocked: { decrement: reservedReleased },
+        balanceAvailable: { increment: availDelta },
+      },
+    });
+
+    let baseBal = await tx.userBalance.findUnique({
+      where: { userId_assetId: { userId, assetId: baseRow.id } },
+    });
+    if (!baseBal) {
+      baseBal = await tx.userBalance.create({
+        data: { userId, assetId: baseRow.id, balanceAvailable: 0, balanceLocked: 0 },
+      });
+    }
+    await tx.userBalance.update({
+      where: { id: baseBal.id },
+      data: { balanceAvailable: { increment: fillQty } },
+    });
+  }
 }
