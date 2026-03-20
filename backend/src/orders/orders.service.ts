@@ -3,6 +3,7 @@ import { simulatedPersistDelay } from '../common/simulated-persist-delay';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletsService } from '../wallets/wallets.service';
 import { MatchingService } from './matching.service';
+import { MailService } from '../mail/mail.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
@@ -11,10 +12,41 @@ export class OrdersService {
     private prisma: PrismaService,
     private walletsService: WalletsService,
     private matchingService: MatchingService,
+    private mailService: MailService,
   ) {}
 
   private auditMetadata(meta?: Record<string, unknown>) {
     return meta ? { auditMetadata: meta } : {};
+  }
+
+  private async notifyOrderStatusEmail(
+    userId: string,
+    order: {
+      id: string;
+      symbol: string;
+      side: string;
+      orderStatus: string;
+      quantity: unknown;
+      filledQuantity: unknown;
+      price: unknown;
+    },
+  ) {
+    const st = order.orderStatus;
+    if (st !== 'open' && st !== 'filled' && st !== 'cancelled') return;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) return;
+    await this.mailService.sendOrderStatusEmail(user.email, {
+      status: st as 'open' | 'filled' | 'cancelled',
+      orderId: order.id,
+      symbol: order.symbol,
+      side: order.side,
+      quantity: String(order.quantity),
+      filledQuantity: String(order.filledQuantity),
+      price: order.price != null ? String(order.price) : 'market',
+    });
   }
 
   async create(
@@ -181,6 +213,7 @@ export class OrdersService {
       where: { id: order.id },
       include: { tradesAsTaker: true, tradesAsMaker: true },
     });
+    if (updated) await this.notifyOrderStatusEmail(userId, updated);
     return updated ? this.mapOrderForResponse(updated) : null;
   }
 
@@ -313,6 +346,7 @@ export class OrdersService {
       where: { id: orderId },
       include: { tradesAsTaker: true, tradesAsMaker: true },
     });
+    if (updated) await this.notifyOrderStatusEmail(userId, updated);
     return updated ? this.mapOrderForResponse(updated) : null;
   }
 
@@ -345,6 +379,7 @@ export class OrdersService {
         include: { tradesAsTaker: true, tradesAsMaker: true },
       });
     });
+    await this.notifyOrderStatusEmail(userId, updated);
     return this.mapOrderForResponse(updated);
   }
 

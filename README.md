@@ -6,7 +6,7 @@ Crypto exchange training platform for QA practice. Simulate trades, validate tra
 
 - **Backend**: NestJS (TypeScript), Prisma, PostgreSQL, Socket.IO
 - **Frontend**: Next.js (React), Zustand, Socket.IO client
-- **Dev mail**: [Mailpit](https://mailpit.axllent.org/) (Docker) — local SMTP + inbox UI for **password reset** 8-digit codes
+- **Dev mail**: [Mailpit](https://mailpit.axllent.org/) (Docker) — local SMTP + inbox UI for **transactional email**: password reset (8-digit codes), **welcome** after register / register-with-profile, **order** open / filled / canceled (incl. maker filled on match), and **fiat & crypto deposit** receipts (deposits API and training wallet credits)
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ npm run stack:down
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Mailpit** | http://localhost:8025 | Dev SMTP inbox (reset codes); SMTP to `localhost:1025` |
+| **Mailpit** | http://localhost:8025 | Dev SMTP inbox (transactional mail); SMTP to `localhost:1025` |
 | **Backend API** | http://localhost:3001 | REST API |
 | **Swagger** | http://localhost:3001/api/docs | Interactive API docs |
 | **Metrics** | http://localhost:3001/metrics | Prometheus metrics (for scraping) |
@@ -186,13 +186,16 @@ npm run frontend:dev  # Frontend on port 3000
 2. Login and deposit USD (training mode)
 3. Go to Market to place orders
 4. View order history
-5. **Forgot password:** [Forgot password?](http://localhost:3000/forgot-password) → get an **8-digit code** (Mailpit or backend log) → [reset password](http://localhost:3000/reset-password) → sign in with the new password
+5. **Forgot password:** [Forgot password?](http://localhost:3000/forgot-password) → get an **8-digit code** (Mailpit or backend log) → [reset password](http://localhost:3000/reset-password) → sign in with the new password  
+6. **Other mail (with SMTP / Mailpit):** after **register**, **place/cancel/fill orders**, or **deposit** fiat/crypto (or training credit), check Mailpit for the matching notification — or the API log if `SMTP_HOST` is unset (same behavior as reset; see [Password reset & Mailpit](#password-reset--mailpit-dev)).
 
-Hands-on fixtures for automation (iframe practice, password reset, etc.): **[docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md)**.
+Hands-on fixtures for automation (iframe practice, password reset, transactional mail, etc.): **[docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md)**.
 
 ---
 
 ## Password reset & Mailpit (dev)
+
+Mailpit and `SMTP_*` / `MAIL_FROM` drive **all** backend mail: reset codes, welcome, order updates, and deposit receipts ([`MailService`](backend/src/mail/mail.service.ts) via [`MailModule`](backend/src/mail/mail.module.ts)).
 
 | Step | What to do |
 |------|------------|
@@ -201,9 +204,10 @@ Hands-on fixtures for automation (iframe practice, password reset, etc.): **[doc
 | 3 | Use **Forgot password** only for emails that **exist** in `users` (e.g. registered or seeded accounts). The API always returns the same success text even for unknown emails — no mail is sent in that case. |
 | 4 | Read the code in Mailpit, then finish on `/reset-password`. |
 
-- **No SMTP:** leave `SMTP_HOST` unset — the backend **logs** the full message (including the code); check the terminal running the API.
+- **No SMTP:** leave `SMTP_HOST` unset — the backend **logs** the full message (reset codes, welcome, order, deposit bodies — each prefixed in logs); check the terminal running the API.
 - **Typo trap:** the variable must be **`SMTP_HOST`**, not `MTP_HOST`.
-- **Details:** [ARCHITECTURE.md](ARCHITECTURE.md) (password reset & env loading), [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (API, troubleshooting, automation).
+- **Transactional mail checklist:** [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) § *Transactional email (welcome, orders, deposits)*.
+- **Details:** [ARCHITECTURE.md](ARCHITECTURE.md) (password reset, transactional mail, env loading), [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (API, troubleshooting, automation).
 
 ---
 
@@ -218,11 +222,11 @@ Hands-on fixtures for automation (iframe practice, password reset, etc.): **[doc
 | `JWT_SECRET`          | `your-super-secret-jwt-key-change-in-production`              | JWT signing secret                                                  |
 | `ADMIN_API_KEY`       | *(empty)*                                                     | Required for `POST /auth/admin/register`. Set a strong value in prod |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3001`                                       | Backend API URL (frontend)                                          |
-| `SMTP_HOST` | *(unset)* | If set (e.g. `localhost`), nodemailer sends **password reset** mail. With Mailpit + `db:up`: use host `localhost`, port **1025**. |
+| `SMTP_HOST` | *(unset)* | If set (e.g. `localhost`), nodemailer sends **transactional** mail (password reset, welcome, order status, deposit receipts). With Mailpit + `db:up`: host `localhost`, port **1025**. |
 | `SMTP_PORT` | `587` if using generic SMTP; **1025** for Mailpit | Mailpit SMTP port (host machine). |
 | `SMTP_SECURE` | *(omit or `false` for Mailpit)* | Use `true` only for TLS-on-connect setups. |
 | `SMTP_USER` / `SMTP_PASS` | *(unset)* | Optional; Mailpit usually needs no auth. |
-| `MAIL_FROM` | *(see `.env.example`)* | `From:` for reset emails. |
+| `MAIL_FROM` | *(see `.env.example`)* | `From:` for all transactional emails. |
 | `PASSWORD_RESET_CODE_PEPPER` | falls back to `JWT_SECRET` | Optional extra secret for hashing reset codes. |
 | `MAILPIT_HTTP_PORT` / `MAILPIT_SMTP_PORT` | `8025` / `1025` | Published ports for the `mailpit` Compose service. |
 

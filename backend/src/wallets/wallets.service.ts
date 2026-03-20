@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 const FIAT_CURRENCIES = ['USD', 'EUR'] as const;
@@ -59,7 +60,10 @@ export interface CreditResult {
 
 @Injectable()
 export class WalletsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   private async getAssetBySymbol(asset: string) {
     const a = await this.prisma.asset.findUnique({ where: { symbol: asset.toUpperCase() } });
@@ -143,7 +147,7 @@ export class WalletsService {
       FIAT_CURRENCIES.includes(asset.toUpperCase() as (typeof FIAT_CURRENCIES)[number]);
 
     if (isFiatTraining) {
-      return this.prisma.$transaction(async (tx) => {
+      const out = await this.prisma.$transaction(async (tx) => {
         const dep = await tx.depositFiat.create({
           data: {
             userId,
@@ -165,6 +169,18 @@ export class WalletsService {
           completedAt: dep.completedAt,
         });
       });
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+      if (user && out.deposit?.fiatCurrency) {
+        await this.mailService.sendDepositFiatEmail(user.email, {
+          depositId: out.deposit.id,
+          fiatCurrency: out.deposit.fiatCurrency,
+          amount: out.deposit.amount,
+        });
+      }
+      return out;
     }
 
     const isCryptoTraining = !options?.refType;
@@ -172,7 +188,7 @@ export class WalletsService {
       const assetRow = await this.getAssetBySymbol(asset);
       if (assetRow.assetType === 'crypto') {
         const mockAddress = this.mockCryptoAddress(userId, asset);
-        return this.prisma.$transaction(async (tx) => {
+        const out = await this.prisma.$transaction(async (tx) => {
           const dep = await tx.depositCrypto.create({
             data: {
               userId,
@@ -198,6 +214,18 @@ export class WalletsService {
             completedAt: dep.completedAt,
           });
         });
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
+        if (user && out.deposit?.symbol) {
+          await this.mailService.sendDepositCryptoEmail(user.email, {
+            depositId: out.deposit.id,
+            symbol: out.deposit.symbol,
+            amount: out.deposit.amount,
+          });
+        }
+        return out;
       }
     }
 

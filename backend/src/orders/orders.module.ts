@@ -8,9 +8,10 @@ import { WalletsModule } from '../wallets/wallets.module';
 import { TickersModule } from '../tickers/tickers.module';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [WalletsModule, TickersModule, AuthModule, UsersModule],
+  imports: [WalletsModule, TickersModule, AuthModule, UsersModule, MailModule],
   controllers: [OrdersController, AdminOrdersController],
   providers: [OrdersService, MatchingService, SessionGuard],
   exports: [OrdersService],

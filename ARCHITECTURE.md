@@ -30,12 +30,13 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 
 ## Backend application
 
-`AppModule` wires global `ConfigModule`, `PrismaModule`, and feature modules. **`ConfigModule` env files:** [`nestEnvFilePaths()`](backend/src/app.module.ts) loads the first existing paths among `process.cwd()` (usually `backend/` when using `npm run dev`) and `__dirname` (usually `backend/dist` when compiled)—`backend/.env` first, then the **repository root** `.env`. Later files override earlier keys. This ensures monorepo SMTP and DB settings in the root `.env` are not skipped. [`MailService`](backend/src/auth/mail.service.ts) also falls back to `process.env.SMTP_HOST` / `SMTP_PORT` if needed.
+`AppModule` wires global `ConfigModule`, `PrismaModule`, and feature modules. **`ConfigModule` env files:** [`nestEnvFilePaths()`](backend/src/app.module.ts) loads the first existing paths among `process.cwd()` (usually `backend/` when using `npm run dev`) and `__dirname` (usually `backend/dist` when compiled)—`backend/.env` first, then the **repository root** `.env`. Later files override earlier keys. This ensures monorepo SMTP and DB settings in the root `.env` are not skipped. [`MailService`](backend/src/mail/mail.service.ts) (via **`MailModule`**) also falls back to `process.env.SMTP_HOST` / `SMTP_PORT` if needed.
 
 ```mermaid
 flowchart TB
     subgraph nest [NestJS Backend]
         PrismaModule[PrismaModule]
+        MailModule[MailModule]
         AuthModule[AuthModule]
         UsersModule[UsersModule]
         WalletsModule[WalletsModule]
@@ -51,10 +52,14 @@ flowchart TB
     end
 
     AuthModule --> UsersModule
+    AuthModule --> MailModule
     WalletsModule --> PrismaModule
+    WalletsModule --> MailModule
     OrdersModule --> WalletsModule
     OrdersModule --> TickersModule
+    OrdersModule --> MailModule
     DepositsModule --> WalletsModule
+    DepositsModule --> MailModule
     PaymentMethodsModule --> UsersModule
     PortfolioModule --> WalletsModule
     TransactionsModule --> PrismaModule
@@ -67,13 +72,14 @@ flowchart TB
 
 | Module | Responsibility |
 |--------|----------------|
-| **AuthModule** | Register, register-with-profile, login, logout; **password reset** (`POST /auth/forgot-password` → email/logs **8-digit code**, `POST /auth/reset-password` with code); optional SMTP (`MailService` / nodemailer; **Mailpit** in Compose); JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
+| **MailModule** | Shared **nodemailer** delivery (`MailService`): password reset, **welcome** on `POST /auth/register` / `POST /auth/register-with-profile`, **order** status (open / filled / canceled + maker filled from matching), **fiat/crypto deposit** confirmations — same SMTP/Mailpit rules as reset |
+| **AuthModule** | Register, register-with-profile, login, logout; **password reset** (`POST /auth/forgot-password` → email/logs **8-digit code**, `POST /auth/reset-password` with code); optional SMTP (`MailModule` / nodemailer; **Mailpit** in Compose); JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
 | **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields; **admin** `GET /users/bulk/export` (presets: first 100 / last 100 by `createdAt`, or date range up to 500 rows; `format=json|csv`; no password hashes) |
-| **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit |
+| **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit; training **fiat/crypto credits** that create `deposits_fiat` / `deposits_crypto` rows send the same **deposit receipt** emails as `DepositsModule` (via `MailService`) |
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
 | **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
 | **CryptosModule** | Read API for `cryptos` table (market listings / markets UI) |
-| **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions` |
+| **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions`; **deposit receipt** email via `MailService` after success |
 | **PaymentMethodsModule** | User payment methods (`user_payment_methods`); used by fiat deposits |
 | **PortfolioModule** | Authenticated portfolio: balances, summary, allocation |
 | **TransactionsModule** | User-facing transaction history (aggregates deposits, trades, withdrawals as exposed by API) |
@@ -113,8 +119,19 @@ Admin controllers use the `admin/users` prefix and require an admin-authenticate
 | **Anti-enumeration** | Same JSON message from forgot-password whether the email exists; **no email is sent** if there is no matching `users` row. |
 | **Code storage** | Plain code is never stored; DB keeps `code_hash` = `HMAC-SHA256(pepper, code)` with `PASSWORD_RESET_CODE_PEPPER` or `JWT_SECRET`. Code TTL **30 minutes**; one row per pending reset per user (new request replaces unused rows). |
 | **SMTP / Mailpit** | [Mailpit](https://mailpit.axllent.org/) is defined in [`docker-compose.yml`](docker-compose.yml) (`mailpit` service). Typical dev: **`SMTP_HOST=localhost`**, **`SMTP_PORT=1025`**, **`SMTP_SECURE=false`**. Web UI: **http://localhost:8025** (override host port with `MAILPIT_HTTP_PORT`). Backend startup logs that URL from [`main.ts`](backend/src/main.ts). |
-| **No SMTP** | If `SMTP_HOST` is empty, [`MailService`](backend/src/auth/mail.service.ts) **logs** the full message (including the code) and does not open a socket—useful when Mailpit is not running. |
+| **No SMTP** | If `SMTP_HOST` is empty, [`MailService`](backend/src/mail/mail.service.ts) **logs** the full message (including the code) and does not open a socket—useful when Mailpit is not running. |
 | **Other env** | See [`.env.example`](.env.example): `MAIL_FROM`, optional `SMTP_USER` / `SMTP_PASS`. |
+
+### Transactional email (welcome, orders, deposits)
+
+| Item | Detail |
+|------|--------|
+| **Welcome** | Sent after `AuthService.register` / `registerWithProfile` (not admin-only create paths). Errors are **logged**; registration still succeeds. |
+| **Orders** | [`OrdersService`](backend/src/orders/orders.service.ts) notifies **open** / **filled** / **cancelled** after create (final state post-`matchOrder`), **cancel**, and **setStatus**. [`MatchingService`](backend/src/orders/matching.service.ts) emails the **maker** when their order becomes **filled** (taker notification comes from create’s end-state only, avoiding duplicate filled mail). |
+| **Deposits** | [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto; [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) training paths that insert deposit rows. Errors **logged**; deposit still succeeds. |
+| **Reset vs. rest** | **Password reset** still **throws** on SMTP failure when host is set (client sees error). Other mail types swallow delivery errors after logging. |
+
+Manual / automation notes: [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) § *Transactional email*.
 
 ---
 
@@ -141,16 +158,16 @@ Orders support `market_type` (`spot` | `futures`) and rich statuses (`open`, `pa
 
 | Service | Module | Responsibility |
 |---------|--------|----------------|
-| **AuthService** | Auth | Credentials, JWT, registration with profile, admin user creation, impersonation, password reset codes |
-| **MailService** | Auth | Optional SMTP (password reset email); logs body when `SMTP_HOST` unset |
+| **AuthService** | Auth | Credentials, JWT, registration with profile (triggers **welcome** email), admin user creation, impersonation, password reset codes |
+| **MailService** | MailModule | Optional SMTP (password reset, welcome, order updates, deposit receipts); logs body when `SMTP_HOST` unset |
 | **TwoFactorService** | Auth | 2FA lifecycle |
 | **SessionsService** | Auth | Session persistence and revocation |
 | **UsersService** | Users | User + profile persistence |
-| **WalletsService** | Wallets | Balances, locks, training credits/debits, transaction log |
-| **OrdersService** | Orders | Order lifecycle, validation |
-| **MatchingService** | Orders | Matching, trades, wallet updates |
+| **WalletsService** | Wallets | Balances, locks, training credits/debits, transaction log; **deposit receipt** email when training credit creates a deposit row |
+| **OrdersService** | Orders | Order lifecycle, validation; triggers **order status** emails (to order owner) |
+| **MatchingService** | Orders | Matching, trades, wallet updates; **maker filled** email when resting order fully fills |
 | **TickersService** | Tickers | Ticker reads/updates, seed |
-| **DepositsService** | Deposits | Fiat/crypto deposit records + balance updates |
+| **DepositsService** | Deposits | Fiat/crypto deposit records + balance updates; **deposit receipt** email |
 | **PaymentMethodsService** | Payment methods | CRUD for saved methods |
 | **PortfolioService** | Portfolio | Aggregated holder views |
 | **TransactionsService** | Transactions | History endpoints |
@@ -240,10 +257,10 @@ Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 
 Dedicated UI / automation practice surfaces are catalogued in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md).
 
-1. **Auth**: Register → login → optional 2FA → logout (session invalid); forgot password → **8-digit code** (email or Mailpit / logs) → reset password → login.
+1. **Auth**: Register → login (optional **welcome** mail in Mailpit/logs) → optional 2FA → logout (session invalid); forgot password → **8-digit code** (email or Mailpit / logs) → reset password → login.
 2. **Admin**: Create admin via API key → impersonate user → end impersonation.
-3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances` and history endpoints.
-4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades.
+3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances`, history endpoints, and optional **deposit receipt** in Mailpit/logs.
+4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades; optional **order status** mail per transition (see [QA_TESTING_FEATURES](docs/QA_TESTING_FEATURES.md)).
 5. **Realtime**: Socket.IO `/ticker` → subscribe → assert `ticker` events.
 6. **Observability**: Hit `/metrics`, confirm Grafana/Prometheus in stack profile.
 7. **Iframe forms**: Open `/qa/iframe-practice`, scope automation to the iframe, fill fields with `data-testid` / labels, submit, assert in-frame success.
