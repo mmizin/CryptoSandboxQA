@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { MarketsCryptoTable } from '@/components/MarketsCryptoTable';
 import { TradingCharts } from '@/components/TradingCharts';
@@ -36,7 +37,15 @@ export default function MarketsTradingDataOverviewPage() {
           Overview of trading volume and price movements.
         </p>
         <TradingCharts />
-        <MarketsCryptoTable defaultLimit={10} showPopularHighlight title="Trading Overview" />
+        <Suspense
+          fallback={
+            <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-8 text-center text-slate-500 animate-pulse group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80">
+              Loading markets…
+            </div>
+          }
+        >
+          <MarketsCryptoTable defaultLimit={10} showPopularHighlight title="Trading Overview" />
+        </Suspense>
       </div>
     </main>
   );

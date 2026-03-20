@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { MarketsCryptoTable } from '@/components/MarketsCryptoTable';
 import { useAuth } from '@/lib/useAuth';
@@ -34,7 +35,15 @@ export default function MarketsPricesPage() {
         <p className="text-slate-400 group-data-[theme=light]:text-slate-600 mb-6">
           Live cryptocurrency prices from the market.
         </p>
-        <MarketsCryptoTable defaultLimit={10} showPopularHighlight />
+        <Suspense
+          fallback={
+            <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-8 text-center text-slate-500 animate-pulse group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80">
+              Loading markets…
+            </div>
+          }
+        >
+          <MarketsCryptoTable defaultLimit={10} showPopularHighlight />
+        </Suspense>
       </div>
     </main>
   );
