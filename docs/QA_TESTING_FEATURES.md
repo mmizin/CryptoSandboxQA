@@ -37,6 +37,7 @@ The **Portfolio Analytics** section on [`/dashboard`](../frontend/app/dashboard/
 - **Undo:** After removing a block, an undo bar appears: **`data-testid="analytics-undo-remove"`** with **`data-testid="analytics-undo-remove-button"`** (auto-dismiss ~5s).
 - **Persistence:** **Visible order** is saved under `portfolio-analytics-block-order`; **hidden ids** under `portfolio-analytics-block-hidden` (both **`sessionStorage`**, per tab). Legacy tabs that only have a full-length order array are **migrated** (all blocks visible, same order).
 - **Keyboard:** Focus a chart card and use **arrow keys** (@dnd-kit keyboard sensor) to move blocks where supported.
+- **UI / theme (visual checks):** Toolbar actions (**Customize layout**, **Add block**, **Shuffle blocks**) and the add-block **dropdown rows** use **neutral slate** borders and fills (same family as selects elsewhere), not emerald fills. **Remove** controls (`remove-analytics-block-*`) are **slate-bordered** on the card when Customize is on; **hover / keyboard focus** use **red** accent for the destructive action. Root **`button`** defaults come from [`globals.css`](../frontend/app/globals.css) (`var(--input-bg)` / `var(--text)`), so unstyled buttons are theme-neutral, not hardcoded green.
 
 Chart containers keep their existing **`aria-label`** and **`data-testid`** values (e.g. `chart-balance-pie`, `chart-area-portfolio`).
 
