@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -6,11 +7,15 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiHeader,
   ApiOperation,
   ApiResponse,
@@ -34,6 +39,7 @@ import { SessionGuard } from './session.guard';
 import { AdminApiKeyGuard } from './guards/admin-api-key.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { CurrentUser } from './current-user.decorator';
+import { MAX_IMPORT_FILE_BYTES } from './bulk-user-import.parse';
 
 function extractBearerToken(authHeader?: string): string | null {
   if (!authHeader?.startsWith('Bearer ')) return null;
@@ -110,6 +116,44 @@ export class AuthController {
       timezone: dto.timezone,
       preferences: dto.preferences,
     });
+  }
+
+  @Post('admin/bulk-import-users')
+  @UseGuards(JwtAuthGuard, SessionGuard, AdminGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_IMPORT_FILE_BYTES },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'CSV or JSON (max 500 rows, 5 MB). Same columns as single create-user.',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Bulk import users from CSV or JSON (admin only)',
+    description:
+      'Single multipart upload. Rows are validated like the import template; duplicates in-DB yield skipped; invalid rows yield error entries. Response lists per-row outcomes in file order.',
+  })
+  @ApiResponse({ status: 201, description: 'created / failed / skipped counts and per-row rows' })
+  @ApiResponse({ status: 400, description: 'Missing file or parse error' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  async bulkImportUsers(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('file field is required');
+    }
+    return this.authService.bulkImportUsersFromFile(file);
   }
 
   @Post('register-with-profile')

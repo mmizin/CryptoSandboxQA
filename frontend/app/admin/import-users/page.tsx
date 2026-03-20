@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
-import { adminApi, type AdminCreatedUserResponse } from '@/lib/api';
+import { adminApi, usersApi, type AdminCreatedUserResponse } from '@/lib/api';
 import {
   getCsvTemplateBlob,
   MAX_IMPORT_FILE_BYTES,
@@ -29,10 +29,6 @@ export type ImportSuccessRow = {
   response: AdminCreatedUserResponse;
 };
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
 function cell(v: unknown): string {
   if (v === undefined || v === null || v === '') return '—';
   if (typeof v === 'object') return JSON.stringify(v);
@@ -52,28 +48,36 @@ function TruncatedCell({ value, max = 48 }: { value: string; max?: number }) {
 export default function ImportUsersPage() {
   const { user, loading: authLoading, isAdmin } = useAuth(true);
   const router = useRouter();
-  const abortedRef = useRef(false);
 
   const [phase, setPhase] = useState<'idle' | 'ready' | 'running' | 'done'>('idle');
   const [pending, setPending] = useState<{
+    file: File;
+    fileName: string;
+    parsedRows: AdminCreateUserPayload[];
     validRows: AdminCreateUserPayload[];
     preFailures: Failure[];
-    fileName: string;
   } | null>(null);
 
   const [fileError, setFileError] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [totalToProcess, setTotalToProcess] = useState(0);
+  const [importError, setImportError] = useState('');
   const [successCount, setSuccessCount] = useState(0);
+  const [skippedCount, setSkippedCount] = useState(0);
   const [failures, setFailures] = useState<Failure[]>([]);
+  const [skippedRows, setSkippedRows] = useState<Failure[]>([]);
   const [successes, setSuccesses] = useState<ImportSuccessRow[]>([]);
 
   const [showPasswords, setShowPasswords] = useState(false);
   const [successFilter, setSuccessFilter] = useState('');
   const [failureFilter, setFailureFilter] = useState('');
+  const [skippedFilter, setSkippedFilter] = useState('');
   const [profileFilter, setProfileFilter] = useState<'all' | 'with_username' | 'without_username'>('all');
   const [sortOrder, setSortOrder] = useState<'email_asc' | 'email_desc' | 'created_asc'>('email_asc');
-  const [requestDelayMs, setRequestDelayMs] = useState(0);
+
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
+  const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -81,12 +85,6 @@ export default function ImportUsersPage() {
       router.push('/dashboard');
     }
   }, [user, router]);
-
-  useEffect(() => {
-    return () => {
-      abortedRef.current = true;
-    };
-  }, []);
 
   const downloadTemplate = useCallback(() => {
     const blob = getCsvTemplateBlob();
@@ -112,44 +110,67 @@ export default function ImportUsersPage() {
     URL.revokeObjectURL(url);
   }, [successes]);
 
-  const runImport = useCallback(
-    async (rows: AdminCreateUserPayload[], preFailures: Failure[]) => {
-      abortedRef.current = false;
-      setPhase('running');
-      setFailures([...preFailures]);
-      setSuccesses([]);
-      setSuccessCount(0);
-      setCurrentIndex(0);
-      setTotalToProcess(rows.length);
-
-      let ok = 0;
-      const failList: Failure[] = [...preFailures];
+  const runBulkImport = useCallback(async () => {
+    if (!pending?.file) return;
+    setImportError('');
+    setPhase('running');
+    setFailures([]);
+    setSkippedRows([]);
+    setSuccesses([]);
+    setSuccessCount(0);
+    setSkippedCount(0);
+    try {
+      const response = await adminApi.bulkImportUsers(pending.file);
       const okList: ImportSuccessRow[] = [];
+      const failList: Failure[] = [];
+      const skipList: Failure[] = [];
 
-      for (let i = 0; i < rows.length; i++) {
-        if (abortedRef.current) break;
-        setCurrentIndex(i + 1);
-        const row = rows[i];
-        try {
-          if (requestDelayMs > 0) {
-            await sleep(requestDelayMs);
+      for (let i = 0; i < response.rows.length; i++) {
+        const sr = response.rows[i];
+        const raw = pending.parsedRows[i];
+        if (sr.status === 'created' && sr.userId) {
+          if (raw) {
+            const emailKey = raw.email?.trim().toLowerCase() ?? sr.email;
+            okList.push({
+              request: { ...raw, email: emailKey },
+              response: {
+                id: sr.userId,
+                email: sr.email,
+                displayName: raw.displayName ?? null,
+                role: 'user',
+                profile: {
+                  username: raw.username ?? null,
+                  fullName: raw.fullName ?? null,
+                  photoUrl: raw.photoUrl ?? null,
+                  bio: raw.bio ?? null,
+                  websiteUrl: raw.websiteUrl ?? null,
+                  location: raw.location ?? null,
+                  birthday: raw.birthday ?? null,
+                  languageCode: raw.languageCode,
+                  timezone: raw.timezone,
+                  preferences: raw.preferences,
+                },
+              },
+            });
           }
-          const response = await adminApi.createUser(row);
-          ok++;
-          okList.push({ request: { ...row }, response });
-          setSuccessCount(ok);
-          setSuccesses([...okList]);
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : 'Request failed';
-          failList.push({ email: row.email, reason: msg });
-          setFailures([...failList]);
+        } else if (sr.status === 'error') {
+          failList.push({ email: sr.email, reason: sr.message || 'Error' });
+        } else if (sr.status === 'skipped') {
+          skipList.push({ email: sr.email, reason: sr.message || 'Skipped' });
         }
       }
 
+      setSuccesses(okList);
+      setSuccessCount(okList.length);
+      setFailures(failList);
+      setSkippedRows(skipList);
+      setSkippedCount(skipList.length);
       setPhase('done');
-    },
-    [requestDelayMs]
-  );
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Import failed');
+      setPhase('ready');
+    }
+  }, [pending]);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -173,32 +194,88 @@ export default function ImportUsersPage() {
 
     const { validRows, preFailures } = validateRowsForDuplicatesAndFields(parsed.rows);
     setSuccesses([]);
-    setPending({ validRows, preFailures, fileName: file.name });
+    setImportError('');
+    setPending({
+      file,
+      fileName: file.name,
+      parsedRows: parsed.rows,
+      validRows,
+      preFailures,
+    });
     setPhase('ready');
     setFailures([]);
+    setSkippedRows([]);
   };
 
   const handleStartImport = () => {
-    if (!pending || pending.validRows.length === 0) return;
-    runImport(pending.validRows, pending.preFailures);
+    if (!pending?.file || pending.parsedRows.length === 0) return;
+    void runBulkImport();
   };
 
   const reset = () => {
     setPhase('idle');
     setPending(null);
     setFileError('');
-    setCurrentIndex(0);
-    setTotalToProcess(0);
+    setImportError('');
     setSuccessCount(0);
+    setSkippedCount(0);
     setFailures([]);
+    setSkippedRows([]);
     setSuccesses([]);
   };
+
+  const runExport = useCallback(
+    async (preset: 'first100' | 'last100' | 'dateRange') => {
+      setExportError('');
+      if (preset === 'dateRange' && (!exportFrom.trim() || !exportTo.trim())) {
+        setExportError('Choose both start and end dates for a date range export.');
+        return;
+      }
+      setExportBusy(true);
+      try {
+        const result = await usersApi.bulkExport({
+          preset,
+          from: preset === 'dateRange' ? `${exportFrom.trim()}T00:00:00.000Z` : undefined,
+          to: preset === 'dateRange' ? `${exportTo.trim()}T23:59:59.999Z` : undefined,
+          format: exportFormat,
+        });
+        const ts = Date.now();
+        if (result.kind === 'csv') {
+          const url = URL.createObjectURL(result.blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `users-export-${preset}-${ts}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        } else {
+          const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `users-export-${preset}-${ts}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      } catch (err) {
+        setExportError(err instanceof Error ? err.message : 'Export failed');
+      } finally {
+        setExportBusy(false);
+      }
+    },
+    [exportFormat, exportFrom, exportTo]
+  );
 
   const filteredFailures = useMemo(() => {
     const q = failureFilter.trim().toLowerCase();
     if (!q) return failures;
     return failures.filter((f) => f.email.toLowerCase().includes(q) || f.reason.toLowerCase().includes(q));
   }, [failures, failureFilter]);
+
+  const filteredSkipped = useMemo(() => {
+    const q = skippedFilter.trim().toLowerCase();
+    if (!q) return skippedRows;
+    return skippedRows.filter((f) => f.email.toLowerCase().includes(q) || f.reason.toLowerCase().includes(q));
+  }, [skippedRows, skippedFilter]);
 
   const filteredAndSortedSuccesses = useMemo(() => {
     let list = [...successes];
@@ -254,10 +331,7 @@ export default function ImportUsersPage() {
 
   if (!user || !isAdmin) return null;
 
-  const progressPct =
-    totalToProcess > 0 ? Math.round((currentIndex / totalToProcess) * 100) : 0;
-
-  const canRun = phase === 'ready' && pending && pending.validRows.length > 0;
+  const canRun = phase === 'ready' && pending && pending.parsedRows.length > 0;
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -268,7 +342,7 @@ export default function ImportUsersPage() {
               Bulk user import
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400 group-data-[theme=light]:text-slate-600">
-              Add many users at once from CSV or JSON. Invalid rows are skipped; the rest keep running.
+              Upload CSV or JSON — the API processes every row in one request (partial success: conflicts are skipped, invalid rows are reported).
             </p>
           </div>
           <Link
@@ -288,7 +362,7 @@ export default function ImportUsersPage() {
               {[
                 { n: '1', t: 'Upload', d: 'CSV or JSON' },
                 { n: '2', t: 'Review', d: 'Row counts' },
-                { n: '3', t: 'Import', d: 'Saved to DB' },
+                { n: '3', t: 'Import', d: 'Server bulk save' },
               ].map((step) => (
                 <li key={step.n} className="flex items-center gap-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400 ring-1 ring-emerald-500/25 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800 group-data-[theme=light]:ring-emerald-200">
@@ -319,54 +393,6 @@ export default function ImportUsersPage() {
               </button>
             </div>
 
-            <details className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/30 open:border-emerald-500/25 open:ring-1 open:ring-emerald-500/10 open:[&_svg.import-chevron]:rotate-180 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50/80">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-medium text-slate-300 transition-colors hover:text-white [&::-webkit-details-marker]:hidden group-data-[theme=light]:text-slate-700 group-data-[theme=light]:hover:text-slate-900">
-                <span className="flex items-center gap-2">
-                  <svg className="h-4 w-4 text-slate-500 group-data-[theme=light]:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  Advanced &amp; QA
-                  <span className="rounded-md bg-slate-700/50 px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wide text-slate-400 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-slate-500">
-                    Optional
-                  </span>
-                </span>
-                <svg
-                  className="import-chevron h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 group-data-[theme=light]:text-slate-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </summary>
-              <div className="border-t border-slate-700/60 px-4 pb-4 pt-1 group-data-[theme=light]:border-slate-200">
-                <label className="mt-2 flex max-w-md flex-col gap-2">
-                  <span className="text-xs font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
-                    Delay between API requests (ms)
-                  </span>
-                  <div className="flex flex-wrap items-end gap-3">
-                    <input
-                      id="import-request-delay-ms"
-                      type="number"
-                      min={0}
-                      max={60000}
-                      step={50}
-                      value={requestDelayMs}
-                      onChange={(e) => setRequestDelayMs(Math.max(0, Number(e.target.value) || 0))}
-                      className={`${compactInput} w-28`}
-                      aria-describedby="import-request-delay-hint"
-                    />
-                    <p id="import-request-delay-hint" className="max-w-md text-[11px] leading-relaxed text-slate-500 group-data-[theme=light]:text-slate-500">
-                      <span className="font-medium text-slate-400 group-data-[theme=light]:text-slate-600">0</span> = fastest.
-                      Use <span className="whitespace-nowrap">200–500</span> to watch the progress bar move, or to mimic a slow network.
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </details>
-
             {(phase === 'idle' || phase === 'ready') && (
               <div className="space-y-5">
                 <div>
@@ -386,6 +412,7 @@ export default function ImportUsersPage() {
                     or <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-emerald-400/90 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-emerald-800">.json</code> · max 5&nbsp;MB
                   </p>
                   {fileError && <p className="mt-2 text-sm text-red-400">{fileError}</p>}
+                  {importError && <p className="mt-2 text-sm text-red-400">{importError}</p>}
                 </div>
 
                 {phase === 'ready' && pending && (
@@ -399,7 +426,14 @@ export default function ImportUsersPage() {
                           <span className="font-semibold text-white group-data-[theme=light]:text-slate-900">{pending.fileName}</span>
                         </p>
                         <p className="mt-2 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
-                          <span className="font-semibold text-emerald-400 group-data-[theme=light]:text-emerald-600">{pending.validRows.length}</span> to create
+                          <span className="font-semibold text-slate-200 group-data-[theme=light]:text-slate-800">
+                            {pending.parsedRows.length}
+                          </span>{' '}
+                          rows in file · local check:{' '}
+                          <span className="font-semibold text-emerald-400 group-data-[theme=light]:text-emerald-600">
+                            {pending.validRows.length}
+                          </span>{' '}
+                          pass field rules
                           {pending.preFailures.length > 0 && (
                             <>
                               {' '}
@@ -407,7 +441,7 @@ export default function ImportUsersPage() {
                               <span className="font-semibold text-amber-400 group-data-[theme=light]:text-amber-600">
                                 {pending.preFailures.length}
                               </span>{' '}
-                              skipped (validation)
+                              flagged (server still validates every row)
                             </>
                           )}
                         </p>
@@ -454,19 +488,11 @@ export default function ImportUsersPage() {
           {phase === 'running' && (
             <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/[0.06] to-emerald-500/[0.06] p-5 ring-1 ring-cyan-500/10 group-data-[theme=light]:border-cyan-200 group-data-[theme=light]:from-cyan-50/50 group-data-[theme=light]:to-emerald-50/30 group-data-[theme=light]:ring-cyan-100">
               <p className="text-sm font-medium text-slate-200 group-data-[theme=light]:text-slate-800">
-                Importing… <span className="text-emerald-400 group-data-[theme=light]:text-emerald-600">{currentIndex}</span> /{' '}
-                {totalToProcess}
+                Uploading and processing on the server…
               </p>
               <div className="mt-3 h-2.5 max-w-lg overflow-hidden rounded-full bg-slate-700/80 group-data-[theme=light]:bg-slate-200">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
-                  style={{ width: `${progressPct}%` }}
-                />
+                <div className="h-full w-1/3 animate-pulse rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" />
               </div>
-              <p className="mt-3 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
-                Created so far:{' '}
-                <span className="font-semibold text-emerald-400 group-data-[theme=light]:text-emerald-600">{successCount}</span>
-              </p>
             </div>
           )}
 
@@ -482,6 +508,8 @@ export default function ImportUsersPage() {
                 <p className="mt-2 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
                   <span className="font-medium text-emerald-400 group-data-[theme=light]:text-emerald-600">{successCount}</span>{' '}
                   created ·{' '}
+                  <span className="font-medium text-amber-400 group-data-[theme=light]:text-amber-600">{skippedCount}</span>{' '}
+                  skipped ·{' '}
                   <span className="font-medium text-red-400 group-data-[theme=light]:text-red-600">{failures.length}</span>{' '}
                   failed
                 </p>
@@ -616,6 +644,53 @@ export default function ImportUsersPage() {
                 </div>
               )}
 
+              {skippedRows.length > 0 && (
+                <div data-testid="admin-import-skipped-section">
+                  <h3 className="mb-3 text-base font-semibold text-white group-data-[theme=light]:text-slate-900">
+                    Skipped (e.g. email or username already in use)
+                  </h3>
+                  <input
+                    type="search"
+                    placeholder="Filter skipped…"
+                    value={skippedFilter}
+                    onChange={(e) => setSkippedFilter(e.target.value)}
+                    className={`${compactInput} mb-3 max-w-xs`}
+                  />
+                  <div className="overflow-x-auto rounded-lg border border-slate-700/80 group-data-[theme=light]:border-slate-200">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-700/80 bg-slate-800/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-100/80">
+                          <th className="px-4 py-2 font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
+                            Email
+                          </th>
+                          <th className="px-4 py-2 font-medium text-slate-300 group-data-[theme=light]:text-slate-700">
+                            Reason
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredSkipped.map((f, i) => (
+                          <tr
+                            key={`skip-${f.email}-${i}`}
+                            className="border-b border-slate-700/50 group-data-[theme=light]:border-slate-200"
+                          >
+                            <td className="px-4 py-2 text-slate-200 group-data-[theme=light]:text-slate-900">
+                              {f.email}
+                            </td>
+                            <td className="px-4 py-2 text-amber-400 group-data-[theme=light]:text-amber-700">
+                              {f.reason}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {filteredSkipped.length === 0 && skippedRows.length > 0 && (
+                    <p className="mt-2 text-sm text-amber-400">No skipped rows match the filter.</p>
+                  )}
+                </div>
+              )}
+
               {failures.length > 0 && (
                 <div>
                   <h3 className="mb-3 text-base font-semibold text-white group-data-[theme=light]:text-slate-900">
@@ -662,6 +737,101 @@ export default function ImportUsersPage() {
               )}
             </div>
           )}
+          </div>
+        </div>
+
+        <div
+          className="mt-10 overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/60 shadow-xl shadow-black/20 ring-1 ring-white/5 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white group-data-[theme=light]:shadow-slate-200/50"
+          data-testid="admin-bulk-export-panel"
+        >
+          <div className="border-b border-slate-700/80 bg-gradient-to-r from-cyan-500/[0.07] via-emerald-500/[0.05] to-transparent px-6 py-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:from-cyan-50/80 group-data-[theme=light]:via-white group-data-[theme=light]:to-slate-50/80">
+            <h2 className="text-lg font-semibold text-white group-data-[theme=light]:text-slate-900">
+              Export users
+            </h2>
+            <p className="mt-1 text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+              <code className="rounded bg-slate-800/80 px-1 text-emerald-400/90 group-data-[theme=light]:bg-slate-200 group-data-[theme=light]:text-emerald-800">GET /users/bulk/export</code> — no password fields. Date range capped at 500 rows.
+            </p>
+          </div>
+          <div className="space-y-5 p-6 sm:p-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                Format
+              </label>
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
+                className={compactInput}
+                data-testid="admin-bulk-export-format"
+              >
+                <option value="json">JSON</option>
+                <option value="csv">CSV</option>
+              </select>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={exportBusy}
+                data-testid="admin-bulk-export-first100"
+                onClick={() => void runExport('first100')}
+                className={buttonBase}
+              >
+                First 100 (by createdAt)
+              </button>
+              <button
+                type="button"
+                disabled={exportBusy}
+                data-testid="admin-bulk-export-last100"
+                onClick={() => void runExport('last100')}
+                className={buttonBase}
+              >
+                Last 100 (by createdAt)
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-slate-700/60 bg-slate-800/30 p-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-slate-50/80">
+              <p className="text-sm font-medium text-slate-300 group-data-[theme=light]:text-slate-800">
+                By created date (inclusive days, UTC)
+              </p>
+              <div className="mt-3 flex flex-wrap items-end gap-4">
+                <label className="flex flex-col gap-1 text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
+                  From
+                  <input
+                    type="date"
+                    value={exportFrom}
+                    onChange={(e) => setExportFrom(e.target.value)}
+                    className={compactInput}
+                    data-testid="admin-bulk-export-from"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
+                  To
+                  <input
+                    type="date"
+                    value={exportTo}
+                    onChange={(e) => setExportTo(e.target.value)}
+                    className={compactInput}
+                    data-testid="admin-bulk-export-to"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={exportBusy}
+                  data-testid="admin-bulk-export-daterange"
+                  onClick={() => void runExport('dateRange')}
+                  className={buttonBase}
+                >
+                  Download range
+                </button>
+              </div>
+            </div>
+
+            {exportError && (
+              <p className="text-sm text-red-400" data-testid="admin-bulk-export-error">
+                {exportError}
+              </p>
+            )}
+            {exportBusy && <p className="text-sm text-slate-500">Preparing download…</p>}
           </div>
         </div>
       </div>

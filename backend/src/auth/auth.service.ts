@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -9,6 +10,11 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { SessionsService } from './sessions.service';
 import { TwoFactorService } from './two-factor.service';
+import {
+  parseImportFileContent,
+  validatePayloadRow,
+  type AdminImportPayload,
+} from './bulk-user-import.parse';
 
 export interface JwtPayload {
   sub: string;
@@ -238,6 +244,104 @@ export class AuthService {
     }
     const { passwordHash: _, ...safe } = full;
     return safe;
+  }
+
+  /** Server-side bulk import from CSV/JSON (admin). Preserves row order in `rows`. */
+  async bulkImportUsersFromFile(file: Express.Multer.File) {
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('Missing or empty file');
+    }
+    const text = file.buffer.toString('utf8');
+    const parsed = parseImportFileContent(file.originalname || 'upload.csv', text);
+    if (!parsed.ok) {
+      throw new BadRequestException(parsed.fileError);
+    }
+
+    const seenEmails = new Set<string>();
+    type Classified =
+      | { kind: 'invalid'; email: string; message: string }
+      | { kind: 'valid'; row: AdminImportPayload };
+
+    const classified: Classified[] = [];
+    for (let i = 0; i < parsed.rows.length; i++) {
+      const row = parsed.rows[i];
+      const label = `Row ${i + 1}`;
+      const fieldErr = validatePayloadRow(row, label);
+      if (fieldErr) {
+        classified.push({ kind: 'invalid', email: row.email?.trim() || '(no email)', message: fieldErr });
+        continue;
+      }
+      const key = row.email!.trim().toLowerCase();
+      if (seenEmails.has(key)) {
+        classified.push({
+          kind: 'invalid',
+          email: row.email!,
+          message: `${label}: duplicate email (already in this file)`,
+        });
+        continue;
+      }
+      seenEmails.add(key);
+      classified.push({
+        kind: 'valid',
+        row: { ...row, email: key },
+      });
+    }
+
+    const rows: Array<{
+      email: string;
+      status: 'created' | 'skipped' | 'error';
+      userId?: string;
+      message?: string;
+    }> = [];
+
+    let created = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const c of classified) {
+      if (c.kind === 'invalid') {
+        failed++;
+        rows.push({ email: c.email, status: 'error', message: c.message });
+        continue;
+      }
+      try {
+        const u = await this.createUserWithProfileAsAdmin({
+          email: c.row.email,
+          password: c.row.password,
+          displayName: c.row.displayName,
+          username: c.row.username,
+          fullName: c.row.fullName,
+          photoUrl: c.row.photoUrl,
+          bio: c.row.bio,
+          websiteUrl: c.row.websiteUrl,
+          location: c.row.location,
+          birthday: c.row.birthday,
+          languageCode: c.row.languageCode,
+          timezone: c.row.timezone,
+          preferences: c.row.preferences,
+        });
+        created++;
+        rows.push({ email: c.row.email, status: 'created', userId: u.id });
+      } catch (e) {
+        if (e instanceof ConflictException) {
+          skipped++;
+          rows.push({
+            email: c.row.email,
+            status: 'skipped',
+            message: e.message,
+          });
+        } else {
+          failed++;
+          rows.push({
+            email: c.row.email,
+            status: 'error',
+            message: e instanceof Error ? e.message : 'Unknown error',
+          });
+        }
+      }
+    }
+
+    return { created, failed, skipped, rows };
   }
 
   private async issueTokenAndSession(

@@ -66,12 +66,67 @@ export type AdminCreatedUserResponse = {
   } | null;
 };
 
+/** POST /auth/admin/bulk-import-users — per-row outcomes in file order. */
+export type BulkImportUsersResponse = {
+  created: number;
+  failed: number;
+  skipped: number;
+  rows: Array<{
+    email: string;
+    status: 'created' | 'skipped' | 'error';
+    userId?: string;
+    message?: string;
+  }>;
+};
+
+export type BulkExportedUserRow = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  profile: {
+    username: string | null;
+    fullName: string | null;
+    photoUrl: string | null;
+    bio: string | null;
+    websiteUrl: string | null;
+    location: string | null;
+    birthday: string | null;
+    languageCode: string;
+    timezone: string;
+    verificationStatus: string;
+  } | null;
+};
+
 export const adminApi = {
   createUser: (payload: AdminCreateUserPayload) =>
     api<AdminCreatedUserResponse>('/auth/admin/create-user', {
       method: 'POST',
       body: jsonBodyStripUndefined(payload),
     }),
+
+  bulkImportUsers: async (file: File): Promise<BulkImportUsersResponse> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append('file', file);
+    const headers: HeadersInit = {};
+    if (token) (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/auth/admin/bulk-import-users`, {
+      method: 'POST',
+      headers,
+      body: form,
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      const raw = err.message ?? err.error;
+      const msg = Array.isArray(raw) ? raw.join(', ') : String(raw || `HTTP ${res.status}`);
+      throw new Error(msg);
+    }
+    return res.json();
+  },
 };
 
 export const authApi = {
@@ -109,6 +164,36 @@ export const usersApi = {
     api<Array<{ id: string; email: string; displayName: string | null; role: string }>>(
       `/users${search ? `?search=${encodeURIComponent(search)}` : ''}`
     ),
+
+  bulkExport: async (params: {
+    preset: 'first100' | 'last100' | 'dateRange';
+    from?: string;
+    to?: string;
+    format: 'json' | 'csv';
+  }): Promise<{ kind: 'json'; data: BulkExportedUserRow[] } | { kind: 'csv'; blob: Blob }> => {
+    const sp = new URLSearchParams();
+    sp.set('preset', params.preset);
+    if (params.from) sp.set('from', params.from);
+    if (params.to) sp.set('to', params.to);
+    sp.set('format', params.format);
+    const token = getToken();
+    const headers: HeadersInit = {};
+    if (token) (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/users/bulk/export?${sp}`, {
+      headers,
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      const raw = err.message ?? err.error;
+      const msg = Array.isArray(raw) ? raw.join(', ') : String(raw || `HTTP ${res.status}`);
+      throw new Error(msg);
+    }
+    if (params.format === 'csv') {
+      return { kind: 'csv', blob: await res.blob() };
+    }
+    return { kind: 'json', data: (await res.json()) as BulkExportedUserRow[] };
+  },
 };
 
 export const walletsApi = {

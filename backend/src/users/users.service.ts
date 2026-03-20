@@ -1,8 +1,35 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { AdminPatchUserDto } from './dto/admin-update-user.dto';
 import { AdminReplaceUserDto } from './dto/admin-replace-user.dto';
+import { BulkExportUsersQueryDto } from './dto/bulk-export-users.query.dto';
+
+export type BulkExportedUserRow = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  profile: {
+    username: string | null;
+    fullName: string | null;
+    photoUrl: string | null;
+    bio: string | null;
+    websiteUrl: string | null;
+    location: string | null;
+    birthday: string | null;
+    languageCode: string;
+    timezone: string;
+    verificationStatus: string;
+  } | null;
+};
 
 @Injectable()
 export class UsersService {
@@ -127,6 +154,135 @@ export class UsersService {
       take: 100,
     });
     return users;
+  }
+
+  async exportBulk(q: BulkExportUsersQueryDto): Promise<{
+    contentType: string;
+    body: BulkExportedUserRow[] | string;
+    attachmentFilename: string | null;
+  }> {
+    const format = q.format ?? 'json';
+    if (q.preset === 'dateRange' && (!q.from || !q.to)) {
+      throw new BadRequestException('from and to query params are required when preset is dateRange');
+    }
+    const rangeFrom = q.from ? new Date(q.from) : undefined;
+    const rangeTo = q.to ? new Date(q.to) : undefined;
+    if (q.preset === 'dateRange' && rangeFrom && rangeTo && rangeFrom.getTime() > rangeTo.getTime()) {
+      throw new BadRequestException('from must be before or equal to to');
+    }
+
+    let users;
+    if (q.preset === 'first100') {
+      users = await this.prisma.user.findMany({
+        orderBy: { createdAt: 'asc' },
+        take: 100,
+        include: { profile: true },
+      });
+    } else if (q.preset === 'last100') {
+      users = await this.prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        include: { profile: true },
+      });
+    } else {
+      users = await this.prisma.user.findMany({
+        where: {
+          createdAt: { gte: rangeFrom!, lte: rangeTo! },
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 500,
+        include: { profile: true },
+      });
+    }
+
+    const rows: BulkExportedUserRow[] = users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      displayName: u.displayName,
+      role: u.role,
+      createdAt: u.createdAt.toISOString(),
+      updatedAt: u.updatedAt.toISOString(),
+      profile: u.profile
+        ? {
+            username: u.profile.username,
+            fullName: u.profile.fullName,
+            photoUrl: u.profile.photoUrl,
+            bio: u.profile.bio,
+            websiteUrl: u.profile.websiteUrl,
+            location: u.profile.location,
+            birthday: u.profile.birthday ? u.profile.birthday.toISOString().slice(0, 10) : null,
+            languageCode: u.profile.languageCode,
+            timezone: u.profile.timezone,
+            verificationStatus: u.profile.verificationStatus,
+          }
+        : null,
+    }));
+
+    if (format === 'json') {
+      return {
+        contentType: 'application/json; charset=utf-8',
+        body: rows,
+        attachmentFilename: null,
+      };
+    }
+
+    return {
+      contentType: 'text/csv; charset=utf-8',
+      body: this.buildUsersExportCsv(rows),
+      attachmentFilename: 'users-export.csv',
+    };
+  }
+
+  private buildUsersExportCsv(rows: BulkExportedUserRow[]): string {
+    const headers = [
+      'id',
+      'email',
+      'displayName',
+      'role',
+      'createdAt',
+      'updatedAt',
+      'username',
+      'fullName',
+      'photoUrl',
+      'bio',
+      'websiteUrl',
+      'location',
+      'birthday',
+      'languageCode',
+      'timezone',
+      'verificationStatus',
+    ];
+    const lines = [headers.join(',')];
+    for (const r of rows) {
+      const p = r.profile;
+      const cells = [
+        r.id,
+        r.email,
+        r.displayName ?? '',
+        r.role,
+        r.createdAt,
+        r.updatedAt,
+        p?.username ?? '',
+        p?.fullName ?? '',
+        p?.photoUrl ?? '',
+        p?.bio ?? '',
+        p?.websiteUrl ?? '',
+        p?.location ?? '',
+        p?.birthday ?? '',
+        p?.languageCode ?? '',
+        p?.timezone ?? '',
+        p?.verificationStatus ?? '',
+      ].map((c) => this.csvEscapeCell(String(c)));
+      lines.push(cells.join(','));
+    }
+    return lines.join('\n');
+  }
+
+  private csvEscapeCell(value: string): string {
+    if (/[",\n\r]/.test(value)) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
   }
 
   async update(id: string, data: Prisma.UserUpdateInput) {
