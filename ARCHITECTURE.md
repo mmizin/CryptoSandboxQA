@@ -67,8 +67,8 @@ flowchart TB
 
 | Module | Responsibility |
 |--------|----------------|
-| **AuthModule** | Register, register-with-profile, login, logout; JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user`; **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
-| **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields |
+| **AuthModule** | Register, register-with-profile, login, logout; JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
+| **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields; **admin** `GET /users/bulk/export` (presets: first 100 / last 100 by `createdAt`, or date range up to 500 rows; `format=json|csv`; no password hashes) |
 | **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit |
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
 | **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
@@ -92,6 +92,7 @@ Admin controllers use the `admin/users` prefix and require an admin-authenticate
 - `GET /admin/users/:userId/payment-methods` (+ by id)
 - `GET /admin/users/:userId/portfolio/*` (balances, summary, allocation)
 - `GET /admin/users/:userId/transactions` (+ deposits / trades / withdrawals filters)
+- `GET /users/bulk/export?preset=first100|last100|dateRange&from=&to=&format=json|csv` (same admin JWT session as other `/users` admin routes)
 
 ---
 

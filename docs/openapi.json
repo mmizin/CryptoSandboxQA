@@ -90,6 +90,78 @@
         ]
       }
     },
+    "/users/bulk/export": {
+      "get": {
+        "operationId": "UsersController_bulkExport",
+        "summary": "Export users (admin only)",
+        "description": "first100: earliest 100 by createdAt; last100: latest 100; dateRange: up to 500 users with createdAt between from and to (inclusive). JSON or CSV; never includes password hashes.",
+        "parameters": [
+          {
+            "name": "preset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "first100",
+                "last100",
+                "dateRange"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Required when preset=dateRange. Inclusive start (ISO 8601 date or datetime).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Required when preset=dateRange. Inclusive end (ISO 8601 date or datetime).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "json",
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON array or CSV file"
+          },
+          "400": {
+            "description": "Invalid preset or date range"
+          },
+          "403": {
+            "description": "Admin access required"
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/users/{id}": {
       "get": {
         "operationId": "UsersController_getById",
@@ -324,6 +396,53 @@
           },
           "409": {
             "description": "Email or username conflict"
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/admin/bulk-import-users": {
+      "post": {
+        "operationId": "AuthController_bulkImportUsers",
+        "summary": "Bulk import users from CSV or JSON (admin only)",
+        "description": "Single multipart upload. Rows are validated like the import template; duplicates in-DB yield skipped; invalid rows yield error entries. Response lists per-row outcomes in file order.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV or JSON (max 500 rows, 5 MB). Same columns as single create-user."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created / failed / skipped counts and per-row rows"
+          },
+          "400": {
+            "description": "Missing file or parse error"
+          },
+          "403": {
+            "description": "Admin access required"
           }
         },
         "tags": [

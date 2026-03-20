@@ -4,6 +4,11 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ---
 
+## Admin: bulk user import & export
+
+- **Page:** [`/admin/import-users`](../frontend/app/admin/import-users/page.tsx) — CSV/JSON upload uses **`POST /auth/admin/bulk-import-users`** (multipart `file`). Export card calls **`GET /users/bulk/export`** with presets (first 100, last 100, date range) and format JSON/CSV.
+- **`data-testid`:** `admin-bulk-export-panel`, `admin-bulk-export-format`, `admin-bulk-export-first100`, `admin-bulk-export-last100`, `admin-bulk-export-from`, `admin-bulk-export-to`, `admin-bulk-export-daterange`, `admin-bulk-export-error`, `admin-import-skipped-section`.
+
 ## Iframe automation practice
 
 The app serves a **same-origin** training form inside an iframe so you can practice frame-scoped selectors without third-party widgets or cross-origin blocks.
