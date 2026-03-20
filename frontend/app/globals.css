@@ -63,15 +63,19 @@ input {
   color: var(--text);
 }
 
+/* Default button: neutral (Tailwind utility classes supply primary/secondary styles). */
 button {
-  background: #238636;
-  color: white;
-  border-color: #238636;
+  background: var(--input-bg);
+  color: var(--text);
   cursor: pointer;
 }
 
 button:hover {
-  background: #2ea043;
+  border-color: var(--text-muted);
+}
+
+button:active {
+  border-color: var(--border);
 }
 
 button:disabled {

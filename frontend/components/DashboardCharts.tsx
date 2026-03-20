@@ -76,6 +76,13 @@ const ANALYTICS_BLOCK_META: Record<AnalyticsBlockId, { title: string; blurb: str
   'radar-allocation': { title: 'Asset allocation', blurb: 'Radar mix USD / BTC / ETH' },
 };
 
+/** Neutral controls only (no emerald); matches ui-styles selects pattern for toolbar + menus. */
+const analyticsToolbarBtn =
+  'rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 group-data-[theme=light]:focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white self-start sm:self-auto';
+
+const analyticsToolbarBtnActive =
+  'ring-1 ring-slate-500/50 bg-slate-800 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:ring-slate-400/60';
+
 function sortIdsByCatalog(ids: AnalyticsBlockId[]) {
   return [...ids].sort((a, b) => ANALYTICS_BLOCK_IDS.indexOf(a) - ANALYTICS_BLOCK_IDS.indexOf(b));
 }
@@ -244,8 +251,8 @@ function SortableAnalyticsBlock({
       {...attributes}
       {...listeners}
       aria-label={`Drag to reorder: ${title}. ${ariaLabel}`}
-      className={`select-none rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80 cursor-grab touch-none active:cursor-grabbing motion-reduce:transition-none transition-[box-shadow,opacity,transform] duration-200 ${
-        isDragging ? 'opacity-90 shadow-xl ring-2 ring-emerald-500/40' : ''
+      className={`select-none rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80 cursor-grab touch-none active:cursor-grabbing motion-reduce:transition-none transition-[box-shadow,opacity,transform] duration-200 ${
+        isDragging ? 'opacity-90 shadow-xl ring-2 ring-slate-500/45' : ''
       } ${
         customizeMode
           ? 'ring-1 ring-slate-500/35 group-data-[theme=light]:ring-slate-300 group-data-[theme=light]:ring-slate-400/60'
@@ -701,11 +708,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
               setCustomizeMode((v) => !v);
               setAddMenuOpen(false);
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 self-start sm:self-auto ${
-              customizeMode
-                ? 'ring-1 ring-emerald-500/30 bg-emerald-500/20 text-emerald-300 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800 group-data-[theme=light]:ring-emerald-400/40'
-                : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800'
-            }`}
+            className={`${analyticsToolbarBtn} ${customizeMode ? analyticsToolbarBtnActive : ''}`}
           >
             {customizeMode ? 'Done customizing' : 'Customize layout'}
           </button>
@@ -719,7 +722,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
               disabled={hiddenIds.length === 0}
               title={hiddenIds.length === 0 ? 'All blocks are visible' : 'Add a hidden chart block'}
               onClick={() => setAddMenuOpen((o) => !o)}
-              className="rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-45 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 group-data-[theme=light]:focus-visible:ring-offset-white disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white"
+              className={analyticsToolbarBtn}
             >
               Add block
             </button>
@@ -761,7 +764,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             onClick={shuffleBlocks}
             disabled={visibleOrder.length < 2}
             data-testid="shuffle-analytics-blocks"
-            className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 self-start sm:self-auto disabled:opacity-45 disabled:cursor-not-allowed"
+            className={analyticsToolbarBtn}
           >
             Shuffle blocks
           </button>
