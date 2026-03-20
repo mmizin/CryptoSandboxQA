@@ -24,13 +24,13 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | Frontend | Next.js (React), Zustand (where used), Socket.IO client, **@dnd-kit** (sortable drag-and-drop on dashboard Portfolio Analytics) |
 | API docs | Swagger UI + OpenAPI JSON (`/api/docs`, `/api/docs-json`) |
 | Metrics | `prom-client` — `GET /metrics` (Prometheus text format) |
-| Tooling | npm workspaces, Docker Compose (Postgres + optional observability stack) |
+| Tooling | npm workspaces, Docker Compose (Postgres + **Mailpit** for dev SMTP + optional observability stack) |
 
 ---
 
 ## Backend application
 
-`AppModule` wires global `ConfigModule`, `PrismaModule`, and feature modules.
+`AppModule` wires global `ConfigModule`, `PrismaModule`, and feature modules. **`ConfigModule` env files:** [`nestEnvFilePaths()`](backend/src/app.module.ts) loads the first existing paths among `process.cwd()` (usually `backend/` when using `npm run dev`) and `__dirname` (usually `backend/dist` when compiled)—`backend/.env` first, then the **repository root** `.env`. Later files override earlier keys. This ensures monorepo SMTP and DB settings in the root `.env` are not skipped. [`MailService`](backend/src/auth/mail.service.ts) also falls back to `process.env.SMTP_HOST` / `SMTP_PORT` if needed.
 
 ```mermaid
 flowchart TB
@@ -67,7 +67,7 @@ flowchart TB
 
 | Module | Responsibility |
 |--------|----------------|
-| **AuthModule** | Register, register-with-profile, login, logout; JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
+| **AuthModule** | Register, register-with-profile, login, logout; **password reset** (`POST /auth/forgot-password` → email/logs **8-digit code**, `POST /auth/reset-password` with code); optional SMTP (`MailService` / nodemailer; **Mailpit** in Compose); JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
 | **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields; **admin** `GET /users/bulk/export` (presets: first 100 / last 100 by `createdAt`, or date range up to 500 rows; `format=json|csv`; no password hashes) |
 | **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit |
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
@@ -102,7 +102,19 @@ Admin controllers use the `admin/users` prefix and require an admin-authenticate
 - **Roles**: `user` | `admin` on `users.role`; `AdminGuard` for admin-only routes.
 - **Admin API key**: `ADMIN_API_KEY` + `AdminApiKeyGuard` for bootstrapping admin users (`POST /auth/admin/register`).
 - **2FA**: `UserTwoFactor` model; login may return a temp token until `POST /auth/2fa/verify`.
+- **Password reset**: `UserPasswordReset` rows (HMAC-hashed code, expiry, single use); successful reset clears all `user_sessions` for that user.
 - **Impersonation**: Admin receives tokens to act as target user + `backToAdminToken` to revert (`POST /auth/end-impersonation`).
+
+### Password reset & dev mail (detail)
+
+| Item | Detail |
+|------|--------|
+| **User flow** | [`/forgot-password`](frontend/app/forgot-password/page.tsx) → `POST /auth/forgot-password` `{ email }` → user receives **8-digit** code (email or Mailpit) → [`/reset-password`](frontend/app/reset-password/page.tsx) → `POST /auth/reset-password` `{ email, code, newPassword }`. |
+| **Anti-enumeration** | Same JSON message from forgot-password whether the email exists; **no email is sent** if there is no matching `users` row. |
+| **Code storage** | Plain code is never stored; DB keeps `code_hash` = `HMAC-SHA256(pepper, code)` with `PASSWORD_RESET_CODE_PEPPER` or `JWT_SECRET`. Code TTL **30 minutes**; one row per pending reset per user (new request replaces unused rows). |
+| **SMTP / Mailpit** | [Mailpit](https://mailpit.axllent.org/) is defined in [`docker-compose.yml`](docker-compose.yml) (`mailpit` service). Typical dev: **`SMTP_HOST=localhost`**, **`SMTP_PORT=1025`**, **`SMTP_SECURE=false`**. Web UI: **http://localhost:8025** (override host port with `MAILPIT_HTTP_PORT`). Backend startup logs that URL from [`main.ts`](backend/src/main.ts). |
+| **No SMTP** | If `SMTP_HOST` is empty, [`MailService`](backend/src/auth/mail.service.ts) **logs** the full message (including the code) and does not open a socket—useful when Mailpit is not running. |
+| **Other env** | See [`.env.example`](.env.example): `MAIL_FROM`, optional `SMTP_USER` / `SMTP_PASS`. |
 
 ---
 
@@ -114,7 +126,7 @@ Full DDL lives in `backend/prisma/schema.prisma`. Detailed narrative: [docs/DATA
 
 | Area | Models / tables |
 |------|-----------------|
-| Users & auth | `users`, `user_profiles`, `user_two_factor`, `user_sessions` |
+| Users & auth | `users`, `user_profiles`, `user_two_factor`, `user_sessions`, `user_password_resets` |
 | Payments | `user_payment_methods` |
 | Markets | `assets`, `trading_pairs`, `tickers`, `cryptos` |
 | Balances | `user_balances`, `balance_transactions` |
@@ -129,7 +141,8 @@ Orders support `market_type` (`spot` | `futures`) and rich statuses (`open`, `pa
 
 | Service | Module | Responsibility |
 |---------|--------|----------------|
-| **AuthService** | Auth | Credentials, JWT, registration with profile, admin user creation, impersonation |
+| **AuthService** | Auth | Credentials, JWT, registration with profile, admin user creation, impersonation, password reset codes |
+| **MailService** | Auth | Optional SMTP (password reset email); logs body when `SMTP_HOST` unset |
 | **TwoFactorService** | Auth | 2FA lifecycle |
 | **SessionsService** | Auth | Session persistence and revocation |
 | **UsersService** | Users | User + profile persistence |
@@ -178,7 +191,7 @@ sequenceDiagram
 | Route | Purpose |
 |-------|---------|
 | `/` | Landing |
-| `/login`, `/register` | Auth |
+| `/login`, `/register`, `/forgot-password`, `/reset-password` | Auth |
 | `/dashboard` | Wallets / trading overview |
 | `/market` | Order book, place orders |
 | `/history` | Order / activity history |
@@ -227,7 +240,7 @@ Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 
 Dedicated UI / automation practice surfaces are catalogued in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md).
 
-1. **Auth**: Register → login → optional 2FA → logout (session invalid).
+1. **Auth**: Register → login → optional 2FA → logout (session invalid); forgot password → **8-digit code** (email or Mailpit / logs) → reset password → login.
 2. **Admin**: Create admin via API key → impersonate user → end impersonation.
 3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances` and history endpoints.
 4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades.

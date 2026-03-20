@@ -4,6 +4,54 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ---
 
+## Auth: forgot password (8-digit email code)
+
+End-to-end password reset for QA: code is delivered by **SMTP** (Mailpit in dev) or appears in the **backend log** if SMTP is not configured.
+
+### UI & entry points
+
+| Step | Location |
+|------|----------|
+| Request code | [`/forgot-password`](../frontend/app/forgot-password/page.tsx) — also linked from **Forgot password?** on the home sign-in form ([`/`](../frontend/app/page.tsx)). |
+| Apply code | [`/reset-password`](../frontend/app/reset-password/page.tsx) — email + **8-digit code** + new password (with confirmation). |
+
+### API (unauthenticated)
+
+| Method | Path | Body | Notes |
+|--------|------|------|------|
+| `POST` | `/auth/forgot-password` | `{ "email": "user@example.com" }` | Always **200** + generic message (no email enumeration). |
+| `POST` | `/auth/reset-password` | `{ "email", "code", "newPassword" }` | `code`: 8 digits (spaces stripped server-side). `newPassword`: min length **6** (same as register). **400** if code wrong/expired or email unknown. Success invalidates **all** sessions for that user. |
+
+Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../frontend/lib/api.ts).
+
+### Prerequisites for “real” mail in Mailpit
+
+1. **Database:** `user_password_resets` table must exist — run **`npm run setup`** or **`npm run db:migrate`** so Prisma `db push` applies [`schema.prisma`](../backend/prisma/schema.prisma).
+2. **Mailpit:** `npm run db:up` starts Postgres + Mailpit (see root [`docker-compose.yml`](../docker-compose.yml)). SMTP **1025**, UI **8025** (ports overridable via `MAILPIT_SMTP_PORT` / `MAILPIT_HTTP_PORT`).
+3. **Env (repo root `.env` recommended):** `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_SECURE=false`. Optional: `MAIL_FROM`. Nest loads root `.env` when the API runs from the `backend/` workspace—see [`nestEnvFilePaths()`](../backend/src/app.module.ts) in [ARCHITECTURE.md](../ARCHITECTURE.md).
+4. **Registered user:** Forgot-password **sends nothing** if `email` is not in `users` (response still looks like success). Use a seeded account (e.g. `demo@example.com` after `npm run db:seed`) or register first.
+
+### Manual test checklist
+
+1. Open Mailpit: [http://localhost:8025](http://localhost:8025).
+2. Submit forgot-password for a **known** user email.
+3. Open the new message; copy the **8-digit** code from the body.
+4. On `/reset-password`, paste code, set new password, submit → expect redirect to sign-in; login with new password.
+
+### Troubleshooting
+
+| Symptom | Likely cause |
+|---------|----------------|
+| Mailpit empty, API “success” | Email not in DB; or SMTP misread — check backend log for **`[no SMTP_HOST — code was not emailed]`** (fix `SMTP_HOST`, not `MTP_HOST`; restart `npm run dev`). |
+| Mailpit empty, log shows code | Expected when **`SMTP_HOST` unset** — use the code from the **terminal** on `/reset-password`, or set SMTP and retry. |
+| Reset returns “Invalid or expired” | Wrong code, expired (**30 min**), or typo in email; request a new code. |
+| Connection errors in log | Mailpit not running or wrong port (**1025** for SMTP from host). |
+
+### Automation hints
+
+- Mailpit exposes a **REST API** on the same port as the UI (e.g. list messages) for E2E tests that need to read the code without the browser—see [Mailpit API docs](https://mailpit.axllent.org/docs/api-v1/).
+- Static OpenAPI: [`docs/openapi.json`](./openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
+
 ## Admin: bulk user import & export
 
 - **Page:** [`/admin/import-users`](../frontend/app/admin/import-users/page.tsx) — CSV/JSON upload uses **`POST /auth/admin/bulk-import-users`** (multipart `file`). Export card calls **`GET /users/bulk/export`** with presets (first 100, last 100, date range) and format JSON/CSV.

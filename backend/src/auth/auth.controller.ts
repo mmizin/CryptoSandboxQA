@@ -32,6 +32,8 @@ import { Disable2FaDto } from './dto/disable-2fa.dto';
 import { Verify2FaDto } from './dto/verify-2fa.dto';
 import { ImpersonateDto } from './dto/impersonate.dto';
 import { EndImpersonationDto } from './dto/end-impersonation.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordWithCodeDto } from './dto/reset-password-with-code.dto';
 import { TwoFactorService } from './two-factor.service';
 import { SessionsService } from './sessions.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -62,6 +64,32 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Returns tempToken when 2FA required' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request password reset code',
+    description:
+      'Sends an 8-digit code to the email when the account exists. Response is always the same to avoid email enumeration.',
+  })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiResponse({ status: 200, description: 'Generic confirmation message' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password with email and code',
+    description: 'Consumes the code from the reset email and sets a new password. Invalidates all sessions for the user.',
+  })
+  @ApiBody({ type: ResetPasswordWithCodeDto })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired code' })
+  async resetPassword(@Body() dto: ResetPasswordWithCodeDto) {
+    return this.authService.resetPasswordWithCode(dto.email, dto.code, dto.newPassword);
   }
 
   @Post('register')
