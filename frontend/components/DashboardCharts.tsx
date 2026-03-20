@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { AriaRole } from 'react';
 import {
   DndContext,
@@ -62,9 +62,30 @@ const ANALYTICS_BLOCK_IDS = [
 
 type AnalyticsBlockId = (typeof ANALYTICS_BLOCK_IDS)[number];
 
-const DEFAULT_ANALYTICS_ORDER: AnalyticsBlockId[] = [...ANALYTICS_BLOCK_IDS];
+const DEFAULT_VISIBLE_ORDER: AnalyticsBlockId[] = [...ANALYTICS_BLOCK_IDS];
 
 const PORTFOLIO_ANALYTICS_ORDER_KEY = 'portfolio-analytics-block-order';
+const PORTFOLIO_ANALYTICS_HIDDEN_KEY = 'portfolio-analytics-block-hidden';
+
+const ANALYTICS_BLOCK_META: Record<AnalyticsBlockId, { title: string; blurb: string }> = {
+  'balance-pie': { title: 'Balance distribution', blurb: 'Pie chart of wallet balances' },
+  'balance-bar': { title: 'Asset balance comparison', blurb: 'Horizontal bars per asset' },
+  'portfolio-health': { title: 'Portfolio health', blurb: 'Progress toward value target' },
+  'line-trend': { title: 'Price trend (mock)', blurb: '7-day mock price line' },
+  'area-portfolio': { title: 'Portfolio value (mock)', blurb: 'Area chart over weeks' },
+  'radar-allocation': { title: 'Asset allocation', blurb: 'Radar mix USD / BTC / ETH' },
+};
+
+/** Neutral controls only (no emerald); matches ui-styles selects pattern for toolbar + menus. */
+const analyticsToolbarBtn =
+  'rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 group-data-[theme=light]:focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white self-start sm:self-auto';
+
+const analyticsToolbarBtnActive =
+  'ring-1 ring-slate-500/50 bg-slate-800 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:ring-slate-400/60';
+
+function sortIdsByCatalog(ids: AnalyticsBlockId[]) {
+  return [...ids].sort((a, b) => ANALYTICS_BLOCK_IDS.indexOf(a) - ANALYTICS_BLOCK_IDS.indexOf(b));
+}
 
 interface DashboardChartsProps {
   wallets: Array<{ asset: string; balance: string }>;
@@ -98,7 +119,8 @@ const tooltipStyle = {
   borderRadius: '8px',
 };
 
-function isValidAnalyticsOrder(value: unknown): value is AnalyticsBlockId[] {
+/** Legacy: full permutation of all block ids (length 6). */
+function isLegacyFullOrder(value: unknown): value is AnalyticsBlockId[] {
   if (!Array.isArray(value) || value.length !== ANALYTICS_BLOCK_IDS.length) {
     return false;
   }
@@ -107,6 +129,68 @@ function isValidAnalyticsOrder(value: unknown): value is AnalyticsBlockId[] {
     return false;
   }
   return ANALYTICS_BLOCK_IDS.every((id) => set.has(id));
+}
+
+function isValidVisibleOrder(value: unknown): value is AnalyticsBlockId[] {
+  if (!Array.isArray(value)) return false;
+  const set = new Set(value);
+  if (set.size !== value.length) return false;
+  return value.every((id) => ANALYTICS_BLOCK_IDS.includes(id));
+}
+
+function isValidHiddenIds(value: unknown): value is AnalyticsBlockId[] {
+  if (!Array.isArray(value)) return false;
+  const set = new Set(value);
+  if (set.size !== value.length) return false;
+  return value.every((id) => ANALYTICS_BLOCK_IDS.includes(id));
+}
+
+function readPortfolioAnalyticsFromSession(): {
+  visibleOrder: AnalyticsBlockId[];
+  hiddenIds: AnalyticsBlockId[];
+} {
+  try {
+    const rawOrder = sessionStorage.getItem(PORTFOLIO_ANALYTICS_ORDER_KEY);
+    if (!rawOrder) {
+      return { visibleOrder: [...DEFAULT_VISIBLE_ORDER], hiddenIds: [] };
+    }
+    const parsedOrder: unknown = JSON.parse(rawOrder);
+    const rawHidden = sessionStorage.getItem(PORTFOLIO_ANALYTICS_HIDDEN_KEY);
+
+    if (rawHidden == null && isLegacyFullOrder(parsedOrder)) {
+      return { visibleOrder: parsedOrder, hiddenIds: [] };
+    }
+
+    if (!isValidVisibleOrder(parsedOrder)) {
+      return { visibleOrder: [...DEFAULT_VISIBLE_ORDER], hiddenIds: [] };
+    }
+
+    if (rawHidden == null) {
+      const vis = new Set(parsedOrder);
+      return {
+        visibleOrder: parsedOrder,
+        hiddenIds: sortIdsByCatalog(ANALYTICS_BLOCK_IDS.filter((id) => !vis.has(id))),
+      };
+    }
+
+    const parsedHidden: unknown = JSON.parse(rawHidden);
+    const vis = new Set(parsedOrder);
+    if (isValidHiddenIds(parsedHidden)) {
+      const hiddenOnly = sortIdsByCatalog(parsedHidden.filter((id) => !vis.has(id)));
+      const union = new Set([...parsedOrder, ...hiddenOnly]);
+      const recover = ANALYTICS_BLOCK_IDS.filter((id) => !union.has(id));
+      return {
+        visibleOrder: recover.length ? [...parsedOrder, ...recover] : parsedOrder,
+        hiddenIds: hiddenOnly,
+      };
+    }
+    return {
+      visibleOrder: parsedOrder,
+      hiddenIds: sortIdsByCatalog(ANALYTICS_BLOCK_IDS.filter((id) => !vis.has(id))),
+    };
+  } catch {
+    return { visibleOrder: [...DEFAULT_VISIBLE_ORDER], hiddenIds: [] };
+  }
 }
 
 function shuffleAnalyticsOrder(order: AnalyticsBlockId[]): AnalyticsBlockId[] {
@@ -137,6 +221,8 @@ function SortableAnalyticsBlock({
   testId,
   role,
   ariaLabel,
+  customizeMode,
+  onRemove,
   children,
 }: {
   id: AnalyticsBlockId;
@@ -144,6 +230,8 @@ function SortableAnalyticsBlock({
   testId: string;
   role?: AriaRole;
   ariaLabel: string;
+  customizeMode: boolean;
+  onRemove: () => void;
   children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -163,8 +251,12 @@ function SortableAnalyticsBlock({
       {...attributes}
       {...listeners}
       aria-label={`Drag to reorder: ${title}. ${ariaLabel}`}
-      className={`select-none rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80 cursor-grab touch-none active:cursor-grabbing ${
-        isDragging ? 'opacity-90 shadow-xl ring-2 ring-emerald-500/40' : ''
+      className={`select-none rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80 cursor-grab touch-none active:cursor-grabbing motion-reduce:transition-none transition-[box-shadow,opacity,transform] duration-200 ${
+        isDragging ? 'opacity-90 shadow-xl ring-2 ring-slate-500/45' : ''
+      } ${
+        customizeMode
+          ? 'ring-1 ring-slate-500/35 group-data-[theme=light]:ring-slate-300 group-data-[theme=light]:ring-slate-400/60'
+          : ''
       }`}
     >
       <div className="mb-4 flex items-center gap-2">
@@ -177,6 +269,23 @@ function SortableAnalyticsBlock({
         <h3 className="min-w-0 flex-1 text-sm font-medium text-slate-400 group-data-[theme=light]:text-slate-600">
           {title}
         </h3>
+        {customizeMode && (
+          <button
+            type="button"
+            data-testid={`remove-analytics-block-${id}`}
+            aria-label={`Remove ${title} from dashboard`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            className="shrink-0 rounded-lg border border-slate-600/80 bg-slate-800/45 p-1.5 text-slate-400 shadow-sm transition-colors hover:border-red-500/45 hover:bg-red-500/15 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-slate-100/90 group-data-[theme=light]:text-slate-500 group-data-[theme=light]:shadow-sm group-data-[theme=light]:hover:border-red-300 group-data-[theme=light]:hover:bg-red-50 group-data-[theme=light]:hover:text-red-600 group-data-[theme=light]:focus-visible:ring-offset-white"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
       <div role={role} aria-label={ariaLabel}>
         {children}
@@ -186,28 +295,46 @@ function SortableAnalyticsBlock({
 }
 
 export function DashboardCharts({ wallets, loading = false }: DashboardChartsProps) {
-  const [analyticsOrder, setAnalyticsOrder] = useState<AnalyticsBlockId[]>(DEFAULT_ANALYTICS_ORDER);
+  const [visibleOrder, setVisibleOrder] = useState<AnalyticsBlockId[]>(DEFAULT_VISIBLE_ORDER);
+  const [hiddenIds, setHiddenIds] = useState<AnalyticsBlockId[]>([]);
+  const [layoutHydrated, setLayoutHydrated] = useState(false);
+  const [customizeMode, setCustomizeMode] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const [undoRemove, setUndoRemove] = useState<{ id: AnalyticsBlockId; title: string } | null>(null);
+  const addMenuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(PORTFOLIO_ANALYTICS_ORDER_KEY);
-      if (!raw) return;
-      const parsed: unknown = JSON.parse(raw);
-      if (isValidAnalyticsOrder(parsed)) {
-        setAnalyticsOrder(parsed);
-      }
-    } catch {
-      /* ignore corrupt storage */
-    }
+  useLayoutEffect(() => {
+    const { visibleOrder: nextVisible, hiddenIds: nextHidden } = readPortfolioAnalyticsFromSession();
+    setVisibleOrder(nextVisible);
+    setHiddenIds(nextHidden);
+    setLayoutHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!layoutHydrated) return;
     try {
-      sessionStorage.setItem(PORTFOLIO_ANALYTICS_ORDER_KEY, JSON.stringify(analyticsOrder));
+      sessionStorage.setItem(PORTFOLIO_ANALYTICS_ORDER_KEY, JSON.stringify(visibleOrder));
+      sessionStorage.setItem(PORTFOLIO_ANALYTICS_HIDDEN_KEY, JSON.stringify(hiddenIds));
     } catch {
       /* sessionStorage unavailable */
     }
-  }, [analyticsOrder]);
+  }, [layoutHydrated, visibleOrder, hiddenIds]);
+
+  useEffect(() => {
+    if (!undoRemove) return;
+    const t = window.setTimeout(() => setUndoRemove(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [undoRemove]);
+
+  useEffect(() => {
+    if (!addMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const el = addMenuRef.current;
+      if (el && !el.contains(e.target as Node)) setAddMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [addMenuOpen]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -219,7 +346,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setAnalyticsOrder((items) => {
+    setVisibleOrder((items) => {
       const oldIndex = items.indexOf(active.id as AnalyticsBlockId);
       const newIndex = items.indexOf(over.id as AnalyticsBlockId);
       if (oldIndex === -1 || newIndex === -1) return items;
@@ -228,7 +355,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
   };
 
   const shuffleBlocks = () => {
-    setAnalyticsOrder((prev) => {
+    setVisibleOrder((prev) => {
+      if (prev.length === 0) return prev;
       let next = shuffleAnalyticsOrder(prev);
       if (prev.length > 1) {
         let guard = 0;
@@ -239,6 +367,36 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
       }
       return next;
     });
+  };
+
+  const removeBlock = (id: AnalyticsBlockId) => {
+    if (visibleOrder.length === 1) {
+      if (
+        !window.confirm(
+          'Remove the last chart block? You can add it back with “Add block” when you’re done customizing.'
+        )
+      ) {
+        return;
+      }
+    }
+    setVisibleOrder((prev) => prev.filter((x) => x !== id));
+    setHiddenIds((prev) => sortIdsByCatalog([...prev, id]));
+    setUndoRemove({ id, title: ANALYTICS_BLOCK_META[id].title });
+  };
+
+  const addBlock = (id: AnalyticsBlockId) => {
+    setHiddenIds((prev) => prev.filter((x) => x !== id));
+    setVisibleOrder((prev) => [...prev, id]);
+    setAddMenuOpen(false);
+    setUndoRemove(null);
+  };
+
+  const undoLastRemove = () => {
+    if (!undoRemove) return;
+    const { id } = undoRemove;
+    setHiddenIds((prev) => prev.filter((x) => x !== id));
+    setVisibleOrder((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setUndoRemove(null);
   };
 
   const pieData = useMemo(() => {
@@ -309,6 +467,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-balance-pie"
             role="img"
             ariaLabel="Wallet balance distribution"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             {pieData.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-slate-500" data-testid="chart-empty-state">
@@ -359,6 +519,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-balance-bar"
             role="img"
             ariaLabel="Asset balance comparison"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             {barData.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-slate-500" data-testid="chart-empty-state">
@@ -393,6 +555,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-progress"
             role="group"
             ariaLabel="Portfolio health indicator"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             <div className="space-y-4">
               <div>
@@ -431,6 +595,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-line-trend"
             role="img"
             ariaLabel="7-day mock price trend"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -453,6 +619,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-area-portfolio"
             role="img"
             ariaLabel="Portfolio value over time"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -481,6 +649,8 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             testId="chart-radar"
             role="img"
             ariaLabel="Asset allocation radar"
+            customizeMode={customizeMode}
+            onRemove={() => removeBlock(blockId)}
           >
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -527,29 +697,132 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
       role="region"
       aria-label="Portfolio analytics and charts"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <h2 className="text-xl font-semibold text-white group-data-[theme=light]:text-slate-900">Portfolio Analytics</h2>
-        <button
-          type="button"
-          onClick={shuffleBlocks}
-          data-testid="shuffle-analytics-blocks"
-          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 self-start sm:self-auto"
-        >
-          Shuffle blocks
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <button
+            type="button"
+            data-testid="customize-analytics-layout"
+            aria-pressed={customizeMode}
+            onClick={() => {
+              setCustomizeMode((v) => !v);
+              setAddMenuOpen(false);
+            }}
+            className={`${analyticsToolbarBtn} ${customizeMode ? analyticsToolbarBtnActive : ''}`}
+          >
+            {customizeMode ? 'Done customizing' : 'Customize layout'}
+          </button>
+
+          <div className="relative self-start sm:self-auto" ref={addMenuRef}>
+            <button
+              type="button"
+              data-testid="add-analytics-block-menu"
+              aria-haspopup="menu"
+              aria-expanded={addMenuOpen}
+              disabled={hiddenIds.length === 0}
+              title={hiddenIds.length === 0 ? 'All blocks are visible' : 'Add a hidden chart block'}
+              onClick={() => setAddMenuOpen((o) => !o)}
+              className={analyticsToolbarBtn}
+            >
+              Add block
+            </button>
+            {addMenuOpen && hiddenIds.length > 0 && (
+              <div
+                className="absolute right-0 z-20 mt-2 w-[min(100vw-2rem,20rem)] rounded-xl border border-slate-700/80 bg-slate-900/95 py-1 shadow-xl backdrop-blur-sm group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white"
+                role="menu"
+                aria-label="Hidden chart blocks"
+              >
+                <p className="px-3 pt-2 pb-1 text-xs font-medium text-slate-500 group-data-[theme=light]:text-slate-600">
+                  Add back to grid
+                </p>
+                <ul className="max-h-64 overflow-y-auto py-1">
+                  {hiddenIds.map((hid) => (
+                    <li key={hid}>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        data-testid={`add-analytics-block-${hid}`}
+                        onClick={() => addBlock(hid)}
+                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2.5 text-left text-sm text-white hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800 group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-100 group-data-[theme=light]:focus-visible:bg-slate-100"
+                      >
+                        <span className="font-medium text-slate-100 group-data-[theme=light]:text-slate-900">
+                          {ANALYTICS_BLOCK_META[hid].title}
+                        </span>
+                        <span className="text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
+                          {ANALYTICS_BLOCK_META[hid].blurb}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={shuffleBlocks}
+            disabled={visibleOrder.length < 2}
+            data-testid="shuffle-analytics-blocks"
+            className={analyticsToolbarBtn}
+          >
+            Shuffle blocks
+          </button>
+        </div>
       </div>
 
+      {undoRemove && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/50 px-4 py-3 text-sm text-slate-300 motion-safe:transition-opacity motion-safe:duration-200 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/90 group-data-[theme=light]:text-slate-700"
+          data-testid="analytics-undo-remove"
+          role="status"
+        >
+          <span>
+            Removed “{undoRemove.title}”.{' '}
+            <span className="text-slate-500 group-data-[theme=light]:text-slate-600">Undo within a few seconds.</span>
+          </span>
+          <button
+            type="button"
+            data-testid="analytics-undo-remove-button"
+            onClick={undoLastRemove}
+            className="shrink-0 rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50"
+          >
+            Undo
+          </button>
+        </div>
+      )}
+
       <p className="text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
-        Drag any chart card by its background, title, grip, or chart area to reorder (move ~6px to start). Focus a card and
-        use arrow keys to move. Order is kept for this browser tab session.
+        Turn on Customize layout to remove cards; use Add block to restore hidden ones. Drag any chart card to reorder (~6px
+        to start); arrow keys work when a card is focused. Layout and visibility persist for this browser tab.
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={analyticsOrder} strategy={rectSortingStrategy}>
+        <SortableContext items={visibleOrder} strategy={rectSortingStrategy}>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {analyticsOrder.map((blockId) => (
-              <Fragment key={blockId}>{renderAnalyticsBlock(blockId)}</Fragment>
-            ))}
+            {visibleOrder.length === 0 ? (
+              <div
+                className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-600 bg-slate-900/30 py-16 text-center md:col-span-2 lg:col-span-3 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-slate-50/80"
+                data-testid="analytics-blocks-empty"
+              >
+                <p className="max-w-sm text-sm text-slate-400 group-data-[theme=light]:text-slate-600">
+                  No chart blocks on the dashboard. Add one from the menu above to bring analytics back.
+                </p>
+                <button
+                  type="button"
+                  data-testid="analytics-empty-add-block"
+                  disabled={hiddenIds.length === 0}
+                  onClick={() => hiddenIds.length > 0 && setAddMenuOpen(true)}
+                  className="rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 disabled:cursor-not-allowed disabled:opacity-45 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white"
+                >
+                  Add a block
+                </button>
+              </div>
+            ) : (
+              visibleOrder.map((blockId) => (
+                <Fragment key={blockId}>{renderAnalyticsBlock(blockId)}</Fragment>
+              ))
+            )}
           </div>
         </SortableContext>
       </DndContext>
