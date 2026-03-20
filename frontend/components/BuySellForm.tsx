@@ -11,6 +11,8 @@ import {
 } from '@/lib/buySellValidation';
 import { getMockPrice, MOCK_FEE_PERCENT } from '@/lib/buySellMockData';
 import { CryptoSearchSelect } from '@/components/CryptoSearchSelect';
+import { SubmitLoadingBar } from '@/components/SubmitLoadingBar';
+import { awaitMinElapsedSince } from '@/lib/submitLoadingMinDuration';
 import { ordersApi } from '@/lib/api';
 import { useAuth } from '@/lib/useAuth';
 
@@ -94,6 +96,7 @@ export function BuySellForm() {
 
     setErrors({});
     setSubmitLoading(true);
+    const submitStartedAt = Date.now();
     setSubmitMessage(null);
 
     const usdAmount = parseFloat(state.amount);
@@ -120,6 +123,7 @@ export function BuySellForm() {
         text: err instanceof Error ? err.message : 'Order failed. Check your balance and try again.',
       });
     } finally {
+      await awaitMinElapsedSince(submitStartedAt);
       setSubmitLoading(false);
     }
   };
@@ -399,6 +403,8 @@ export function BuySellForm() {
           </p>
         )}
 
+        <SubmitLoadingBar active={submitLoading} label="Placing order…" />
+
         <div className="flex gap-4">
           <button
             type="submit"
@@ -410,7 +416,8 @@ export function BuySellForm() {
           <button
             type="button"
             onClick={handleReset}
-            className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800"
+            disabled={submitLoading}
+            className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700"
           >
             Reset
           </button>

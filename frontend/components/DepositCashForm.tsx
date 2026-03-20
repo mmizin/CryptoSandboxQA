@@ -14,7 +14,9 @@ import {
   MOCK_CARD_FEE_PERCENT,
   MOCK_SEPA_FEE,
 } from '@/lib/depositCashMockData';
+import { awaitMinElapsedSince } from '@/lib/submitLoadingMinDuration';
 import { depositsApi } from '@/lib/api';
+import { SubmitLoadingBar } from '@/components/SubmitLoadingBar';
 
 const inputBase =
   'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors';
@@ -95,6 +97,7 @@ export function DepositCashForm() {
     }
     setErrors({});
     setSubmitLoading(true);
+    const submitStartedAt = Date.now();
     setSubmitMessage(null);
     const amountNum = parseFloat(state.amount);
     const currencyInfo = MOCK_CURRENCIES.find((c) => c.code === state.currency);
@@ -121,6 +124,7 @@ export function DepositCashForm() {
           : msg,
       });
     } finally {
+      await awaitMinElapsedSince(submitStartedAt);
       setSubmitLoading(false);
     }
   };
@@ -432,6 +436,8 @@ export function DepositCashForm() {
           </p>
         )}
 
+        <SubmitLoadingBar active={submitLoading} label="Processing deposit…" />
+
         <div className="flex gap-4">
           <button
             type="submit"
@@ -443,7 +449,8 @@ export function DepositCashForm() {
           <button
             type="button"
             onClick={handleReset}
-            className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800"
+            disabled={submitLoading}
+            className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700"
           >
             Reset
           </button>

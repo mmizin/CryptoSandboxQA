@@ -9,7 +9,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `backend/` | NestJS API, Prisma schema & migrations, seeds |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
-| `docs/` | Design notes, static `openapi.json` |
+| `docs/` | Design notes, static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md) catalog |
 | Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
 ---
@@ -79,6 +79,8 @@ flowchart TB
 | **TransactionsModule** | User-facing transaction history (aggregates deposits, trades, withdrawals as exposed by API) |
 | **WebSocketModule** | **TickerGateway** — Socket.IO namespace `/ticker` |
 | **MetricsModule** | `GET /metrics` for Prometheus |
+
+**Simulated persistence delay (training):** After validation and **before** the first write, [`OrdersService.create`](backend/src/orders/orders.service.ts) and [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto deposit methods await [`simulatedPersistDelay`](backend/src/common/simulated-persist-delay.ts) (default **1200** ms, env **`SIMULATED_PERSIST_DELAY_MS`**, `0` to disable). This mimics gateway/settlement lag before rows hit PostgreSQL.
 
 ### Admin HTTP API (JWT + admin role)
 
@@ -182,12 +184,13 @@ sequenceDiagram
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
 | `/buy-crypto` | Buy UI |
 | `/calculate` | Calculator-style training UI |
+| `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
 | `/trade/spot`, `/trade/futures` | Trade experiences |
 | `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery |
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
 
-Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc).
+Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc). **Submit feedback**: [`SubmitLoadingBar`](frontend/components/SubmitLoadingBar.tsx) (indeterminate bar + label) is used on buy/sell, fiat/crypto deposits, and trade order entry while `submitLoading` is true. [`awaitMinElapsedSince`](frontend/lib/submitLoadingMinDuration.ts) enforces a minimum ~3.5s visible loading state after fast API responses so the bar is noticeable in training.
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
@@ -219,12 +222,15 @@ Compact controls: `px-3 py-1.5` instead of `px-4 py-2`.
 
 ## QA scenarios (high level)
 
+Dedicated UI / automation practice surfaces are catalogued in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md).
+
 1. **Auth**: Register → login → optional 2FA → logout (session invalid).
 2. **Admin**: Create admin via API key → impersonate user → end impersonation.
 3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances` and history endpoints.
 4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades.
 5. **Realtime**: Socket.IO `/ticker` → subscribe → assert `ticker` events.
 6. **Observability**: Hit `/metrics`, confirm Grafana/Prometheus in stack profile.
+7. **Iframe forms**: Open `/qa/iframe-practice`, scope automation to the iframe, fill fields with `data-testid` / labels, submit, assert in-frame success.
 
 ---
 

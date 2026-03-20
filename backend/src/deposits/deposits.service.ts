@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/library';
+import { simulatedPersistDelay } from '../common/simulated-persist-delay';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletsService } from '../wallets/wallets.service';
 
@@ -29,6 +30,8 @@ export class DepositsService {
     if (data.amount <= 0) {
       throw new BadRequestException('Amount must be positive');
     }
+
+    await simulatedPersistDelay();
 
     const fee = CARD_FEE_PERCENT > 0 ? new Decimal(data.amount).mul(CARD_FEE_PERCENT).div(100) : new Decimal(SEPA_FEE);
     const amountToCredit = new Decimal(data.amount);
@@ -135,6 +138,8 @@ export class DepositsService {
     if (!asset) {
       throw new BadRequestException(`Invalid crypto symbol: ${data.symbol}`);
     }
+
+    await simulatedPersistDelay();
 
     const deposit = await this.prisma.$transaction(async (tx) => {
       const dep = await tx.depositCrypto.create({

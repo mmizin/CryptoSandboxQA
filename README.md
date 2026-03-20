@@ -181,6 +181,8 @@ npm run frontend:dev  # Frontend on port 3000
 3. Go to Market to place orders
 4. View order history
 
+Hands-on fixtures for automation (iframe practice, etc.): **[docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md)**.
+
 ---
 
 ## Environment Variables

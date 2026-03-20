@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Embedded payment widget (QA)</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: rgba(30, 41, 59, 0.6);
+        --border: rgba(51, 65, 85, 0.8);
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --accent: #34d399;
+        --accent-dim: rgba(52, 211, 153, 0.15);
+        --error: #f87171;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        padding: 1rem;
+        min-height: 100vh;
+      }
+      h1 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+      }
+      .card {
+        max-width: 28rem;
+        margin: 0 auto;
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border);
+        background: var(--card);
+      }
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 0.375rem;
+      }
+      .field {
+        margin-bottom: 1rem;
+      }
+      input[type='text'],
+      input[type='email'] {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text);
+        font-size: 1rem;
+      }
+      input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+      }
+      input[readonly] {
+        opacity: 0.85;
+        cursor: default;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .checkbox-row input {
+        margin-top: 0.25rem;
+        accent-color: var(--accent);
+      }
+      .checkbox-row label {
+        margin: 0;
+        color: var(--text);
+        font-weight: 400;
+      }
+      button[type='submit'] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 0;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        background: linear-gradient(to right, #10b981, #059669);
+      }
+      button[type='submit']:hover {
+        filter: brightness(1.05);
+      }
+      button[type='submit']:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .hint {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+      .success {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.875rem;
+      }
+      .success.visible {
+        display: block;
+      }
+      .err {
+        color: var(--error);
+        font-size: 0.8125rem;
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Training deposit widget</h1>
+      <p style="font-size: 0.8125rem; color: var(--muted); margin: 0 0 1rem">
+        Form fields below are inside this document only — automate via iframe context.
+      </p>
+      <form id="widget-form" novalidate>
+        <div class="field">
+          <label for="iframe-email">Email</label>
+          <input
+            id="iframe-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            data-testid="iframe-email"
+            required
+          />
+          <p id="err-email" class="err" hidden>Enter a valid email.</p>
+        </div>
+        <div class="field">
+          <label for="iframe-amount">Amount (USD)</label>
+          <input
+            id="iframe-amount"
+            name="amount"
+            type="text"
+            inputmode="decimal"
+            placeholder="0.00"
+            data-testid="iframe-amount"
+            required
+          />
+          <p class="hint">Use a positive number (e.g. 100 or 99.5).</p>
+          <p id="err-amount" class="err" hidden>Enter a valid positive amount.</p>
+        </div>
+        <div class="field">
+          <label for="iframe-reference">Reference ID</label>
+          <input
+            id="iframe-reference"
+            name="reference"
+            type="text"
+            readonly
+            value="REF-TRAINING-001"
+            data-testid="iframe-reference"
+            aria-readonly="true"
+          />
+          <p class="hint">Read-only: practice asserting a non-editable field inside the frame.</p>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="iframe-terms" name="terms" data-testid="iframe-terms" required />
+          <label for="iframe-terms">I agree to the simulated terms</label>
+        </div>
+        <p id="err-terms" class="err" hidden>You must accept the terms.</p>
+        <button type="submit" data-testid="iframe-submit">Submit training deposit</button>
+        <div id="iframe-success" class="success" data-testid="iframe-success" role="status">
+          Thank you — training submission recorded (no backend call).
+        </div>
+      </form>
+    </div>
+    <script>
+      (function () {
+        var form = document.getElementById('widget-form');
+        var email = document.getElementById('iframe-email');
+        var amount = document.getElementById('iframe-amount');
+        var terms = document.getElementById('iframe-terms');
+        var success = document.getElementById('iframe-success');
+        var errEmail = document.getElementById('err-email');
+        var errAmount = document.getElementById('err-amount');
+        var errTerms = document.getElementById('err-terms');
+
+        function showErr(el, show) {
+          el.hidden = !show;
+        }
+
+        function validAmount(v) {
+          var n = parseFloat(String(v).replace(',', '.'));
+          return !isNaN(n) && n > 0;
+        }
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          showErr(errEmail, false);
+          showErr(errAmount, false);
+          showErr(errTerms, false);
+          success.classList.remove('visible');
+
+          var ok = true;
+          if (!email.value || !email.validity.valid) {
+            showErr(errEmail, true);
+            ok = false;
+          }
+          if (!validAmount(amount.value)) {
+            showErr(errAmount, true);
+            ok = false;
+          }
+          if (!terms.checked) {
+            showErr(errTerms, true);
+            ok = false;
+          }
+          if (!ok) return;
+
+          success.classList.add('visible');
+        });
+      })();
+    </script>
+  </body>
+</html>
