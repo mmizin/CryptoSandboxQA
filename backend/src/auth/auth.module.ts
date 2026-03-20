@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { SessionsService } from './sessions.service';
 import { SessionGuard } from './session.guard';
 import { TwoFactorService } from './two-factor.service';
+import { MailService } from './mail.service';
 import { UsersModule } from '../users/users.module';
 import { AdminApiKeyGuard } from './guards/admin-api-key.guard';
 import { AdminGuard } from './guards/admin.guard';
@@ -31,6 +32,7 @@ import { AdminGuard } from './guards/admin.guard';
     JwtStrategy,
     SessionsService,
     TwoFactorService,
+    MailService,
     SessionGuard,
     AdminApiKeyGuard,
     AdminGuard,

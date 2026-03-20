@@ -33,6 +33,7 @@ model User {
   balanceTransactions BalanceTransaction[]
   tradesAsTaker     Trade[] @relation("TakerTrades")
   tradesAsMaker     Trade[] @relation("MakerTrades")
+  passwordResets    UserPasswordReset[]
 
   @@map("users")
 }
@@ -86,6 +87,20 @@ model UserSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_sessions")
+}
+
+model UserPasswordReset {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  codeHash  String    @map("code_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_password_resets")
 }
 
 model UserPaymentMethod {

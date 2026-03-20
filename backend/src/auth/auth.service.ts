@@ -5,9 +5,13 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { createHmac, randomInt } from 'crypto';
+import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { MailService } from './mail.service';
 import { SessionsService } from './sessions.service';
 import { TwoFactorService } from './two-factor.service';
 import {
@@ -49,6 +53,7 @@ export interface LoginRequires2FaResult {
 const JWT_EXPIRY = '7d';
 const TEMP_2FA_EXPIRY = '5m';
 const BACK_TO_ADMIN_EXPIRY = '1h';
+const PASSWORD_RESET_CODE_TTL_MIN = 30;
 
 @Injectable()
 export class AuthService {
@@ -57,6 +62,9 @@ export class AuthService {
     private jwtService: JwtService,
     private sessionsService: SessionsService,
     private twoFactorService: TwoFactorService,
+    private prisma: PrismaService,
+    private mailService: MailService,
+    private config: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -95,6 +103,89 @@ export class AuthService {
 
     const userWithProfile = await this.usersService.findByIdWithProfile(user.id);
     return this.issueTokenAndSession(userWithProfile!);
+  }
+
+  /** Same response whether or not the email exists (avoid account enumeration). */
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    const normalized = email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(normalized);
+    const generic = {
+      message:
+        'If an account exists for this email, a reset code has been sent. Check your inbox.',
+    };
+
+    if (!user) {
+      return generic;
+    }
+
+    await this.prisma.userPasswordReset.deleteMany({
+      where: { userId: user.id, usedAt: null },
+    });
+
+    const code = String(randomInt(0, 100_000_000)).padStart(8, '0');
+    const codeHash = this.hashResetCode(code);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + PASSWORD_RESET_CODE_TTL_MIN);
+
+    await this.prisma.userPasswordReset.create({
+      data: {
+        userId: user.id,
+        codeHash,
+        expiresAt,
+      },
+    });
+
+    await this.mailService.sendPasswordResetCode(user.email, code);
+    return generic;
+  }
+
+  async resetPasswordWithCode(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<{ success: true }> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(normalizedEmail);
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+
+    const codeHash = this.hashResetCode(code);
+    const row = await this.prisma.userPasswordReset.findFirst({
+      where: {
+        userId: user.id,
+        codeHash,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!row) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: { passwordHash },
+      });
+      await tx.userPasswordReset.update({
+        where: { id: row.id },
+        data: { usedAt: new Date() },
+      });
+    });
+
+    await this.sessionsService.deleteAllUserSessions(user.id);
+    return { success: true };
+  }
+
+  private hashResetCode(code: string): string {
+    const pepper =
+      this.config.get<string>('PASSWORD_RESET_CODE_PEPPER') ??
+      this.config.get<string>('JWT_SECRET') ??
+      'dev-secret-change-in-production';
+    return createHmac('sha256', pepper).update(code, 'utf8').digest('hex');
   }
 
   async verify2Fa(tempToken: string, code: string): Promise<AuthResult> {

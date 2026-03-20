@@ -20,7 +20,9 @@ async function bootstrap() {
   });
 
   app.useWebSocketAdapter(new IoAdapter(app));
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, transform: true, transformOptions: { enableImplicitConversion: true } }),
+  );
 
   // Swagger UI and OpenAPI JSON
   const config = createOpenApiConfig();
@@ -45,9 +47,12 @@ async function bootstrap() {
     console.warn('Ticker seed skipped (run prisma migrate if DB not ready):', (err as Error).message);
   }
 
+  const mailpitPort = process.env.MAILPIT_HTTP_PORT || '8025';
+
   console.log(`Backend running on http://localhost:${port}`);
   console.log(`Swagger UI: http://localhost:${port}/api/docs`);
   console.log(`Frontend: http://localhost:3000`);
+  console.log(`Mailpit (dev inbox): http://localhost:${mailpitPort}`);
 }
 
 bootstrap().catch(console.error);

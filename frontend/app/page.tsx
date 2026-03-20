@@ -167,6 +167,15 @@ export default function HomePage() {
                 />
               </div>
 
+              <p className="text-right -mt-2">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors group-data-[theme=light]:text-emerald-600 group-data-[theme=light]:hover:text-emerald-700"
+                >
+                  Forgot password?
+                </Link>
+              </p>
+
               {error && (
                 <p className="text-sm text-red-400">{error}</p>
               )}

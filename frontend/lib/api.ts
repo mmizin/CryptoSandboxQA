@@ -156,6 +156,18 @@ export const authApi = {
       '/auth/2fa/verify',
       { method: 'POST', body: JSON.stringify({ tempToken, code }) }
     ),
+
+  forgotPassword: (email: string) =>
+    api<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPasswordWithCode: (email: string, code: string, newPassword: string) =>
+    api<{ success: boolean }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, newPassword }),
+    }),
 };
 
 export const usersApi = {
