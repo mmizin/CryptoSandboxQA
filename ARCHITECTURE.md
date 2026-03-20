@@ -21,7 +21,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | Backend | NestJS (TypeScript), Prisma ORM |
 | Database | PostgreSQL |
 | Realtime | Socket.IO (`@nestjs/websockets`, namespace `/ticker`) |
-| Frontend | Next.js (React), Zustand (where used), Socket.IO client |
+| Frontend | Next.js (React), Zustand (where used), Socket.IO client, **@dnd-kit** (sortable drag-and-drop on dashboard Portfolio Analytics) |
 | API docs | Swagger UI + OpenAPI JSON (`/api/docs`, `/api/docs-json`) |
 | Metrics | `prom-client` — `GET /metrics` (Prometheus text format) |
 | Tooling | npm workspaces, Docker Compose (Postgres + optional observability stack) |
@@ -191,6 +191,8 @@ sequenceDiagram
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
 
 Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc). **Submit feedback**: [`SubmitLoadingBar`](frontend/components/SubmitLoadingBar.tsx) (indeterminate bar + label) is used on buy/sell, fiat/crypto deposits, and trade order entry while `submitLoading` is true. [`awaitMinElapsedSince`](frontend/lib/submitLoadingMinDuration.ts) enforces a minimum ~3.5s visible loading state after fast API responses so the bar is noticeable in training.
+
+**Dashboard Portfolio Analytics** ([`DashboardCharts`](frontend/components/DashboardCharts.tsx)): chart blocks are **reorderable** by dragging **anywhere on the card** (plus keyboard via @dnd-kit **Sortable**); **Shuffle blocks** randomizes order for QA. Order is stored in **`sessionStorage`** key `portfolio-analytics-block-order` (per tab session). Selectors: `data-testid="shuffle-analytics-blocks"`, existing chart `data-testid`s unchanged.
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
