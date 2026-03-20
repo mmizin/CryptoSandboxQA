@@ -7,6 +7,8 @@ import {
   type OrderFormState,
 } from '@/lib/tradeOrderValidation';
 import { type TradeCoin } from '@/lib/tradeMockData';
+import { SubmitLoadingBar } from '@/components/SubmitLoadingBar';
+import { awaitMinElapsedSince } from '@/lib/submitLoadingMinDuration';
 import { ordersApi, walletsApi } from '@/lib/api';
 
 interface TradeOrderEntryProps {
@@ -92,6 +94,7 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
         : parseFloat(amount);
 
     setSubmitLoading(true);
+    const submitStartedAt = Date.now();
     try {
       await ordersApi.create({
         symbol: `${symbol}_USD`,
@@ -110,6 +113,7 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Order failed');
     } finally {
+      await awaitMinElapsedSince(submitStartedAt);
       setSubmitLoading(false);
     }
   };
@@ -255,11 +259,12 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         {success && <p className="text-sm text-emerald-400">{success}</p>}
+        <SubmitLoadingBar active={submitLoading} label="Placing order…" />
         <div className="flex gap-2 pt-1">
           <button type="submit" disabled={submitLoading || !selectedCoin} className={buttonBase}>
             {submitLoading ? 'Submitting...' : 'Submit'}
           </button>
-          <button type="button" onClick={handleReset} className={buttonBase}>
+          <button type="button" onClick={handleReset} disabled={submitLoading} className={buttonBase}>
             Reset
           </button>
         </div>

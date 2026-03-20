@@ -23,3 +23,16 @@ await expect(frame.getByTestId('iframe-success')).toBeVisible();
 ```
 
 **Selenium / Cypress:** switch to the frame (or use frame-scoped queries), then locate by the same `data-testid` or by label (`Email`, `Amount (USD)`, etc.).
+
+---
+
+## Backend: delay before DB writes (simulated processing)
+
+Orders and deposits **do not hit PostgreSQL immediately** after validation. The API waits a short, configurable period to mimic real-world payment/settlement or sync latency before the first persist.
+
+- **Applies to:** `POST /orders` (order creation), `POST /deposits/fiat`, `POST /deposits/crypto` — see [`simulatedPersistDelay`](../backend/src/common/simulated-persist-delay.ts) and call sites in `OrdersService` / `DepositsService`.
+- **Default:** **1200 ms** if `SIMULATED_PERSIST_DELAY_MS` is unset.
+- **Disable:** set `SIMULATED_PERSIST_DELAY_MS=0` in the backend environment.
+- **Tune:** set `SIMULATED_PERSIST_DELAY_MS` to any positive milliseconds (capped at 60s in code) for slower/faster “processing” in demos or stability tests.
+
+The frontend may also keep submit loading UI visible for a minimum duration; together these delays affect **how long** automations should wait after click before asserting success (see [`ARCHITECTURE.md`](../ARCHITECTURE.md) and `.env.example`).

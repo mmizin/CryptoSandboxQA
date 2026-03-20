@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { simulatedPersistDelay } from '../common/simulated-persist-delay';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletsService } from '../wallets/wallets.service';
 import { MatchingService } from './matching.service';
@@ -72,6 +73,8 @@ export class OrdersService {
         }
       }
     }
+
+    await simulatedPersistDelay();
 
     let order;
     if (initialStatus === 'filled') {

@@ -80,6 +80,8 @@ flowchart TB
 | **WebSocketModule** | **TickerGateway** — Socket.IO namespace `/ticker` |
 | **MetricsModule** | `GET /metrics` for Prometheus |
 
+**Simulated persistence delay (training):** After validation and **before** the first write, [`OrdersService.create`](backend/src/orders/orders.service.ts) and [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto deposit methods await [`simulatedPersistDelay`](backend/src/common/simulated-persist-delay.ts) (default **1200** ms, env **`SIMULATED_PERSIST_DELAY_MS`**, `0` to disable). This mimics gateway/settlement lag before rows hit PostgreSQL.
+
 ### Admin HTTP API (JWT + admin role)
 
 Admin controllers use the `admin/users` prefix and require an admin-authenticated session (see Swagger tags). Examples:
@@ -188,7 +190,7 @@ sequenceDiagram
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
 
-Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc).
+Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emerald accent). See [.cursor/rules/ui-styles.mdc](.cursor/rules/ui-styles.mdc). **Submit feedback**: [`SubmitLoadingBar`](frontend/components/SubmitLoadingBar.tsx) (indeterminate bar + label) is used on buy/sell, fiat/crypto deposits, and trade order entry while `submitLoading` is true. [`awaitMinElapsedSince`](frontend/lib/submitLoadingMinDuration.ts) enforces a minimum ~3.5s visible loading state after fast API responses so the bar is noticeable in training.
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
