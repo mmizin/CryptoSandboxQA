@@ -246,7 +246,11 @@ function SortableAnalyticsBlock({
       aria-label={`Drag to reorder: ${title}. ${ariaLabel}`}
       className={`select-none rounded-xl border border-slate-700/80 bg-slate-900/50 p-6 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80 cursor-grab touch-none active:cursor-grabbing motion-reduce:transition-none transition-[box-shadow,opacity,transform] duration-200 ${
         isDragging ? 'opacity-90 shadow-xl ring-2 ring-emerald-500/40' : ''
-      } ${customizeMode ? 'ring-1 ring-emerald-500/25 group-data-[theme=light]:ring-emerald-400/30' : ''}`}
+      } ${
+        customizeMode
+          ? 'ring-1 ring-slate-500/35 group-data-[theme=light]:ring-slate-300 group-data-[theme=light]:ring-slate-400/60'
+          : ''
+      }`}
     >
       <div className="mb-4 flex items-center gap-2">
         <span
@@ -268,7 +272,7 @@ function SortableAnalyticsBlock({
               e.stopPropagation();
               onRemove();
             }}
-            className="shrink-0 rounded-md p-1.5 text-slate-500 hover:bg-red-500/15 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-red-50 group-data-[theme=light]:hover:text-red-600"
+            className="shrink-0 rounded-md border border-transparent p-1.5 text-slate-400 hover:border-red-500/25 hover:bg-red-500/10 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/40 group-data-[theme=light]:text-slate-500 group-data-[theme=light]:hover:border-red-200 group-data-[theme=light]:hover:bg-red-50 group-data-[theme=light]:hover:text-red-600"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M18 6L6 18M6 6l12 12" />
@@ -715,7 +719,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
               disabled={hiddenIds.length === 0}
               title={hiddenIds.length === 0 ? 'All blocks are visible' : 'Add a hidden chart block'}
               onClick={() => setAddMenuOpen((o) => !o)}
-              className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 group-data-[theme=light]:disabled:hover:bg-emerald-50"
+              className="rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-45 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 group-data-[theme=light]:focus-visible:ring-offset-white disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white"
             >
               Add block
             </button>
@@ -736,10 +740,12 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
                         role="menuitem"
                         data-testid={`add-analytics-block-${hid}`}
                         onClick={() => addBlock(hid)}
-                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 focus:outline-none focus-visible:bg-slate-800/80 group-data-[theme=light]:text-slate-800 group-data-[theme=light]:hover:bg-slate-100"
+                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2.5 text-left text-sm text-white hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800 group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-100 group-data-[theme=light]:focus-visible:bg-slate-100"
                       >
-                        <span className="font-medium">{ANALYTICS_BLOCK_META[hid].title}</span>
-                        <span className="text-xs text-slate-500 group-data-[theme=light]:text-slate-600">
+                        <span className="font-medium text-slate-100 group-data-[theme=light]:text-slate-900">
+                          {ANALYTICS_BLOCK_META[hid].title}
+                        </span>
+                        <span className="text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
                           {ANALYTICS_BLOCK_META[hid].blurb}
                         </span>
                       </button>
@@ -776,7 +782,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
             type="button"
             data-testid="analytics-undo-remove-button"
             onClick={undoLastRemove}
-            className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100"
+            className="shrink-0 rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50"
           >
             Undo
           </button>
@@ -804,7 +810,7 @@ export function DashboardCharts({ wallets, loading = false }: DashboardChartsPro
                   data-testid="analytics-empty-add-block"
                   disabled={hiddenIds.length === 0}
                   onClick={() => hiddenIds.length > 0 && setAddMenuOpen(true)}
-                  className="rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 disabled:opacity-45 disabled:cursor-not-allowed"
+                  className="rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 outline-none transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 disabled:cursor-not-allowed disabled:opacity-45 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 group-data-[theme=light]:hover:bg-slate-50 disabled:hover:bg-slate-800/80 group-data-[theme=light]:disabled:hover:bg-white"
                 >
                   Add a block
                 </button>
