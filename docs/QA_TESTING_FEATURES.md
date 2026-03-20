@@ -26,13 +26,16 @@ await expect(frame.getByTestId('iframe-success')).toBeVisible();
 
 ---
 
-## Portfolio Analytics: drag-and-drop and shuffle (dashboard)
+## Portfolio Analytics: drag-and-drop, shuffle, add/remove blocks (dashboard)
 
 The **Portfolio Analytics** section on [`/dashboard`](../frontend/app/dashboard/page.tsx) (see [`DashboardCharts`](../frontend/components/DashboardCharts.tsx)) exposes six chart/progress blocks in a **sortable grid**:
 
 - **Drag:** Drag **anywhere on the card** (grip, title, padding, or chart area); a **~6px** pointer move starts the drag so simple clicks/tooltips on charts still behave.
-- **Shuffle:** Button **Shuffle blocks** (`data-testid="shuffle-analytics-blocks"`) randomizes block order (retries briefly if the permutation matches the previous order).
-- **Persistence:** Order is saved in **`sessionStorage`** under `portfolio-analytics-block-order` for the lifetime of the browser tab.
+- **Shuffle:** Button **Shuffle blocks** (`data-testid="shuffle-analytics-blocks"`) randomizes **visible** block order (disabled when fewer than two visible blocks; retries briefly if the permutation matches the previous order).
+- **Customize / remove:** **Customize layout** (`data-testid="customize-analytics-layout"`) toggles per-card **remove** controls (`data-testid="remove-analytics-block-<id>"`, e.g. `remove-analytics-block-balance-pie`). Removing the **last** visible block asks for confirmation.
+- **Add blocks:** **Add block** (`data-testid="add-analytics-block-menu"`) opens a menu of hidden blocks; each row is `data-testid="add-analytics-block-<id>"`. When every block is visible, the menu control is **disabled** (tooltip: all blocks visible). Empty grid: **`data-testid="analytics-blocks-empty"`** with **Add a block** (`data-testid="analytics-empty-add-block"`).
+- **Undo:** After removing a block, an undo bar appears: **`data-testid="analytics-undo-remove"`** with **`data-testid="analytics-undo-remove-button"`** (auto-dismiss ~5s).
+- **Persistence:** **Visible order** is saved under `portfolio-analytics-block-order`; **hidden ids** under `portfolio-analytics-block-hidden` (both **`sessionStorage`**, per tab). Legacy tabs that only have a full-length order array are **migrated** (all blocks visible, same order).
 - **Keyboard:** Focus a chart card and use **arrow keys** (@dnd-kit keyboard sensor) to move blocks where supported.
 
 Chart containers keep their existing **`aria-label`** and **`data-testid`** values (e.g. `chart-balance-pie`, `chart-area-portfolio`).
