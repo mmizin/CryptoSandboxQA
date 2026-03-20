@@ -279,7 +279,7 @@ function SortableAnalyticsBlock({
               e.stopPropagation();
               onRemove();
             }}
-            className="shrink-0 rounded-md border border-transparent p-1.5 text-slate-400 hover:border-red-500/25 hover:bg-red-500/10 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/40 group-data-[theme=light]:text-slate-500 group-data-[theme=light]:hover:border-red-200 group-data-[theme=light]:hover:bg-red-50 group-data-[theme=light]:hover:text-red-600"
+            className="shrink-0 rounded-lg border border-slate-600/80 bg-slate-800/45 p-1.5 text-slate-400 shadow-sm transition-colors hover:border-red-500/45 hover:bg-red-500/15 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-slate-100/90 group-data-[theme=light]:text-slate-500 group-data-[theme=light]:shadow-sm group-data-[theme=light]:hover:border-red-300 group-data-[theme=light]:hover:bg-red-50 group-data-[theme=light]:hover:text-red-600 group-data-[theme=light]:focus-visible:ring-offset-white"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M18 6L6 18M6 6l12 12" />
