@@ -186,7 +186,7 @@ sequenceDiagram
 | `/calculate` | Calculator-style training UI |
 | `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
 | `/trade/spot`, `/trade/futures` | Trade experiences |
-| `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery |
+| `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery; tables wrap [`MarketsCryptoTable`](frontend/components/MarketsCryptoTable.tsx) (in **Suspense**) with QA modals — detail view (`?detail=SYMBOL`), about/methodology, reset confirm (`alertdialog`), nested stacked dialog — see [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) |
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
 

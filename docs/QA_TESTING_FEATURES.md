@@ -53,3 +53,22 @@ Orders and deposits **do not hit PostgreSQL immediately** after validation. The 
 - **Tune:** set `SIMULATED_PERSIST_DELAY_MS` to any positive milliseconds (capped at 60s in code) for slower/faster “processing” in demos or stability tests.
 
 The frontend may also keep submit loading UI visible for a minimum duration; together these delays affect **how long** automations should wait after click before asserting success (see [`ARCHITECTURE.md`](../ARCHITECTURE.md) and `.env.example`).
+
+---
+
+## Markets: modal QA surfaces (`MarketsCryptoTable`)
+
+On **`/markets/prices`**, **`/markets/rankings/spot`**, and **`/markets/trading-data/overview`**, the shared [`MarketsCryptoTable`](../frontend/components/MarketsCryptoTable.tsx) exposes several dialogs for manual and automated checks (backdrop, scroll lock, focus trap, stacked dialogs, routing).
+
+| Scenario | How to open | `data-testid` (panel / key controls) |
+|----------|-------------|--------------------------------------|
+| Short info modal | **About this data** | `markets-about-modal`, `markets-about-dismiss` |
+| Long scroll inside modal | **Data methodology (long scroll)** | `markets-methodology-modal`, `markets-methodology-dismiss` |
+| `alertdialog`, no backdrop close | **Reset filters…** → confirm | `markets-reset-confirm-modal`, `markets-reset-cancel`, `markets-reset-confirm` |
+| Row detail + async reload | Click a row (or focus row + Enter/Space) | `markets-detail-modal`, `markets-detail-reload`, `markets-detail-nested-open`, `markets-detail-error`, `markets-detail-loading` |
+| Stacked second dialog | In detail modal: **Open nested QA dialog** | `markets-nested-modal`, `markets-nested-dismiss` |
+| Table rows / filters | — | `markets-row-<SYMBOL>`, `markets-search-input`, `markets-limit-select` |
+
+**Deep link:** With default props, opening a row sets **`?detail=SYMBOL`** (uppercase) on the current path; closing the detail modal clears it. Useful for shareable URLs and browser Back/forward checks.
+
+**Shared primitives:** [`MarketsModal`](../frontend/components/MarketsModal.tsx) (focus trap, ref-counted body scroll lock via [`useBodyScrollLock`](../frontend/lib/useBodyScrollLock.ts)), [`MarketsCryptoDetailModal`](../frontend/components/MarketsCryptoDetailModal.tsx) (detail + nested stack).
