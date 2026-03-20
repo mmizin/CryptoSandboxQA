@@ -3,6 +3,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { simulatedPersistDelay } from '../common/simulated-persist-delay';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletsService } from '../wallets/wallets.service';
+import { MailService } from '../mail/mail.service';
 
 const FIAT_CURRENCIES = ['USD', 'EUR'] as const;
 const CARD_FEE_PERCENT = 2.5;
@@ -13,6 +14,7 @@ export class DepositsService {
   constructor(
     private prisma: PrismaService,
     private walletsService: WalletsService,
+    private mailService: MailService,
   ) {}
 
   async depositFiat(
@@ -59,6 +61,18 @@ export class DepositsService {
 
       return { deposit: dep, creditResult };
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (user) {
+      await this.mailService.sendDepositFiatEmail(user.email, {
+        depositId: deposit.deposit.id,
+        fiatCurrency: data.fiatCurrency,
+        amount: amountToCredit.toString(),
+      });
+    }
 
     return {
       deposit: this.mapDepositFiat(deposit.deposit),
@@ -163,6 +177,18 @@ export class DepositsService {
 
       return { deposit: dep, creditResult };
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (user) {
+      await this.mailService.sendDepositCryptoEmail(user.email, {
+        depositId: deposit.deposit.id,
+        symbol: asset.symbol,
+        amount: String(data.amount),
+      });
+    }
 
     return {
       deposit: this.mapDepositCryptoWithAsset({ ...deposit.deposit, asset }),

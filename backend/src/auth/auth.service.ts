@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { createHmac, randomInt } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
-import { MailService } from './mail.service';
+import { MailService } from '../mail/mail.service';
 import { SessionsService } from './sessions.service';
 import { TwoFactorService } from './two-factor.service';
 import {
@@ -219,6 +219,7 @@ export class AuthService {
     }
     const hash = await bcrypt.hash(password, 10);
     const user = await this.usersService.create({ email, passwordHash: hash, displayName });
+    await this.mailService.sendWelcomeEmail(user.email, user.displayName);
     return this.issueTokenAndSession(user);
   }
 
@@ -282,6 +283,7 @@ export class AuthService {
         preferences: data.preferences,
       },
     );
+    await this.mailService.sendWelcomeEmail(user!.email, user!.displayName);
     return this.issueTokenAndSession(user!);
   }
 

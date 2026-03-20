@@ -42,7 +42,7 @@ Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../
 
 | Symptom | Likely cause |
 |---------|----------------|
-| Mailpit empty, API “success” | Email not in DB; or SMTP misread — check backend log for **`[no SMTP_HOST — code was not emailed]`** (fix `SMTP_HOST`, not `MTP_HOST`; restart `npm run dev`). |
+| Mailpit empty, API “success” | Email not in DB; or SMTP misread — check backend log for **`[no SMTP_HOST — email was not sent]`** (fix `SMTP_HOST`, not `MTP_HOST`; restart `npm run dev`). |
 | Mailpit empty, log shows code | Expected when **`SMTP_HOST` unset** — use the code from the **terminal** on `/reset-password`, or set SMTP and retry. |
 | Reset returns “Invalid or expired” | Wrong code, expired (**30 min**), or typo in email; request a new code. |
 | Connection errors in log | Mailpit not running or wrong port (**1025** for SMTP from host). |
@@ -51,6 +51,34 @@ Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../
 
 - Mailpit exposes a **REST API** on the same port as the UI (e.g. list messages) for E2E tests that need to read the code without the browser—see [Mailpit API docs](https://mailpit.axllent.org/docs/api-v1/).
 - Static OpenAPI: [`docs/openapi.json`](./openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
+
+---
+
+## Transactional email (welcome, orders, deposits)
+
+Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailService`](../backend/src/mail/mail.service.ts)). Plain-text messages; inspect **Mailpit** at [http://localhost:8025](http://localhost:8025) when `SMTP_HOST` is set, or the **API terminal** for `[no SMTP_HOST — email was not sent]` plus the full body.
+
+| Notification | When | Notes |
+|--------------|------|--------|
+| **Welcome** | After successful `POST /auth/register` or `POST /auth/register-with-profile` | Not sent for admin bootstrap (`POST /auth/admin/register`), `POST /auth/admin/create-user`, or bulk import. |
+| **Order status** | **Open**, **filled**, or **canceled** (`cancelled` in API) for the user’s order | One email after order **create** (reflects state after matching — e.g. filled immediately). **Cancel** and admin/testing **set status** paths also notify. When a resting **maker** is fully filled during match, that user gets a **filled** email from matching (the **taker** is covered by create’s end-state mail — no duplicate). |
+| **Deposit (fiat / crypto)** | After successful deposit persist + credit | **`POST /deposits/fiat`**, **`POST /deposits/crypto`**, and **training** wallet credits that create `deposits_fiat` / `deposits_crypto` rows ([`WalletsService.credit`](../backend/src/wallets/wallets.service.ts) with no `refType`). |
+
+**Failure behavior:** Password reset still propagates SMTP errors to the client when mail is configured. Welcome, order, and deposit sends **log errors** and do not fail the main API operation.
+
+### Manual checklist
+
+1. Configure `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` (see [forgot password prerequisites](#auth-forgot-password-8-digit-email-code)).
+2. **Register** a new user → Mailpit (or log) shows **Welcome to CryptoSandboxQA**.
+3. **Deposit** fiat or crypto (UI or API) → **Deposit received** message with id, currency/asset, amount.
+4. **Place** an order → **Order opened** (or **filled** if matched fully at once); **cancel** an open order → **Order canceled**; optionally exercise admin **set order status** → matching subject/body for open/filled/canceled.
+
+### Automation
+
+- Reuse Mailpit’s [REST API](https://mailpit.axllent.org/docs/api-v1/) to assert subjects or bodies after API calls (register, orders, deposits).
+- OpenAPI: register/deposit/order routes in [`docs/openapi.json`](./openapi.json).
+
+---
 
 ## Admin: bulk user import & export
 

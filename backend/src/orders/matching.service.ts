@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TickersService } from '../tickers/tickers.service';
 import { WalletsService } from '../wallets/wallets.service';
+import { MailService } from '../mail/mail.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class MatchingService {
     private prisma: PrismaService,
     private tickersService: TickersService,
     private walletsService: WalletsService,
+    private mailService: MailService,
   ) {}
 
   async getLastPrice(symbol: string): Promise<number> {
@@ -71,6 +73,9 @@ export class MatchingService {
       const fillNum = Number(fillQty);
       if (fillNum <= 0) continue;
 
+      const newOrderStatus = remaining.eq(fillQty) ? 'filled' : 'open';
+      const newCounterStatus = counterRemaining.eq(fillQty) ? 'filled' : 'open';
+
       await this.prisma.$transaction(async (tx) => {
         await tx.trade.create({
           data: {
@@ -83,8 +88,6 @@ export class MatchingService {
             price: new Decimal(matchPrice),
           },
         });
-        const newOrderStatus = remaining.eq(fillQty) ? 'filled' : 'open';
-        const newCounterStatus = counterRemaining.eq(fillQty) ? 'filled' : 'open';
         await tx.order.update({
           where: { id: order.id },
           data: {
@@ -145,6 +148,29 @@ export class MatchingService {
 
         await this.tickersService.setLastPrice(order.symbol, matchPrice, fillNum);
       });
+
+      if (newCounterStatus === 'filled') {
+        const freshCounter = await this.prisma.order.findUnique({
+          where: { id: counter.id },
+        });
+        if (freshCounter) {
+          const user = await this.prisma.user.findUnique({
+            where: { id: freshCounter.userId },
+            select: { email: true },
+          });
+          if (user) {
+            await this.mailService.sendOrderStatusEmail(user.email, {
+              status: 'filled',
+              orderId: freshCounter.id,
+              symbol: freshCounter.symbol,
+              side: freshCounter.side,
+              quantity: String(freshCounter.quantity),
+              filledQuantity: String(freshCounter.filledQuantity),
+              price: freshCounter.price != null ? String(freshCounter.price) : 'market',
+            });
+          }
+        }
+      }
 
       remaining = remaining.minus(fillQty);
     }
