@@ -29,5 +29,8 @@
   ],
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "allure": "^3.3.1"
   }
 }

@@ -149,3 +149,12 @@ Thumbs.db
 
 # DB dumps (local dev data)
 data/postgres-dump.sql
+
+# Playwright / Allure (generated test output; do not commit)
+allure-results/
+allure-report/
+test-results/
+playwright-report/
+blob-report/
+**/playwright/.cache/
+**/playwright/.auth/
