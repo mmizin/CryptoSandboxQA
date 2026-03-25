@@ -1,18 +1,4 @@
-export type UserWithProfileTestData = {
-    email: string;
-    password: string;
-    displayName: string;
-    username?: string;
-    fullName?: string;
-    photoUrl?: string;
-    bio?: string;
-    websiteUrl?: string;
-    location?: string;
-    birthday?: string;
-    languageCode?: string;
-    timezone?: string;
-    preferences?: Record<string, unknown>;
-};
+import { type UserWithProfileTestData } from "../models/TestUser";
 
 function uniqueEmail(prefix = 'user'): string {
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -119,13 +105,4 @@ export class UserBuilder {
     build(): UserWithProfileTestData {
         return { ...this.data}
     }
-
-
-
-
-
-
-
-
-
 }
