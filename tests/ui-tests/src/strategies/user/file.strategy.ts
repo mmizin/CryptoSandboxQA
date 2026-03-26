@@ -1,7 +1,6 @@
 import type { TestUser, UserWithProfileTestData } from "../../models/TestUser";
 import { readJsonFile } from "../../utils/file-reader";
 import type { UserCreationStrategy } from "./user-creation.strategy";
-import type { ApiUserCreationStrategy } from "./api.strategy";
 
 type UserTestDataFile = UserWithProfileTestData | UserWithProfileTestData[];
 
@@ -41,7 +40,7 @@ export class FileUserCreationStrategy implements UserCreationStrategy {
      */
     constructor(
         private readonly filePath: string,
-        private readonly apiStrategy: ApiUserCreationStrategy,
+        private readonly apiStrategy: UserCreationStrategy,
         private readonly entryIndex: number = 0
     ) {}
 

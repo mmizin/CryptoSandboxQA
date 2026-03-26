@@ -10,6 +10,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
 | `docs/` | Design notes, static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md) catalog |
+| `tests/ui-tests/` | Playwright tests; models distinguish **`TestUser`** (register-with-profile) vs **`AdminUser`** (admin bootstrap); strategies include `ApiUserCreationStrategy` and `AdminApiUserCreationStrategy` (`ADMIN_API_KEY`) |
 | Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
 ---
