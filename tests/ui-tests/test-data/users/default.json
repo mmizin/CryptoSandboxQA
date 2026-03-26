@@ -4,5 +4,5 @@
   "displayName": "Fixture Default User",
   "username": "fixturedefault",
   "fullName": "Fixture Default Full",
-  "bio": "Loaded from file fixture"
+  "bio": "Loaded from test data file"
 }

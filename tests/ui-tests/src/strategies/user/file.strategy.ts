@@ -23,7 +23,7 @@ function mergeFileAndBuilder(
 
 export class FileUserCreationStrategy implements UserCreationStrategy {
     /**
-     * @param filePath Path to a JSON file (relative to `process.cwd()` or absolute) with {@link UserWithProfileTestData} shape.
+     * @param filePath Path to a JSON file (relative to `process.cwd()` or absolute) with {@link UserWithProfileTestData} shape, e.g. `test-data/users/default.json`.
      */
     constructor(
         private readonly filePath: string,
