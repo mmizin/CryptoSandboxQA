@@ -1,4 +1,4 @@
-import type { UserWithProfileTestData } from "../models/TestUser";
+import type { UserWithProfileTestData } from "../../models/TestUser";
 
 
 export interface UserCreationStrategy {

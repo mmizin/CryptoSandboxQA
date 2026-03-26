@@ -1,4 +1,4 @@
-import { BaseApi } from "./base.api";
+import { UserApi } from "./user.api";
 
 function getAdminApiKey(): string {
     const adminApiKey = process.env.ADMIN_API_KEY?.trim() || '';
@@ -8,7 +8,7 @@ function getAdminApiKey(): string {
     return adminApiKey;
 }
 
-export class AdminApi extends BaseApi {
-    
+export class AdminApi extends UserApi {
+
 
 }
