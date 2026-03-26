@@ -1,6 +1,5 @@
-import type { UserWithProfileTestData } from "../../models/TestUser";
-
+import type { TestUser, UserWithProfileTestData } from "../../models/TestUser";
 
 export interface UserCreationStrategy {
-    createUser(user: UserWithProfileTestData): Promise<UserWithProfileTestData>
+    createUser(user: UserWithProfileTestData): Promise<TestUser>;
 }
