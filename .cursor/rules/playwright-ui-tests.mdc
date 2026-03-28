@@ -1,5 +1,5 @@
 ---
-description: Playwright UI tests — URL assertions and conventions (tests/ui-tests)
+description: Playwright UI tests — URLs, tags, data-driven names, tests/ui-tests
 globs: tests/ui-tests/**/*.ts
 alwaysApply: false
 ---
@@ -8,11 +8,46 @@ alwaysApply: false
 
 Applies to files under `tests/ui-tests/`.
 
+## Test tags (`@…`)
+
+Use Playwright’s built-in **`tag`** on `test()` or `test.describe()` so CI and local runs can filter subsets:
+
+```typescript
+test.describe("Feature", { tag: ["@e2e"] }, () => {
+  test("critical path", { tag: ["@smoke", "@merge-gate"] }, async ({ page }) => { /* … */ });
+});
+```
+
+**Run by tag:** `npx playwright test --grep @smoke` (see [Playwright — tag tests](https://playwright.dev/docs/test-annotations#tag-tests)).
+
+**Vocabulary (this repo):**
+
+| Tag | Use |
+|-----|-----|
+| `@e2e` | Browser tests that exercise real flows (default scope for a file or `describe`). |
+| `@smoke` | Small, fast checks suitable for frequent runs. |
+| `@merge-gate` | Must pass before merge (subset you wire in CI). |
+| `@client-validation` | Client-side field / form validation matrices (e.g. `loginInputFields.spec.ts`). |
+
+Apply **one or more** tags where it helps. Prefer `@merge-gate` on tests that are part of the pre-merge job. Avoid overloading `@unit` here — these are Playwright tests, not Jest unit tests.
+
+When adding or editing specs under `tests/ui-tests/`, **add tags** when the test fits the vocabulary above or when CI needs a new filter name (document new tags in this table).
+
 ## `expect(page).toHaveURL(...)`
 
 - **Prefer path strings** (e.g. `"/dashboard"`, `"/forgot-password"`) when the app navigates to a known route and `baseURL` is set in `playwright.config.ts` (`use.baseURL`). Playwright resolves relative paths with `new URL(path, baseURL)` and matches the full page URL — no regex escapes, clearer intent.
 - **Use `RegExp` or a predicate** when you need partial matches, optional query strings, or flexible trailing slashes (e.g. `/\/dashboard/` or `(url) => url.pathname.endsWith("/dashboard")`).
 - **Timeout:** `{ timeout: ms }` in the second argument is valid for slow navigations (e.g. post-login).
+
+## Data-driven scenarios (`name` fields)
+
+For **tables or arrays of cases** (e.g. validation matrices in `tests/unit/`, shared exports consumed by specs), each row’s `name` should start with the asserted copy (`AuthMessages.*` or stable API text), then a **short description of what this row checks** (input + intent or risk in plain language).
+
+**Do not** add labels like `[Equivalence]`, `[Boundary]`, etc. unless that row **clearly** embodies that technique (e.g. you are deliberately testing exactly at a max-length boundary, or a load/stress size). For most rows, a plain description is enough and avoids misleading taxonomy.
+
+Optional **QA technique tags** in square brackets are allowed **only when accurate** — for example `[Stress]` for an intentionally oversized payload, or `[Boundary]` for a value exactly at min/max. If unsure, omit the tag.
+
+Optional: **section comments** above groups, e.g. `// --- emailInvalid ---`, and brief notes where validation rules split outcomes (see `loginInputFields.spec.ts`).
 
 ## Where this lives
 

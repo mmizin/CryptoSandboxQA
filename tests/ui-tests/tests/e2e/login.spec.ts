@@ -19,7 +19,7 @@ async function createLoginTestUser(
     );
 }
 
-test.describe("Login page", () => {
+test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
     test("redirects /login to home and shows sign-in form", async ({ page }) => {
         const login = new LoginPage(page);
         await login.gotoViaLoginRoute();
@@ -42,15 +42,19 @@ test.describe("Login page", () => {
         await expect(page.getByText("Invalid email or password")).toBeVisible();
     });
 
-    test("successful login navigates to dashboard", async ({ page, request, authApi, userFactory }) => {
-        const testUser = await createLoginTestUser(request, authApi, userFactory, "Successful login");
-        const login = new LoginPage(page);
-        await login.goto();
-        await login.emailInput.fill(testUser.data.email!);
-        await login.passwordInput.fill(testUser.data.password!);
-        await login.submitButton.click();
-        await expect(page).toHaveURL("/dashboard", { timeout: 15_000 });
-    });
+    test(
+        "successful login navigates to dashboard",
+        { tag: ["@smoke", "@merge-gate"] },
+        async ({ page, request, authApi, userFactory }) => {
+            const testUser = await createLoginTestUser(request, authApi, userFactory, "Successful login");
+            const login = new LoginPage(page);
+            await login.goto();
+            await login.emailInput.fill(testUser.data.email!);
+            await login.passwordInput.fill(testUser.data.password!);
+            await login.submitButton.click();
+            await expect(page).toHaveURL("/dashboard", { timeout: 15_000 });
+        },
+    );
 
     test("forgot password link goes to forgot-password", async ({ page }) => {
         const login = new LoginPage(page);

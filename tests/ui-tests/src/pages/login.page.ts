@@ -14,6 +14,8 @@ export class LoginPage {
     readonly submitButton: Locator;
     readonly forgotPasswordLink: Locator;
     readonly createAccountLink: Locator;
+    readonly emailError: Locator;
+    readonly passwordError: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -23,6 +25,8 @@ export class LoginPage {
         this.submitButton = page.getByRole("button", { name: "Sign in" });
         this.forgotPasswordLink = page.getByRole("link", { name: "Forgot password?" });
         this.createAccountLink = page.getByRole("link", { name: "Create account" });
+        this.emailError = page.getByTestId("login-email-error");
+        this.passwordError = page.getByTestId("login-password-error");
     }
 
     async goto(): Promise<void> {
