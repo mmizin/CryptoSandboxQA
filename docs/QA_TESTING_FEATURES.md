@@ -36,7 +36,7 @@ The Next.js app applies **client-side** checks before many auth API calls so QA 
 
 ### Automation
 
-- Playwright: [`tests/ui-tests/tests/e2e/auth-validation.spec.ts`](../tests/ui-tests/tests/e2e/auth-validation.spec.ts) covers several negative auth paths. Duplicate expected strings are documented in that file; if you change `AuthMessages` in the frontend, update the test constants in the same change.
+- Use Playwright (or other runners) against the `data-testid` values and **Stable message strings** above when you add your own specs. If you change `AuthMessages` in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), keep any assertions in your tests aligned with the updated strings.
 
 ### API vs client
 

@@ -1,0 +1,12 @@
+---
+description: Do not add or extend automated tests (Playwright, unit, integration) unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Tests only when requested
+
+- **Do not** create new test files, new test cases, or expand existing specs **unless the user clearly asks** for tests (e.g. “add a Playwright test”, “cover this with tests”).
+- **Do not** proactively add tests as part of feature work, refactors, or documentation updates when the user did not request them.
+- If test coverage would help, **mention it briefly** after the task and let the user decide—do not implement tests without a direct request.
+
+This applies to `tests/ui-tests/`, `*.spec.ts`, `*.test.ts`, and backend test folders.
