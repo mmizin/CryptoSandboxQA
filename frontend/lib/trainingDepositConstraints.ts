@@ -1,5 +1,6 @@
 /**
- * Training wallet deposit on dashboard — aligned with `DepositDto` (positive number).
+ * Training wallet deposit on dashboard — value matches `WALLET_DEPOSIT_AMOUNT_MAX`
+ * in backend `common/validation.constants.ts` / `DepositDto` `@Max`.
  */
 
 export const TRAINING_DEPOSIT_MAX = 1_000_000_000;

@@ -16,7 +16,7 @@ Implementation lives in:
 | [`frontend/lib/searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
 | [`frontend/lib/trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) | Dashboard training deposit amount |
 
-Backend parity (API still validates): [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) (`IsPositive` for amount).
+**Backend parity:** Shared limits in [`backend/src/common/validation.constants.ts`](../backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH` **254**, `WALLET_DEPOSIT_AMOUNT_MAX` **1_000_000_000**) match the frontend modules above. DTOs apply `@IsEmail()` + `@MaxLength(254)` on email and `@IsPositive()` + `@Max(WALLET_DEPOSIT_AMOUNT_MAX)` on [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) amount. Same email cap on [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ForgotPasswordDto`](../backend/src/auth/dto/forgot-password.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`RegisterWithProfileDto`](../backend/src/auth/dto/register-with-profile.dto.ts), [`CreateAdminDto`](../backend/src/auth/dto/create-admin.dto.ts), and admin user DTOs with an `email` field.
 
 ### Rules by field (auth)
 
@@ -43,7 +43,7 @@ Backend parity (API still validates): [`RegisterDto`](../backend/src/auth/dto/re
 | Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../frontend/components/TradeCoinTable.tsx) |
 | Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx) |
 | Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../frontend/app/admin/impersonate/page.tsx) |
-| Dashboard | Training deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | Must parse to a **positive** number; **≤ 1_000_000_000** | Messages: `Enter a positive amount`, `Amount must be at most …` ([`trainingDepositConstraints`](../frontend/lib/trainingDepositConstraints.ts)) |
+| Dashboard | Training deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | Must parse to a **positive** number; **≤ 1_000_000_000** (same max on API `POST /wallets/deposit`) | Messages: `Enter a positive amount`, `Amount must be at most …` ([`trainingDepositConstraints`](../frontend/lib/trainingDepositConstraints.ts)) |
 
 ### Other forms (dedicated validators, not the same module as auth)
 

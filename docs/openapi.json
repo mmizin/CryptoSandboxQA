@@ -2947,7 +2947,8 @@
           },
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "role": {
             "type": "string",
@@ -3013,7 +3014,8 @@
           },
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "role": {
             "type": "string",
@@ -3080,7 +3082,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "password": {
             "type": "string",
@@ -3098,7 +3101,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "you@example.com"
+            "example": "you@example.com",
+            "maxLength": 254
           }
         },
         "required": [
@@ -3110,7 +3114,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "you@example.com"
+            "example": "you@example.com",
+            "maxLength": 254
           },
           "code": {
             "type": "string",
@@ -3132,7 +3137,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "password": {
             "type": "string",
@@ -3155,7 +3161,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "admin@example.com"
+            "example": "admin@example.com",
+            "maxLength": 254
           },
           "password": {
             "type": "string",
@@ -3178,7 +3185,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "password": {
             "type": "string",
@@ -3251,7 +3259,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "example": "user@example.com"
+            "example": "user@example.com",
+            "maxLength": 254
           },
           "password": {
             "type": "string",
@@ -3403,7 +3412,9 @@
           "amount": {
             "type": "number",
             "example": 100,
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Positive amount; max 1,000,000,000 (aligned with dashboard client validation)."
           }
         },
         "required": [
