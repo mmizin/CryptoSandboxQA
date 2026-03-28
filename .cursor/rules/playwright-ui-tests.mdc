@@ -1,0 +1,19 @@
+---
+description: Playwright UI tests — URL assertions and conventions (tests/ui-tests)
+globs: tests/ui-tests/**/*.ts
+alwaysApply: false
+---
+
+# Playwright UI tests — CryptoSandboxQA
+
+Applies to files under `tests/ui-tests/`.
+
+## `expect(page).toHaveURL(...)`
+
+- **Prefer path strings** (e.g. `"/dashboard"`, `"/forgot-password"`) when the app navigates to a known route and `baseURL` is set in `playwright.config.ts` (`use.baseURL`). Playwright resolves relative paths with `new URL(path, baseURL)` and matches the full page URL — no regex escapes, clearer intent.
+- **Use `RegExp` or a predicate** when you need partial matches, optional query strings, or flexible trailing slashes (e.g. `/\/dashboard/` or `(url) => url.pathname.endsWith("/dashboard")`).
+- **Timeout:** `{ timeout: ms }` in the second argument is valid for slow navigations (e.g. post-login).
+
+## Where this lives
+
+This is a **Cursor project rule** so assistants align new/edited tests with these patterns. It is not a Playwright MCP concern — MCP is for driving Playwright from tools, not for asserting URL style in source.
