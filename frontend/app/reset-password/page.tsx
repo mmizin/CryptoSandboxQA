@@ -4,6 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
+import {
+  AuthMessages,
+  EMAIL_MAX_LENGTH,
+  RESET_CODE_LENGTH,
+  validateEmail,
+  validatePassword,
+  validateResetCode,
+} from '@/lib/authFieldConstraints';
+
+const inputBase =
+  'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-colors';
+const inputOk = 'border-[var(--border)] focus:border-emerald-500/50';
+const inputErr = 'border-red-500 focus:ring-red-500/50 focus:border-red-500/50';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -12,19 +25,36 @@ export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    code?: string;
+    newPassword?: string;
+    confirm?: string;
+  }>({});
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (newPassword !== confirm) {
-      setError('Passwords do not match');
+    const emailErr = validateEmail(email);
+    const codeErr = validateResetCode(code);
+    const passErr = validatePassword(newPassword);
+    const confirmErr = validatePassword(confirm);
+    const mismatch = newPassword !== confirm ? AuthMessages.passwordsMismatch : undefined;
+    if (emailErr || codeErr || passErr || confirmErr || mismatch) {
+      setFieldErrors({
+        email: emailErr,
+        code: codeErr,
+        newPassword: passErr,
+        confirm: confirmErr || mismatch,
+      });
       return;
     }
+    setFieldErrors({});
     setLoading(true);
     try {
-      await authApi.resetPasswordWithCode(email.trim(), code.trim(), newPassword);
+      await authApi.resetPasswordWithCode(email.trim(), code.replace(/\D/g, ''), newPassword);
       setSuccess(true);
       setTimeout(() => {
         router.push('/');
@@ -66,10 +96,20 @@ export default function ResetPasswordPage() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)]
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+                maxLength={EMAIL_MAX_LENGTH}
+                aria-invalid={!!fieldErrors.email}
+                data-testid="reset-password-email"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFieldErrors((f) => ({ ...f, email: undefined }));
+                }}
+                className={`${inputBase} ${fieldErrors.email ? inputErr : inputOk}`}
               />
+              {fieldErrors.email && (
+                <p className="mt-1 text-sm text-red-400" data-testid="reset-password-email-error">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -85,11 +125,21 @@ export default function ResetPasswordPage() {
                 autoComplete="one-time-code"
                 placeholder="12345678"
                 required
+                maxLength={RESET_CODE_LENGTH}
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] tracking-widest font-mono
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+                aria-invalid={!!fieldErrors.code}
+                data-testid="reset-password-code"
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/\D/g, '').slice(0, RESET_CODE_LENGTH));
+                  setFieldErrors((f) => ({ ...f, code: undefined }));
+                }}
+                className={`${inputBase} ${fieldErrors.code ? inputErr : inputOk} tracking-widest font-mono`}
               />
+              {fieldErrors.code && (
+                <p className="mt-1 text-sm text-red-400" data-testid="reset-password-code-error">
+                  {fieldErrors.code}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -105,10 +155,19 @@ export default function ResetPasswordPage() {
                 required
                 minLength={6}
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)]
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+                aria-invalid={!!fieldErrors.newPassword}
+                data-testid="reset-password-new"
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setFieldErrors((f) => ({ ...f, newPassword: undefined, confirm: undefined }));
+                }}
+                className={`${inputBase} ${fieldErrors.newPassword ? inputErr : inputOk}`}
               />
+              {fieldErrors.newPassword && (
+                <p className="mt-1 text-sm text-red-400" data-testid="reset-password-new-error">
+                  {fieldErrors.newPassword}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -124,10 +183,19 @@ export default function ResetPasswordPage() {
                 required
                 minLength={6}
                 value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)]
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+                aria-invalid={!!fieldErrors.confirm}
+                data-testid="reset-password-confirm"
+                onChange={(e) => {
+                  setConfirm(e.target.value);
+                  setFieldErrors((f) => ({ ...f, confirm: undefined }));
+                }}
+                className={`${inputBase} ${fieldErrors.confirm ? inputErr : inputOk}`}
               />
+              {fieldErrors.confirm && (
+                <p className="mt-1 text-sm text-red-400" data-testid="reset-password-confirm-error">
+                  {fieldErrors.confirm}
+                </p>
+              )}
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
             <button

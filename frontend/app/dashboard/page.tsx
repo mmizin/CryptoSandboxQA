@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { walletsApi, ordersApi } from '@/lib/api';
 import { DashboardCharts } from '@/components/DashboardCharts';
+import { TrainingDepositMessages, validateTrainingDepositAmount } from '@/lib/trainingDepositConstraints';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth(true);
@@ -28,8 +29,12 @@ export default function DashboardPage() {
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amt = parseFloat(depositAmount);
-    if (isNaN(amt) || amt <= 0) return;
+    const validationErr = validateTrainingDepositAmount(depositAmount);
+    if (validationErr) {
+      setDepositError(validationErr);
+      return;
+    }
+    const amt = parseFloat(depositAmount.trim());
     setDepositError('');
     setDepositLoading(true);
     try {
@@ -158,11 +163,22 @@ export default function DashboardPage() {
                   type="number"
                   placeholder="Amount"
                   value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
+                  onChange={(e) => {
+                    setDepositAmount(e.target.value);
+                    setDepositError('');
+                  }}
                   step="any"
                   min="0"
+                  max={1_000_000_000}
                   required
-                  className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none w-32 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
+                  data-testid="dashboard-deposit-amount"
+                  aria-invalid={!!depositError}
+                  className={`rounded-lg border bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none w-32 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 ${
+                    depositError === TrainingDepositMessages.invalid ||
+                    depositError === TrainingDepositMessages.tooLarge
+                      ? 'border-red-500 group-data-[theme=light]:border-red-500'
+                      : 'border-slate-600 group-data-[theme=light]:border-slate-300'
+                  }`}
                 />
                 <button type="submit" disabled={depositLoading} className={buttonBase}>
                   {depositLoading ? 'Depositing...' : 'Deposit'}

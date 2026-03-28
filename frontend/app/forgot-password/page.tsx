@@ -3,17 +3,30 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
+import { EMAIL_MAX_LENGTH, validateEmail } from '@/lib/authFieldConstraints';
+
+const inputBase =
+  'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-colors';
+const inputOk = 'border-[var(--border)] focus:border-emerald-500/50';
+const inputErr = 'border-red-500 focus:ring-red-500/50 focus:border-red-500/50';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [fieldError, setFieldError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      setFieldError(emailErr);
+      return;
+    }
+    setFieldError(undefined);
     setLoading(true);
     try {
       const res = await authApi.forgotPassword(email.trim());
@@ -50,10 +63,20 @@ export default function ForgotPasswordPage() {
               required
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+              maxLength={EMAIL_MAX_LENGTH}
+              aria-invalid={!!fieldError}
+              data-testid="forgot-password-email"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFieldError(undefined);
+              }}
+              className={`${inputBase} ${fieldError ? inputErr : inputOk}`}
             />
+            {fieldError && (
+              <p className="mt-1 text-sm text-red-400" data-testid="forgot-password-email-error">
+                {fieldError}
+              </p>
+            )}
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           {message && <p className="text-sm text-emerald-400 group-data-[theme=light]:text-emerald-600">{message}</p>}

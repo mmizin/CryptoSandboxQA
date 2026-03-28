@@ -6,6 +6,7 @@ import { useCryptos } from '@/lib/useCryptos';
 import { cryptosApi, type CryptoItem } from '@/lib/api';
 import { MarketsModal } from '@/components/MarketsModal';
 import { MarketsCryptoDetailModal } from '@/components/MarketsCryptoDetailModal';
+import { SEARCH_MAX_LENGTH, clampSearchInput } from '@/lib/searchFieldConstraints';
 
 const LOGO_BASE = 'https://assets.coincap.io/assets/icons';
 
@@ -281,7 +282,8 @@ export function MarketsCryptoTable({
                 type="search"
                 placeholder="Search by name or symbol..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                maxLength={SEARCH_MAX_LENGTH}
+                onChange={(e) => setSearch(clampSearchInput(e.target.value))}
                 data-testid="markets-search-input"
                 className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
               />

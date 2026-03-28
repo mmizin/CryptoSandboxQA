@@ -4,6 +4,70 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ---
 
+## Input field rules and restrictions (client-side)
+
+This section is the **reference for allowed values, lengths, and formats** on inputs that enforce rules in the browser before submit. Use it for **positive** tests (valid input → submit proceeds) and **negative** tests (invalid input → inline error, **no** request).
+
+Implementation lives in:
+
+| Module | Purpose |
+|--------|---------|
+| [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) | Auth forms: constants (`PASSWORD_MIN_LENGTH`, `EMAIL_MAX_LENGTH`, …), `AuthMessages`, validators |
+| [`frontend/lib/searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
+| [`frontend/lib/trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) | Dashboard training deposit amount |
+
+Backend parity (API still validates): [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) (`IsPositive` for amount).
+
+### Rules by field (auth)
+
+| Screen | Input / `data-testid` | Type | Restrictions | Typical error messages (`AuthMessages`) |
+|--------|------------------------|------|----------------|----------------------------------------|
+| **Sign in** `/` | Email `login-email` | Email string | Required after trim; max **254** chars; must match app email regex (see `authFieldConstraints`) | `Email is required`, `Email must be at most 254 characters`, `Enter a valid email address` |
+| **Sign in** `/` | Password `login-password` | Password | Required; min **6** chars (no max enforced in UI) | `Password is required`, `Password must be at least 6 characters` |
+| **Register** `/register` | Email `register-email` | Email string | Same as sign-in | Same as email row above |
+| **Register** `/register` | Display name `register-display-name` | Plain text | Optional; if non-empty, max **100** chars | `Display name must be at most 100 characters` |
+| **Register** `/register` | Password `register-password` | Password | Required; min **6** chars | Same as password row above |
+| **Forgot password** `/forgot-password` | Email `forgot-password-email` | Email string | Same as sign-in | Same as email row above |
+| **Reset password** `/reset-password` | Email `reset-password-email` | Email string | Same as sign-in | Same as email row above |
+| **Reset password** `/reset-password` | Code `reset-password-code` | Numeric code | **Exactly 8 digits**; non-digits stripped as you type; `inputMode="numeric"` | `Reset code must be 8 digits` |
+| **Reset password** `/reset-password` | New password `reset-password-new` | Password | Min **6** chars | Same as password row above |
+| **Reset password** `/reset-password` | Confirm `reset-password-confirm` | Password | Must equal new password | `Passwords do not match` (also short-password errors if applicable) |
+
+**HTML attributes** on the above where relevant: `maxLength` on email (254), `minLength` on password fields (6), `type="email"` for email, `inputMode="numeric"` for reset code.
+
+### Rules by field (search and dashboard)
+
+| Area | Input / `data-testid` | Type | Restrictions | Notes |
+|------|------------------------|------|----------------|--------|
+| Markets tables | Search `markets-search-input` | Search text | Max **128** chars; trimmed at start; length clamped on `onChange` | [`MarketsCryptoTable`](../frontend/components/MarketsCryptoTable.tsx) |
+| Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../frontend/components/TradeCoinTable.tsx) |
+| Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx) |
+| Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../frontend/app/admin/impersonate/page.tsx) |
+| Dashboard | Training deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | Must parse to a **positive** number; **≤ 1_000_000_000** | Messages: `Enter a positive amount`, `Amount must be at most …` ([`trainingDepositConstraints`](../frontend/lib/trainingDepositConstraints.ts)) |
+
+### Other forms (dedicated validators, not the same module as auth)
+
+These screens already use **feature-specific** validation modules (ranges, IBAN, card digits, decimals, etc.). See the linked files for full rules:
+
+| Feature | Module | Examples of rules |
+|---------|--------|-------------------|
+| Buy / Sell | [`buySellValidation.ts`](../frontend/lib/buySellValidation.ts) | Amount min/max USD, IBAN pattern, card number digits, CVV length, expiry MM/YY |
+| Trade order entry | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks |
+| Fiat / crypto deposit | [`depositCashValidation.ts`](../frontend/lib/depositCashValidation.ts), [`depositCryptoValidation.ts`](../frontend/lib/depositCryptoValidation.ts) | Amount ranges, payment-method fields |
+| Calculator | [`calculatorValidation.ts`](../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
+| 2FA modal | [`twoFactorValidation.ts`](../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
+
+### Automation (when you add tests)
+
+- Assert on **`data-testid`** and the exact **error strings** from `AuthMessages` / `TrainingDepositMessages` in the table above. If you change copy in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), update any tests in the same change.
+
+### API vs client
+
+- **Client validation** blocks submit and shows inline errors (no network call for that submit).
+- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — see [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/e2e/login.spec.ts) for invalid-credentials server responses.
+
+---
+
 ## Auth: forgot password (8-digit email code)
 
 End-to-end password reset for QA: code is delivered by **SMTP** (Mailpit in dev) or appears in the **backend log** if SMTP is not configured.

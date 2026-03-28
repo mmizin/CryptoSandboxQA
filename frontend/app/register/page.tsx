@@ -4,11 +4,28 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
+import {
+  DISPLAY_NAME_MAX_LENGTH,
+  EMAIL_MAX_LENGTH,
+  validateDisplayNameOptional,
+  validateEmail,
+  validatePassword,
+} from '@/lib/authFieldConstraints';
+
+const inputBase =
+  'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-colors';
+const inputOk = 'border-[var(--border)] focus:border-emerald-500/50';
+const inputErr = 'border-red-500 focus:ring-red-500/50 focus:border-red-500/50';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    displayName?: string;
+  }>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -16,9 +33,17 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    const displayErr = validateDisplayNameOptional(displayName);
+    if (emailErr || passwordErr || displayErr) {
+      setFieldErrors({ email: emailErr, password: passwordErr, displayName: displayErr });
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
     try {
-      const { access_token } = await authApi.register(email, password, displayName || undefined);
+      const { access_token } = await authApi.register(email.trim(), password, displayName.trim() || undefined);
       localStorage.setItem('token', access_token);
       router.push('/dashboard');
       router.refresh();
@@ -97,12 +122,22 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  maxLength={EMAIL_MAX_LENGTH}
+                  autoComplete="email"
+                  aria-invalid={!!fieldErrors.email}
+                  data-testid="register-email"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldErrors((f) => ({ ...f, email: undefined }));
+                  }}
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
-                    transition-colors"
+                  className={`${inputBase} ${fieldErrors.email ? inputErr : inputOk}`}
                 />
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-400" data-testid="register-email-error">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -115,11 +150,20 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Your name"
                   value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
-                    transition-colors"
+                  autoComplete="name"
+                  aria-invalid={!!fieldErrors.displayName}
+                  data-testid="register-display-name"
+                  onChange={(e) => {
+                    setDisplayName(e.target.value);
+                    setFieldErrors((f) => ({ ...f, displayName: undefined }));
+                  }}
+                  className={`${inputBase} ${fieldErrors.displayName ? inputErr : inputOk}`}
                 />
+                {fieldErrors.displayName && (
+                  <p className="mt-1 text-sm text-red-400" data-testid="register-display-name-error">
+                    {fieldErrors.displayName}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -131,13 +175,22 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Min. 6 characters"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
-                    transition-colors"
+                  autoComplete="new-password"
+                  aria-invalid={!!fieldErrors.password}
+                  data-testid="register-password"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setFieldErrors((f) => ({ ...f, password: undefined }));
+                  }}
+                  className={`${inputBase} ${fieldErrors.password ? inputErr : inputOk}`}
                 />
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-400" data-testid="register-password-error">
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
 
               {error && (

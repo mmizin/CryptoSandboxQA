@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { usersApi } from '@/lib/api';
+import { SEARCH_MAX_LENGTH, clampSearchInput } from '@/lib/searchFieldConstraints';
 
 type UserRow = { id: string; email: string; displayName: string | null; role: string };
 
@@ -85,7 +86,9 @@ export default function ImpersonatePage() {
             placeholder="Search by email or user ID..."
             className={`${inputBase} mb-4 max-w-md`}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            maxLength={SEARCH_MAX_LENGTH}
+            data-testid="admin-impersonate-search"
+            onChange={(e) => setSearch(clampSearchInput(e.target.value))}
           />
 
           {error && (

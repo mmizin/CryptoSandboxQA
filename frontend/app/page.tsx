@@ -5,10 +5,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authApi, twoFactorApi } from '@/lib/api';
 import { TwoFactorVerificationModal } from '@/components/TwoFactorVerificationModal';
+import {
+  EMAIL_MAX_LENGTH,
+  validateEmail,
+  validatePassword,
+} from '@/lib/authFieldConstraints';
+
+const inputBase =
+  'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-colors';
+const inputOk = 'border-[var(--border)] focus:border-emerald-500/50';
+const inputErr = 'border-red-500 focus:ring-red-500/50 focus:border-red-500/50';
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [show2fa, setShow2fa] = useState(false);
@@ -20,9 +31,16 @@ export default function HomePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    if (emailErr || passwordErr) {
+      setFieldErrors({ email: emailErr, password: passwordErr });
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
     try {
-      const result = await authApi.login(email, password);
+      const result = await authApi.login(email.trim(), password);
       if ('requires2FA' in result && result.requires2FA && result.tempToken) {
         setTempToken(result.tempToken);
         setShow2fa(true);
@@ -144,11 +162,21 @@ export default function HomePage() {
                   type="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
-                    transition-colors"
+                  maxLength={EMAIL_MAX_LENGTH}
+                  autoComplete="email"
+                  aria-invalid={!!fieldErrors.email}
+                  data-testid="login-email"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldErrors((f) => ({ ...f, email: undefined }));
+                  }}
+                  className={`${inputBase} ${fieldErrors.email ? inputErr : inputOk}`}
                 />
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-400" data-testid="login-email-error">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -160,11 +188,21 @@ export default function HomePage() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
-                    transition-colors"
+                  minLength={6}
+                  autoComplete="current-password"
+                  aria-invalid={!!fieldErrors.password}
+                  data-testid="login-password"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setFieldErrors((f) => ({ ...f, password: undefined }));
+                  }}
+                  className={`${inputBase} ${fieldErrors.password ? inputErr : inputOk}`}
                 />
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-400" data-testid="login-password-error">
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
 
               <p className="text-right -mt-2">
