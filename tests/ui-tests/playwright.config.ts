@@ -29,9 +29,13 @@ export default defineConfig({
   use: {
     /*
      * Loaded from env at config time: `dotenv.config` above reads tests/ui-tests/.env into process.env.
-     * Prefer BASE_URL; CI/local can set PLAYWRIGHT_BASE_URL instead. Neither set => undefined (use full URLs in tests or set env).
+     * Prefer BASE_URL or PLAYWRIGHT_BASE_URL. Default matches `.env.example` and `frontend` dev server (`next dev -p 3000`).
+     * Without a base URL, `page.goto('/')` fails with "Cannot navigate to invalid URL".
      */
-    baseURL: process.env.BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL,
+    baseURL:
+      process.env.BASE_URL ??
+      process.env.PLAYWRIGHT_BASE_URL ??
+      "http://localhost:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
