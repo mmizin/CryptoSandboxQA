@@ -10,7 +10,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
 | `docs/` | Design notes, static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md) catalog |
-| `tests/ui-tests/` | Playwright tests; env via **`tests/ui-tests/.env`** (see **`tests/ui-tests/.env.example`**) for `BASE_URL` / `API_URL` / `ADMIN_API_KEY`; models distinguish **`TestUser`** (register-with-profile) vs **`AdminUser`** (admin bootstrap); strategies include `ApiUserCreationStrategy` and `AdminApiUserCreationStrategy` (`ADMIN_API_KEY`) |
+| `tests/ui-tests/` | Playwright tests; **`playwright.config.ts`** loads repo **root `.env`** then **`tests/ui-tests/.env`** (overrides); root `.env.example` has `API_URL` / `ADMIN_API_KEY`; **`tests/ui-tests/.env.example`** has **`PLAYWRIGHT_BASE_URL`** / optional seeds; models distinguish **`TestUser`** (register-with-profile) vs **`AdminUser`** (admin bootstrap); strategies include `ApiUserCreationStrategy` and `AdminApiUserCreationStrategy` (`ADMIN_API_KEY`) |
 | Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
 ---
