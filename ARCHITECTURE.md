@@ -228,7 +228,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
-**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
+**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Shared **API** limits for the same fields: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_DEPOSIT_AMOUNT_MAX` on `DepositDto`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
 
 ---
 

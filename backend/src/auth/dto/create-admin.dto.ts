@@ -1,9 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { EMAIL_MAX_LENGTH } from '../../common/validation.constants';
 
 export class CreateAdminDto {
-  @ApiProperty({ example: 'admin@example.com' })
+  @ApiProperty({ example: 'admin@example.com', maxLength: EMAIL_MAX_LENGTH })
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   @IsNotEmpty()
   email: string;
 

@@ -8,6 +8,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { EMAIL_MAX_LENGTH } from '../../common/validation.constants';
 
 /**
  * DTO for PUT /users/:id (admin) - full replace, core fields required.
@@ -17,8 +18,9 @@ export class AdminReplaceUserDto {
   @IsString()
   displayName: string;
 
-  @ApiProperty({ example: 'user@example.com' })
+  @ApiProperty({ example: 'user@example.com', maxLength: EMAIL_MAX_LENGTH })
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   email: string;
 
   @ApiProperty({ example: 'user', enum: ['user', 'admin'] })

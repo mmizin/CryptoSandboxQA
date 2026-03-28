@@ -8,6 +8,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { EMAIL_MAX_LENGTH } from '../../common/validation.constants';
 
 /**
  * DTO for PATCH /users/:id (admin) - partial update, all fields optional.
@@ -18,9 +19,10 @@ export class AdminPatchUserDto {
   @IsString()
   displayName?: string;
 
-  @ApiPropertyOptional({ example: 'user@example.com' })
+  @ApiPropertyOptional({ example: 'user@example.com', maxLength: EMAIL_MAX_LENGTH })
   @IsOptional()
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   email?: string;
 
   @ApiPropertyOptional({ example: 'user', enum: ['user', 'admin'] })

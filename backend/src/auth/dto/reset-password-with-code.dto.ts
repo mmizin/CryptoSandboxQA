@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { EMAIL_MAX_LENGTH } from '../../common/validation.constants';
 
 export class ResetPasswordWithCodeDto {
-  @ApiProperty({ example: 'you@example.com' })
+  @ApiProperty({ example: 'you@example.com', maxLength: EMAIL_MAX_LENGTH })
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   email!: string;
 
   @ApiProperty({ description: '8-digit code from the reset email (spaces allowed)' })

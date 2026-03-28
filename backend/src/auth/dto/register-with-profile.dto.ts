@@ -8,10 +8,12 @@ import {
   IsDateString,
   IsObject,
 } from 'class-validator';
+import { EMAIL_MAX_LENGTH } from '../../common/validation.constants';
 
 export class RegisterWithProfileDto {
-  @ApiProperty({ example: 'user@example.com' })
+  @ApiProperty({ example: 'user@example.com', maxLength: EMAIL_MAX_LENGTH })
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   email: string;
 
   @ApiProperty({ example: 'password123', minLength: 6 })
