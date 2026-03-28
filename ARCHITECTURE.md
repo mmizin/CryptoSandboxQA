@@ -228,7 +228,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
-**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Form validation and input rules*).
+**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
 
 ---
 

@@ -4,44 +4,67 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ---
 
-## Form validation and input rules (client-side)
+## Input field rules and restrictions (client-side)
 
-The Next.js app applies **client-side** checks before many auth API calls so QA can run **positive** (valid data → request proceeds) and **negative** (invalid data → inline errors, **no** request) scenarios. Messages and limits are defined in [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) (`AuthMessages`, validators aligned with Nest `class-validator` DTOs). Other shared limits: [`searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) (search inputs), [`trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) (dashboard training deposit).
+This section is the **reference for allowed values, lengths, and formats** on inputs that enforce rules in the browser before submit. Use it for **positive** tests (valid input → submit proceeds) and **negative** tests (invalid input → inline error, **no** request).
 
-### Auth screens (`data-testid` for assertions)
+Implementation lives in:
 
-| Screen | Path | Key rules | Error `data-testid` suffixes |
-|--------|------|-----------|------------------------------|
-| Sign in | `/` | Email format + max length 254; password min length **6** | `login-email`, `login-password`, `login-email-error`, `login-password-error` |
-| Register | `/register` | Same + optional display name max **100** chars | `register-email`, `register-display-name`, `register-password`, `*-error` |
-| Forgot password | `/forgot-password` | Email format + max length | `forgot-password-email`, `forgot-password-email-error` |
-| Reset password | `/reset-password` | Email; **8-digit** code (digits only); new password min **6**; confirm must match | `reset-password-email`, `reset-password-code`, `reset-password-new`, `reset-password-confirm`, `*-error` |
+| Module | Purpose |
+|--------|---------|
+| [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) | Auth forms: constants (`PASSWORD_MIN_LENGTH`, `EMAIL_MAX_LENGTH`, …), `AuthMessages`, validators |
+| [`frontend/lib/searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
+| [`frontend/lib/trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) | Dashboard training deposit amount |
 
-**Stable message strings** (assert in Playwright; keep in sync with `AuthMessages`):
+Backend parity (API still validates): [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) (`IsPositive` for amount).
 
-- `Enter a valid email address` — invalid or empty email (empty email may also show `Email is required` depending on field).
-- `Password must be at least 6 characters` — password too short.
-- `Display name must be at most 100 characters` — optional display name too long.
-- `Reset code must be 8 digits` — code not exactly eight digits.
-- `Passwords do not match` — reset form confirm mismatch (same as before).
+### Rules by field (auth)
 
-### Other inputs
+| Screen | Input / `data-testid` | Type | Restrictions | Typical error messages (`AuthMessages`) |
+|--------|------------------------|------|----------------|----------------------------------------|
+| **Sign in** `/` | Email `login-email` | Email string | Required after trim; max **254** chars; must match app email regex (see `authFieldConstraints`) | `Email is required`, `Email must be at most 254 characters`, `Enter a valid email address` |
+| **Sign in** `/` | Password `login-password` | Password | Required; min **6** chars (no max enforced in UI) | `Password is required`, `Password must be at least 6 characters` |
+| **Register** `/register` | Email `register-email` | Email string | Same as sign-in | Same as email row above |
+| **Register** `/register` | Display name `register-display-name` | Plain text | Optional; if non-empty, max **100** chars | `Display name must be at most 100 characters` |
+| **Register** `/register` | Password `register-password` | Password | Required; min **6** chars | Same as password row above |
+| **Forgot password** `/forgot-password` | Email `forgot-password-email` | Email string | Same as sign-in | Same as email row above |
+| **Reset password** `/reset-password` | Email `reset-password-email` | Email string | Same as sign-in | Same as email row above |
+| **Reset password** `/reset-password` | Code `reset-password-code` | Numeric code | **Exactly 8 digits**; non-digits stripped as you type; `inputMode="numeric"` | `Reset code must be 8 digits` |
+| **Reset password** `/reset-password` | New password `reset-password-new` | Password | Min **6** chars | Same as password row above |
+| **Reset password** `/reset-password` | Confirm `reset-password-confirm` | Password | Must equal new password | `Passwords do not match` (also short-password errors if applicable) |
 
-| Area | Behavior |
-|------|----------|
-| Markets / trade search | Max **128** characters (`SEARCH_MAX_LENGTH`), clamped in `onChange` — [`markets-search-input`](../frontend/components/MarketsCryptoTable.tsx) on markets tables. |
-| Crypto combobox search | Same clamp — [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx). |
-| Admin impersonate search | Same clamp — `admin-impersonate-search`. |
-| Dashboard training deposit | Positive amount only, max **1_000_000_000** — messages `Enter a positive amount` / `Amount must be at most …`; `data-testid="dashboard-deposit-amount"`. Server still enforces `DepositDto` (`IsPositive`). |
+**HTML attributes** on the above where relevant: `maxLength` on email (254), `minLength` on password fields (6), `type="email"` for email, `inputMode="numeric"` for reset code.
 
-### Automation
+### Rules by field (search and dashboard)
 
-- Use Playwright (or other runners) against the `data-testid` values and **Stable message strings** above when you add your own specs. If you change `AuthMessages` in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), keep any assertions in your tests aligned with the updated strings.
+| Area | Input / `data-testid` | Type | Restrictions | Notes |
+|------|------------------------|------|----------------|--------|
+| Markets tables | Search `markets-search-input` | Search text | Max **128** chars; trimmed at start; length clamped on `onChange` | [`MarketsCryptoTable`](../frontend/components/MarketsCryptoTable.tsx) |
+| Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../frontend/components/TradeCoinTable.tsx) |
+| Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx) |
+| Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../frontend/app/admin/impersonate/page.tsx) |
+| Dashboard | Training deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | Must parse to a **positive** number; **≤ 1_000_000_000** | Messages: `Enter a positive amount`, `Amount must be at most …` ([`trainingDepositConstraints`](../frontend/lib/trainingDepositConstraints.ts)) |
+
+### Other forms (dedicated validators, not the same module as auth)
+
+These screens already use **feature-specific** validation modules (ranges, IBAN, card digits, decimals, etc.). See the linked files for full rules:
+
+| Feature | Module | Examples of rules |
+|---------|--------|-------------------|
+| Buy / Sell | [`buySellValidation.ts`](../frontend/lib/buySellValidation.ts) | Amount min/max USD, IBAN pattern, card number digits, CVV length, expiry MM/YY |
+| Trade order entry | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks |
+| Fiat / crypto deposit | [`depositCashValidation.ts`](../frontend/lib/depositCashValidation.ts), [`depositCryptoValidation.ts`](../frontend/lib/depositCryptoValidation.ts) | Amount ranges, payment-method fields |
+| Calculator | [`calculatorValidation.ts`](../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
+| 2FA modal | [`twoFactorValidation.ts`](../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
+
+### Automation (when you add tests)
+
+- Assert on **`data-testid`** and the exact **error strings** from `AuthMessages` / `TrainingDepositMessages` in the table above. If you change copy in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), update any tests in the same change.
 
 ### API vs client
 
 - **Client validation** blocks submit and shows inline errors (no network call for that submit).
-- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — use [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/e2e/login.spec.ts) for invalid-credentials server responses.
+- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — see [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/e2e/login.spec.ts) for invalid-credentials server responses.
 
 ---
 
