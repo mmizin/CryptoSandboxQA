@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { cryptosApi, type CryptoItem } from '@/lib/api';
 import { FALLBACK_CRYPTOS } from '@/lib/buySellMockData';
+import { SEARCH_MAX_LENGTH, clampSearchInput } from '@/lib/searchFieldConstraints';
 
 const inputBase =
   'w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors';
@@ -120,8 +121,9 @@ export function CryptoSearchSelect({ value, onChange, error = false, disabled = 
           type="text"
           placeholder="Search cryptocurrency (e.g. Bitcoin, ETH, SOL)"
           value={isOpen ? searchQuery : displayText}
+          maxLength={SEARCH_MAX_LENGTH}
           onChange={(e) => {
-            setSearchQuery(e.target.value);
+            setSearchQuery(clampSearchInput(e.target.value));
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}

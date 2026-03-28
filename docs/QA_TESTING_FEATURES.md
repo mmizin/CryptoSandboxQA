@@ -4,6 +4,47 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ---
 
+## Form validation and input rules (client-side)
+
+The Next.js app applies **client-side** checks before many auth API calls so QA can run **positive** (valid data → request proceeds) and **negative** (invalid data → inline errors, **no** request) scenarios. Messages and limits are defined in [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) (`AuthMessages`, validators aligned with Nest `class-validator` DTOs). Other shared limits: [`searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) (search inputs), [`trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) (dashboard training deposit).
+
+### Auth screens (`data-testid` for assertions)
+
+| Screen | Path | Key rules | Error `data-testid` suffixes |
+|--------|------|-----------|------------------------------|
+| Sign in | `/` | Email format + max length 254; password min length **6** | `login-email`, `login-password`, `login-email-error`, `login-password-error` |
+| Register | `/register` | Same + optional display name max **100** chars | `register-email`, `register-display-name`, `register-password`, `*-error` |
+| Forgot password | `/forgot-password` | Email format + max length | `forgot-password-email`, `forgot-password-email-error` |
+| Reset password | `/reset-password` | Email; **8-digit** code (digits only); new password min **6**; confirm must match | `reset-password-email`, `reset-password-code`, `reset-password-new`, `reset-password-confirm`, `*-error` |
+
+**Stable message strings** (assert in Playwright; keep in sync with `AuthMessages`):
+
+- `Enter a valid email address` — invalid or empty email (empty email may also show `Email is required` depending on field).
+- `Password must be at least 6 characters` — password too short.
+- `Display name must be at most 100 characters` — optional display name too long.
+- `Reset code must be 8 digits` — code not exactly eight digits.
+- `Passwords do not match` — reset form confirm mismatch (same as before).
+
+### Other inputs
+
+| Area | Behavior |
+|------|----------|
+| Markets / trade search | Max **128** characters (`SEARCH_MAX_LENGTH`), clamped in `onChange` — [`markets-search-input`](../frontend/components/MarketsCryptoTable.tsx) on markets tables. |
+| Crypto combobox search | Same clamp — [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx). |
+| Admin impersonate search | Same clamp — `admin-impersonate-search`. |
+| Dashboard training deposit | Positive amount only, max **1_000_000_000** — messages `Enter a positive amount` / `Amount must be at most …`; `data-testid="dashboard-deposit-amount"`. Server still enforces `DepositDto` (`IsPositive`). |
+
+### Automation
+
+- Playwright: [`tests/ui-tests/tests/e2e/auth-validation.spec.ts`](../tests/ui-tests/tests/e2e/auth-validation.spec.ts) covers several negative auth paths. Duplicate expected strings are documented in that file; if you change `AuthMessages` in the frontend, update the test constants in the same change.
+
+### API vs client
+
+- **Client validation** blocks submit and shows inline errors (no network call for that submit).
+- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — use [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/e2e/login.spec.ts) for invalid-credentials server responses.
+
+---
+
 ## Auth: forgot password (8-digit email code)
 
 End-to-end password reset for QA: code is delivered by **SMTP** (Mailpit in dev) or appears in the **backend log** if SMTP is not configured.

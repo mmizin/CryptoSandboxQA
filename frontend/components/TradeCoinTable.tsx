@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { SEARCH_MAX_LENGTH, clampSearchInput } from '@/lib/searchFieldConstraints';
 import { TRADE_COINS, generateMockPriceSeries, POPULAR_SYMBOLS, type TradeCoin } from '@/lib/tradeMockData';
 
 const LOGO_BASE = 'https://assets.coincap.io/assets/icons';
@@ -159,7 +160,8 @@ export function TradeCoinTable({ selectedCoin, onSelectCoin }: TradeCoinTablePro
             type="search"
             placeholder="Search coin..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            maxLength={SEARCH_MAX_LENGTH}
+            onChange={(e) => setSearch(clampSearchInput(e.target.value))}
             className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none w-full sm:w-48 group-data-[theme=light]:border-slate-300 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900"
           />
           <label className="flex items-center gap-2 text-sm text-slate-400 group-data-[theme=light]:text-slate-600 cursor-pointer">
