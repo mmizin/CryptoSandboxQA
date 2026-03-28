@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { DashboardPage } from "../pages/dashboard.page";
 import { LoginPage } from "../pages/login.page";
 
 /**
@@ -7,6 +8,7 @@ import { LoginPage } from "../pages/login.page";
  */
 export type AppPages = {
     login: LoginPage;
+    dashboard: DashboardPage;
 };
 
 export type PagesFixtures = {
@@ -20,6 +22,7 @@ export const pagesFixture = {
     ) => {
         await use({
             login: new LoginPage(page),
+            dashboard: new DashboardPage(page),
         });
     },
 };

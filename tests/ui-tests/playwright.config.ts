@@ -1,12 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Read environment variables from file.
+ * Env loading order (later wins for overlapping keys):
+ * 1) Repository root `.env` — backend/frontend stack (API_URL, ADMIN_API_KEY, …).
+ * 2) `tests/ui-tests/.env` — Playwright browser baseURL (`PLAYWRIGHT_BASE_URL` / `BASE_URL`), seeds, etc. (see `tests/ui-tests/.env.example`).
  * https://github.com/motdotla/dotenv
  */
 import dotenv from 'dotenv';
 import path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+const repoRootEnv = path.resolve(__dirname, '..', '..', '.env');
+const packageEnv = path.resolve(__dirname, '.env');
+
+dotenv.config({ path: repoRootEnv });
+dotenv.config({ path: packageEnv, override: true });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -28,14 +35,10 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /*
-     * Loaded from env at config time: `dotenv.config` above reads tests/ui-tests/.env into process.env.
-     * Prefer BASE_URL or PLAYWRIGHT_BASE_URL. Default matches `.env.example` and `frontend` dev server (`next dev -p 3000`).
-     * Without a base URL, `page.goto('/')` fails with "Cannot navigate to invalid URL".
+     * From process.env (root `.env` + optional tests/ui-tests/.env — see dotenv above).
+     * Prefer BASE_URL or PLAYWRIGHT_BASE_URL. Default matches frontend dev server (`next dev -p 3000`).
      */
-    baseURL:
-      process.env.BASE_URL ??
-      process.env.PLAYWRIGHT_BASE_URL ??
-      "http://localhost:3000",
+    baseURL: process.env.BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

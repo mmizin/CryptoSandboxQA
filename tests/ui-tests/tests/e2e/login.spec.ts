@@ -1,23 +1,6 @@
-import type { APIRequestContext } from "@playwright/test";
 import { expect, test } from "../../src/fixtures";
-import type { AuthApi } from "../../src/api/auth.api";
-import type { UserFactory } from "../../src/factories/user.factory";
+import { registerTestUserViaApi } from "../../src/utils/users";
 import { LoginPage } from "../../src/pages/login.page";
-import { ApiUserCreationStrategy } from "../../src/strategies/user/api.strategy";
-
-async function createLoginTestUser(
-    request: APIRequestContext,
-    authApi: AuthApi,
-    userFactory: UserFactory,
-    displayName: string,
-) {
-    const strategy = new ApiUserCreationStrategy(request, authApi);
-    return userFactory.create(strategy, (b) =>
-        b
-            .withDisplayName(displayName)
-            .withhUsername(`login_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`),
-    );
-}
 
 test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
     test("redirects /login to home and shows sign-in form", async ({ page }) => {
@@ -33,7 +16,7 @@ test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
     });
 
     test("shows error for invalid credentials", async ({ page, request, authApi, userFactory }) => {
-        const testUser = await createLoginTestUser(request, authApi, userFactory, "Invalid credentials probe");
+        const testUser = await registerTestUserViaApi(request, authApi, userFactory, "Invalid credentials probe");
         const login = new LoginPage(page);
         await login.goto();
         await login.emailInput.fill(testUser.data.email!);
@@ -46,7 +29,7 @@ test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
         "successful login navigates to dashboard",
         { tag: ["@smoke", "@merge-gate"] },
         async ({ page, request, authApi, userFactory }) => {
-            const testUser = await createLoginTestUser(request, authApi, userFactory, "Successful login");
+            const testUser = await registerTestUserViaApi(request, authApi, userFactory, "Successful login");
             const login = new LoginPage(page);
             await login.goto();
             await login.emailInput.fill(testUser.data.email!);
