@@ -1,7 +1,9 @@
 # CryptoSandboxQA — Backend API Design Plan
 
+> **Historical / design-time document.** The NestJS backend has been extended since this plan was written. For **current** modules, routes, and behavior, see [ARCHITECTURE.md](../ARCHITECTURE.md), live Swagger at `/api/docs`, and [`docs/openapi.json`](openapi.json).
+
 **Branch:** `feature/backend-api`  
-**Status:** Design Phase — Awaiting Approval  
+**Status:** Retained for context — not an active approval gate; implemented behavior is documented in [ARCHITECTURE.md](../ARCHITECTURE.md).  
 **Date:** March 16, 2025
 
 ---

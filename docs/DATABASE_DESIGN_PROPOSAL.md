@@ -1,5 +1,7 @@
 # CryptoSandboxQA — Production Database Schema Design Proposal
 
+> **Source of truth:** [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma). This file records **design rationale and history**. The “Current implementation” table below is a **legacy design-phase snapshot** and does not describe the full implemented schema.
+
 **Branch:** `feature/database-schema`  
 **Status:** Implemented (Prisma schema, seed, backend services updated)
 
@@ -7,7 +9,10 @@
 
 ## Codebase Analysis Summary
 
-### Current Implementation
+### Current implementation
+
+The following table reflects **design-time analysis**, not the live codebase. For sessions, 2FA, deposits, portfolio, and related tables, see Prisma and [ARCHITECTURE.md](../ARCHITECTURE.md).
+
 | Area | Backend | Frontend | DB Support |
 |------|---------|----------|-------------|
 | **Users** | UsersService, AuthService | Profile, Settings | `users` |

@@ -9,7 +9,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `backend/` | NestJS API, Prisma schema & migrations, seeds |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
-| `docs/` | Design notes, static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md) catalog |
+| `docs/` | Design notes ([API plan](docs/API_DESIGN_PLAN.md), [DB proposal](docs/DATABASE_DESIGN_PROPOSAL.md)), static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md); see [README.md § Documentation](README.md#documentation) for the full doc index |
 | `tests/ui-tests/` | Playwright tests; **`playwright.config.ts`** loads repo **root `.env`** then **`tests/ui-tests/.env`** (overrides); root `.env.example` has `API_URL` / `ADMIN_API_KEY`; **`tests/ui-tests/.env.example`** has **`PLAYWRIGHT_BASE_URL`** / optional seeds; models distinguish **`TestUser`** (register-with-profile) vs **`AdminUser`** (admin bootstrap); strategies include `ApiUserCreationStrategy` and `AdminApiUserCreationStrategy` (`ADMIN_API_KEY`) |
 | Root `package.json` | npm workspaces; orchestrates `dev`, DB, OpenAPI generation |
 
