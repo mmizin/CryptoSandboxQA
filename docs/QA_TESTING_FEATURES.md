@@ -1,6 +1,24 @@
 # QA testing features
 
+This document is for **QA engineers, testers, and engineers** who want a realistic crypto-exchange surface to practice **manual exploration**, **API checks**, **browser automation**, and **email-backed flows** without production risk.
+
+**Skills you can sharpen here**
+
+| Area | What you practice |
+|------|-------------------|
+| **Forms & client validation** | Boundary values, max lengths, stable error copy, and **`data-testid`** discipline before and after submit. |
+| **Auth & security** | Password reset with **anti-enumeration**, session invalidation, 8-digit codes, and flows that split client vs server errors. |
+| **Email-backed testing** | Mailpit (or SMTP), reading codes and subjects, optional **Mailpit HTTP API** for automation. |
+| **Rich UI & a11y** | Modals, focus trap, stacked dialogs, URL query params (Markets); keyboard **drag-and-drop** on Portfolio Analytics. |
+| **Timing & async** | **Simulated persist delay** before DB writes — designing waits and stable assertions. |
+| **Admin & bulk** | Import/export, impersonation-related surfaces; **iframe** same-origin frame switching. |
+| **Performance awareness** | Optional Docker stack with **Prometheus / Grafana** (see root [README](../README.md)). |
+
 This document lists **purpose-built surfaces** in CryptoSandboxQA for manual checks and automation practice (selectors, frames, API-backed flows). Add a new section here whenever you introduce another training or testability feature.
+
+### In-repo Playwright (E2E)
+
+The repository ships **Playwright** tests under [`tests/ui-tests/`](../tests/ui-tests/). Configuration loads the repo root `.env` then [`tests/ui-tests/.env`](../tests/ui-tests/.env) (see [`playwright.config.ts`](../tests/ui-tests/playwright.config.ts)); set `PLAYWRIGHT_BASE_URL` or `BASE_URL` for the app origin. Run from `tests/ui-tests/` with `npm install` and `npx playwright test`. Reports use **Allure** (`allure-playwright` in config). Tag vocabulary for contributors (`@smoke`, `@merge-gate`, `@client-validation`, …) lives in [`.cursor/rules/playwright-ui-tests.mdc`](../.cursor/rules/playwright-ui-tests.mdc). For setup from the repo root, see [README § Testing & automation](../README.md#testing--automation).
 
 ---
 
@@ -156,7 +174,7 @@ The app serves a **same-origin** training form inside an iframe so you can pract
 - **Page:** [http://localhost:3000/qa/iframe-practice](http://localhost:3000/qa/iframe-practice)
 - **Embedded document:** `/qa/iframe-form.html` (static file under [`frontend/public/qa/`](../frontend/public/qa/))
 
-**Playwright sketch** (run in your own test project; the repo does not ship Playwright):
+**Playwright sketch** (same API as in [`tests/ui-tests/`](../tests/ui-tests/); add a spec under that package or run ad hoc):
 
 ```ts
 const frame = page.frameLocator('[data-testid="practice-iframe"]');
