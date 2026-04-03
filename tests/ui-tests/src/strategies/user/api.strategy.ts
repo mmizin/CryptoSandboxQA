@@ -2,8 +2,9 @@ import type { APIRequestContext } from "@playwright/test";
 import type { AuthApi, AuthResult } from "../../api/auth.api";
 import { getAdminApiKey } from "../../api/admin.api";
 import { UserApi } from "../../api/user.api";
-import { AdminUser } from "../../models/AdminUser";
-import { TestUser, type UserWithProfileTestData } from "../../models/TestUser";
+import type { UserWithProfileTestData } from "../../models/user/user.types";
+import { AdminUser } from "../../models/user/AdminUser";
+import { TestUser } from "../../models/user/TestUser";
 import type { UserCreationStrategy } from "./user-creation.strategy";
 
 export function testUserFromAuthResult(

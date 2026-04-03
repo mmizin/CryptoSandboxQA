@@ -1,4 +1,4 @@
-import { type UserWithProfileTestData } from "../models/TestUser";
+import type { UserWithProfileTestData } from "../models/user/user.types";
 
 function uniqueEmail(prefix = 'user'): string {
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;

@@ -2,7 +2,7 @@ import type { APIRequestContext } from "@playwright/test";
 import { AuthApi } from "../api/auth.api";
 import { UserBuilder } from "../builders/user.builder";
 import { UserFactory } from "../factories/user.factory";
-import type { AdminUser } from "../models/AdminUser";
+import type { AdminUser } from "../models/user/AdminUser";
 import { AdminApiUserCreationStrategy } from "../strategies/user/api.strategy";
 
 export type AdminFixtures = {

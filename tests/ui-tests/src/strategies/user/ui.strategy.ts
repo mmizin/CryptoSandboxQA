@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
-import type { TestUser, UserWithProfileTestData } from "../../models/TestUser";
+import type { TestUser } from "../../models/user/TestUser";
+import type { UserWithProfileTestData } from "../../models/user/user.types";
 import type { UserCreationStrategy } from "./user-creation.strategy";
 
 /**

@@ -3,7 +3,7 @@ import { getApiUrl } from "../api/base.api";
 import { AuthApi } from "../api/auth.api";
 import { UserBuilder } from "../builders/user.builder";
 import { UserFactory } from "../factories/user.factory";
-import type { TestUser } from "../models/TestUser";
+import type { TestUser } from "../models/user/TestUser";
 import { ApiUserCreationStrategy } from "../strategies/user/api.strategy";
 
 export type UserFixtures = {
