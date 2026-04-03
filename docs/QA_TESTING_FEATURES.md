@@ -18,7 +18,7 @@ This document lists **purpose-built surfaces** in CryptoSandboxQA for manual che
 
 ### In-repo Playwright (E2E)
 
-The repository ships **Playwright** tests under [`tests/ui-tests/`](../tests/ui-tests/). Configuration loads the repo root `.env` then [`tests/ui-tests/.env`](../tests/ui-tests/.env) (see [`playwright.config.ts`](../tests/ui-tests/playwright.config.ts)); set `PLAYWRIGHT_BASE_URL` or `BASE_URL` for the app origin. Run from `tests/ui-tests/` with `npm install` and `npx playwright test`. Reports use **Allure** (`allure-playwright` in config). Tag vocabulary for contributors (`@smoke`, `@merge-gate`, `@client-validation`, …) lives in [`.cursor/rules/playwright-ui-tests.mdc`](../.cursor/rules/playwright-ui-tests.mdc). For setup from the repo root, see [README § Testing & automation](../README.md#testing--automation).
+The repository ships **Playwright** tests under [`tests/ui-tests/`](../tests/ui-tests/). Configuration loads the repo root `.env` then [`tests/ui-tests/.env`](../tests/ui-tests/.env) (see [`playwright.config.ts`](../tests/ui-tests/playwright.config.ts)); set `PLAYWRIGHT_BASE_URL` or `BASE_URL` for the app origin. Run from `tests/ui-tests/` with `npm install` and `npx playwright test`. Reports use **Allure** (`allure-playwright` in config). Tag vocabulary for contributors (`@smoke`, `@merge-gate`, `@client-validation`, …) lives in [`.cursor/rules/playwright-ui-tests.mdc`](../.cursor/rules/playwright-ui-tests.mdc). Optional **API-shaped TypeScript types** (users, markets/cryptos, orders, balances, payments) are exported from [`tests/ui-tests/src/models/index.ts`](../tests/ui-tests/src/models/index.ts). For setup from the repo root, see [README § Testing & automation](../README.md#testing--automation).
 
 ---
 
