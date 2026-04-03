@@ -1,6 +1,12 @@
 export type { Paginated, PaginatedMeta } from "./pagination.types";
 
-export type { UserProfile, UserRole, UserWithProfile } from "./user/user.types";
+export type {
+    UserProfile,
+    UserProfileRegistrationFields,
+    UserRole,
+    UserWithProfile,
+    UserWithProfileTestData,
+} from "./user/user.types";
 
 export type { Asset, AssetType } from "./market/asset.types";
 export type { Crypto, CryptoPriceHistoryPoint, CryptoPriceHistoryResponse, CryptosListResponse } from "./market/crypto.types";
@@ -24,5 +30,5 @@ export type { MarketType, Order, OrderSide, OrderStatus, OrderType, OrdersListRe
 export type { TradingPair } from "./trading/trading-pair.types";
 export type { Trade, TradeHistoryEntry } from "./trading/trade.types";
 
-export { AdminUser } from "./AdminUser";
-export { TestUser, type UserWithProfileTestData } from "./TestUser";
+export { AdminUser } from "./user/AdminUser";
+export { TestUser } from "./user/TestUser";

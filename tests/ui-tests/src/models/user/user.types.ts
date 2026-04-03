@@ -33,3 +33,40 @@ export type UserWithProfile = {
     updatedAt: string;
     profile: UserProfile | null;
 };
+
+/**
+ * Profile fields accepted as flat input for `POST /auth/register-with-profile` (optional).
+ * Same names as {@link UserProfile}; no `id` / `userId` (assigned by the server).
+ */
+export type UserProfileRegistrationFields = Partial<
+    Pick<
+        UserProfile,
+        | "photoUrl"
+        | "username"
+        | "bio"
+        | "fullName"
+        | "websiteUrl"
+        | "location"
+        | "birthday"
+        | "languageCode"
+        | "timezone"
+        | "preferences"
+    >
+>;
+
+/**
+ * Data carried by tests: registration/login credentials, optional profile fields, and optional
+ * post-auth fields merged from API responses. Not the same as {@link UserWithProfile} (nested API shape).
+ */
+export type UserWithProfileTestData = {
+    email: string;
+    password: string;
+    displayName?: string;
+} & UserProfileRegistrationFields & {
+    id?: string;
+    emailVerifiedAt?: Date | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+    /** Raw profile from API when tests stash the full nested object */
+    profile?: unknown;
+};

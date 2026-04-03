@@ -1,7 +1,8 @@
 import { APIRequestContext } from "@playwright/test";
 import { BaseApi } from "./base.api";
 import { UserApi } from "./user.api";
-import { TestUser, UserWithProfileTestData } from "../models/TestUser";
+import type { UserWithProfileTestData } from "../models/user/user.types";
+import { TestUser } from "../models/user/TestUser";
 
 export type AuthUserDto = {
     id: string;

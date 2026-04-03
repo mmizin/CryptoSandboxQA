@@ -2,7 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { AuthApi } from "../api/auth.api";
 import type { UserFactory } from "../factories/user.factory";
-import type { TestUser } from "../models/TestUser";
+import type { TestUser } from "../models/user/TestUser";
 import { CHART_BLOCK_COUNT, type DashboardPage } from "../pages/dashboard.page";
 import { ApiUserCreationStrategy } from "../strategies/user/api.strategy";
 
