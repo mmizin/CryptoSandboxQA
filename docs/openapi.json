@@ -4,12 +4,28 @@
     "/": {
       "get": {
         "operationId": "AppController_root",
+        "summary": "API metadata and documentation links",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Service name, version, and doc URLs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "name": "Test Exchange API",
+                    "version": "1.0",
+                    "docs": "/api/docs",
+                    "docsJson": "/api/docs-json"
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "tags": [
+          "app"
+        ]
       }
     },
     "/users": {
@@ -29,7 +45,22 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns list of users"
+            "description": "Returns list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "email": "trader@example.com",
+                      "displayName": "Demo Trader",
+                      "role": "user",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -49,7 +80,33 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns current user with profile"
+            "description": "Returns current user with profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -77,7 +134,33 @@
         },
         "responses": {
           "200": {
-            "description": "Returns updated user"
+            "description": "Returns updated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -143,13 +226,50 @@
         ],
         "responses": {
           "200": {
-            "description": "JSON array or CSV file"
+            "description": "JSON array (application/json) or CSV file (text/csv), depending on format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "email": "a@example.com",
+                      "displayName": "User A",
+                      "role": "user",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid preset or date range"
+            "description": "Invalid preset or date range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 400,
+                    "message": "Invalid preset or date range",
+                    "error": "Bad Request"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -179,10 +299,47 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns user with profile"
+            "description": "Returns user with profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -220,13 +377,61 @@
         },
         "responses": {
           "200": {
-            "description": "Returns updated user"
+            "description": "Returns updated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           },
           "409": {
-            "description": "Email already in use"
+            "description": "Email already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 409,
+                    "message": "Email already in use",
+                    "error": "Conflict"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -264,13 +469,61 @@
         },
         "responses": {
           "200": {
-            "description": "Returns updated user"
+            "description": "Returns updated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           },
           "409": {
-            "description": "Email already in use"
+            "description": "Email already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 409,
+                    "message": "Email already in use",
+                    "error": "Conflict"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -300,7 +553,39 @@
         },
         "responses": {
           "201": {
-            "description": "Returns access token"
+            "description": "Returns access token, or a temporary token when 2FA is required",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "session": {
+                    "summary": "JWT issued",
+                    "value": {
+                      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+                      "user": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "email": "trader@example.com",
+                        "displayName": "Demo Trader",
+                        "role": "user",
+                        "emailVerifiedAt": "2026-04-09T12:00:00.000Z",
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "updatedAt": "2026-04-09T12:00:00.000Z",
+                        "profile": {
+                          "username": "demotrader",
+                          "fullName": "Demo Trader"
+                        }
+                      }
+                    }
+                  },
+                  "twoFactor": {
+                    "summary": "2FA verification required",
+                    "value": {
+                      "requires2FA": true,
+                      "tempToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.temp2fa"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -326,7 +611,16 @@
         },
         "responses": {
           "200": {
-            "description": "Generic confirmation message"
+            "description": "Generic confirmation message (same whether or not the email exists)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "message": "If an account exists for this email, a reset code has been sent. Check your inbox."
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -352,10 +646,30 @@
         },
         "responses": {
           "200": {
-            "description": "Password updated"
+            "description": "Password updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid or expired code"
+            "description": "Invalid or expired code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 400,
+                    "message": "Invalid or expired reset code",
+                    "error": "Bad Request"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -380,7 +694,29 @@
         },
         "responses": {
           "201": {
-            "description": "Returns user and access token"
+            "description": "Returns user and access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+                    "user": {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "email": "trader@example.com",
+                      "displayName": "Demo Trader",
+                      "role": "user",
+                      "emailVerifiedAt": "2026-04-09T12:00:00.000Z",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "updatedAt": "2026-04-09T12:00:00.000Z",
+                      "profile": {
+                        "username": "demotrader",
+                        "fullName": "Demo Trader"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -415,10 +751,38 @@
         },
         "responses": {
           "201": {
-            "description": "Returns admin user and access token"
+            "description": "Returns admin user and access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin",
+                    "user": {
+                      "id": "660e8400-e29b-41d4-a716-446655440001",
+                      "email": "admin@example.com",
+                      "displayName": "Admin",
+                      "role": "admin",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "updatedAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing admin API key"
+            "description": "Invalid or missing admin API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 401,
+                    "message": "Invalid or missing admin API key",
+                    "error": "Unauthorized"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -444,13 +808,61 @@
         },
         "responses": {
           "201": {
-            "description": "User created"
+            "description": "User created (no session for the new user)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "trader@example.com",
+                    "displayName": "Demo Trader",
+                    "role": "user",
+                    "profile": {
+                      "username": "demotrader",
+                      "fullName": "Demo Trader",
+                      "photoUrl": null,
+                      "bio": "QA practice account",
+                      "websiteUrl": null,
+                      "location": "EU",
+                      "birthday": null,
+                      "languageCode": "en",
+                      "timezone": "UTC",
+                      "preferences": {}
+                    },
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "409": {
-            "description": "Email or username conflict"
+            "description": "Email or username conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 409,
+                    "message": "Email already registered",
+                    "error": "Conflict"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -491,13 +903,58 @@
         },
         "responses": {
           "201": {
-            "description": "created / failed / skipped counts and per-row rows"
+            "description": "created / failed / skipped counts and per-row outcomes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "created": 2,
+                    "failed": 0,
+                    "skipped": 1,
+                    "rows": [
+                      {
+                        "email": "new@example.com",
+                        "status": "created",
+                        "userId": "880e8400-e29b-41d4-a716-446655440003"
+                      },
+                      {
+                        "email": "dup@example.com",
+                        "status": "skipped",
+                        "message": "Email already registered"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Missing file or parse error"
+            "description": "Missing file or parse error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 400,
+                    "message": "Invalid or expired reset code",
+                    "error": "Bad Request"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -528,7 +985,29 @@
         },
         "responses": {
           "201": {
-            "description": "Returns user and access token"
+            "description": "Returns user and access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+                    "user": {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "email": "trader@example.com",
+                      "displayName": "Demo Trader",
+                      "role": "user",
+                      "emailVerifiedAt": "2026-04-09T12:00:00.000Z",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "updatedAt": "2026-04-09T12:00:00.000Z",
+                      "profile": {
+                        "username": "demotrader",
+                        "fullName": "Demo Trader"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -553,10 +1032,38 @@
         },
         "responses": {
           "201": {
-            "description": "Returns target user token and backToAdminToken"
+            "description": "Returns target user token and backToAdminToken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.imp",
+                    "backToAdminToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.back",
+                    "user": {
+                      "id": "770e8400-e29b-41d4-a716-446655440002",
+                      "email": "target@example.com",
+                      "displayName": "Target User",
+                      "role": "user",
+                      "impersonatedBy": "660e8400-e29b-41d4-a716-446655440001"
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -586,7 +1093,24 @@
         },
         "responses": {
           "200": {
-            "description": "Returns admin token"
+            "description": "Returns admin session (access token + user)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin",
+                    "user": {
+                      "id": "660e8400-e29b-41d4-a716-446655440001",
+                      "email": "admin@example.com",
+                      "displayName": "Admin",
+                      "role": "admin",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "updatedAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -610,7 +1134,16 @@
         ],
         "responses": {
           "200": {
-            "description": "Session invalidated"
+            "description": "Session invalidated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -640,7 +1173,29 @@
         },
         "responses": {
           "201": {
-            "description": "Returns access token after 2FA verification"
+            "description": "Returns access token after 2FA verification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+                    "user": {
+                      "id": "550e8400-e29b-41d4-a716-446655440000",
+                      "email": "trader@example.com",
+                      "displayName": "Demo Trader",
+                      "role": "user",
+                      "emailVerifiedAt": "2026-04-09T12:00:00.000Z",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "updatedAt": "2026-04-09T12:00:00.000Z",
+                      "profile": {
+                        "username": "demotrader",
+                        "fullName": "Demo Trader"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -655,7 +1210,16 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns { enabled: boolean }"
+            "description": "Returns { enabled: boolean }",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "enabled": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -675,7 +1239,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns QR code URL and secret"
+            "description": "Returns QR data URL and secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "qrCodeUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+                    "secret": "JBSWY3DPEHPK3PXP"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -705,7 +1279,19 @@
         },
         "responses": {
           "200": {
-            "description": "2FA enabled, returns backup codes"
+            "description": "2FA enabled, returns backup codes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "backupCodes": [
+                      "ABCD1234EFGH",
+                      "WXYZ9876KJMN"
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -735,7 +1321,16 @@
         },
         "responses": {
           "200": {
-            "description": "2FA disabled"
+            "description": "2FA disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -755,7 +1350,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Original codes are not retrievable after setup",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "codes": [],
+                    "message": "Backup codes are shown only once during 2FA setup. Use regenerate to get new codes."
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -775,7 +1380,20 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns new backup codes"
+            "description": "Returns new backup codes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "codes": [
+                      "NEWCODE1AAAA",
+                      "NEWCODE2BBBB",
+                      "NEWCODE3CCCC"
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -795,7 +1413,31 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns user wallets"
+            "description": "Returns user wallets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "asset": "USD",
+                      "balance": "10000.50",
+                      "balanceAvailable": "10000.50",
+                      "balanceLocked": "0"
+                    },
+                    {
+                      "id": "bb0e8400-e29b-41d4-a716-446655440011",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "asset": "BTC",
+                      "balance": "0.15",
+                      "balanceAvailable": "0.14",
+                      "balanceLocked": "0.01"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -825,7 +1467,21 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns wallet"
+            "description": "Returns wallet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "asset": "USD",
+                    "balance": "10000.50",
+                    "balanceAvailable": "10000.50",
+                    "balanceLocked": "0"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -855,7 +1511,41 @@
         },
         "responses": {
           "201": {
-            "description": "Returns updated wallet"
+            "description": "Training credit: deposit row + updated balance + ledger entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "deposit": {
+                      "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                      "depositType": "fiat",
+                      "fiatCurrency": "USD",
+                      "amount": "100.00",
+                      "status": "completed",
+                      "completedAt": "2026-04-09T12:00:00.000Z"
+                    },
+                    "balance": {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "asset": "USD",
+                      "balance": "10100.50",
+                      "balanceAvailable": "10100.50",
+                      "balanceLocked": "0"
+                    },
+                    "transaction": {
+                      "id": "bt-1",
+                      "type": "deposit",
+                      "amount": "100",
+                      "balanceBefore": "10000.5",
+                      "balanceAfter": "10100.5",
+                      "refType": "deposit_fiat",
+                      "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -885,7 +1575,33 @@
         },
         "responses": {
           "201": {
-            "description": "Returns updated wallet"
+            "description": "Updated balance and withdraw ledger entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "balance": {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "asset": "USD",
+                      "balance": "9900.00",
+                      "balanceAvailable": "9900.00",
+                      "balanceLocked": "0"
+                    },
+                    "transaction": {
+                      "id": "bt-wd-2",
+                      "type": "withdraw",
+                      "amount": "-100",
+                      "balanceBefore": "10000",
+                      "balanceAfter": "9900",
+                      "refType": null,
+                      "refId": null,
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -915,13 +1631,59 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns user wallets"
+            "description": "Returns user wallets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "asset": "USD",
+                      "balance": "10000.50",
+                      "balanceAvailable": "10000.50",
+                      "balanceLocked": "0"
+                    },
+                    {
+                      "id": "bb0e8400-e29b-41d4-a716-446655440011",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "asset": "BTC",
+                      "balance": "0.15",
+                      "balanceAvailable": "0.14",
+                      "balanceLocked": "0.01"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -960,13 +1722,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns wallet"
+            "description": "Returns wallet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "asset": "USD",
+                    "balance": "10000.50",
+                    "balanceAvailable": "10000.50",
+                    "balanceLocked": "0"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User or wallet not found"
+            "description": "User or wallet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "Wallet not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1032,7 +1830,27 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns cryptos and total count"
+            "description": "Returns cryptos and total count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "cr-1",
+                        "name": "Bitcoin",
+                        "symbol": "BTC",
+                        "price": "65000",
+                        "change24h": "1.25",
+                        "volume24h": "1234567890",
+                        "popular": true
+                      }
+                    ],
+                    "total": 42
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1080,7 +1898,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Price history points",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "symbol": "BTC",
+                    "data": [
+                      {
+                        "timestamp": "2026-04-09T12:00:00.000Z",
+                        "price": "65000"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1104,10 +1937,36 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Single market listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cr-1",
+                    "name": "Bitcoin",
+                    "symbol": "BTC",
+                    "price": "65000",
+                    "change24h": "1.25",
+                    "volume24h": "1234567890",
+                    "popular": true
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Crypto not found"
+            "description": "Crypto not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1132,7 +1991,30 @@
         },
         "responses": {
           "201": {
-            "description": "Returns created order"
+            "description": "Returns created order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "marketType": "spot",
+                    "symbol": "BTC_USD",
+                    "side": "buy",
+                    "quantity": "0.1",
+                    "price": "65000",
+                    "filledQuantity": "0",
+                    "failureReason": null,
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": null,
+                    "type": "limit",
+                    "status": "open",
+                    "trades": []
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1210,7 +2092,38 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns filtered orders"
+            "description": "Returns filtered orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "marketType": "spot",
+                        "symbol": "BTC_USD",
+                        "side": "buy",
+                        "quantity": "0.1",
+                        "price": "65000",
+                        "filledQuantity": "0",
+                        "type": "limit",
+                        "status": "open",
+                        "trades": [],
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "updatedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1250,7 +2163,30 @@
         },
         "responses": {
           "200": {
-            "description": "Returns updated order"
+            "description": "Returns updated order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "marketType": "spot",
+                    "symbol": "BTC_USD",
+                    "side": "buy",
+                    "quantity": "0.1",
+                    "price": "65000",
+                    "filledQuantity": "0",
+                    "failureReason": null,
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": null,
+                    "type": "limit",
+                    "status": "open",
+                    "trades": []
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1280,7 +2216,30 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns cancelled order"
+            "description": "Returns cancelled order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "marketType": "spot",
+                    "symbol": "BTC_USD",
+                    "side": "buy",
+                    "quantity": "0.1",
+                    "price": "65000",
+                    "filledQuantity": "0",
+                    "failureReason": null,
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": null,
+                    "type": "limit",
+                    "status": "open",
+                    "trades": []
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1333,7 +2292,38 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Orders in date range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "marketType": "spot",
+                        "symbol": "BTC_USD",
+                        "side": "buy",
+                        "quantity": "0.1",
+                        "price": "65000",
+                        "filledQuantity": "0",
+                        "type": "limit",
+                        "status": "open",
+                        "trades": [],
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "updatedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1378,7 +2368,38 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Orders for symbol",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "marketType": "spot",
+                        "symbol": "BTC_USD",
+                        "side": "buy",
+                        "quantity": "0.1",
+                        "price": "65000",
+                        "filledQuantity": "0",
+                        "type": "limit",
+                        "status": "open",
+                        "trades": [],
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "updatedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1408,7 +2429,30 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns order"
+            "description": "Returns order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "marketType": "spot",
+                    "symbol": "BTC_USD",
+                    "side": "buy",
+                    "quantity": "0.1",
+                    "price": "65000",
+                    "filledQuantity": "0",
+                    "failureReason": null,
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": null,
+                    "type": "limit",
+                    "status": "open",
+                    "trades": []
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1501,13 +2545,66 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns filtered orders"
+            "description": "Returns filtered orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "marketType": "spot",
+                        "symbol": "BTC_USD",
+                        "side": "buy",
+                        "quantity": "0.1",
+                        "price": "65000",
+                        "filledQuantity": "0",
+                        "type": "limit",
+                        "status": "open",
+                        "trades": [],
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "updatedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1546,13 +2643,58 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns order"
+            "description": "Returns order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "cc0e8400-e29b-41d4-a716-446655440020",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "marketType": "spot",
+                    "symbol": "BTC_USD",
+                    "side": "buy",
+                    "quantity": "0.1",
+                    "price": "65000",
+                    "filledQuantity": "0",
+                    "failureReason": null,
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "updatedAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": null,
+                    "type": "limit",
+                    "status": "open",
+                    "trades": []
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User or order not found"
+            "description": "User or order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1582,7 +2724,45 @@
         },
         "responses": {
           "201": {
-            "description": "Deposit created and balance updated"
+            "description": "Deposit created and balance updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "deposit": {
+                      "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "fiatCurrency": "USD",
+                      "amount": "500",
+                      "fee": "2.5",
+                      "status": "completed",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "completedAt": "2026-04-09T12:00:00.000Z"
+                    },
+                    "balance": {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "asset": "USD",
+                      "balance": "10000.50",
+                      "balanceAvailable": "10000.50",
+                      "balanceLocked": "0"
+                    },
+                    "transaction": {
+                      "id": "bt-2",
+                      "type": "deposit",
+                      "amount": "500",
+                      "balanceBefore": "9500",
+                      "balanceAfter": "10000",
+                      "refType": "deposit_fiat",
+                      "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    },
+                    "meta": {
+                      "userId": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1635,7 +2815,33 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Paginated fiat deposits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "fiatCurrency": "USD",
+                        "amount": "500",
+                        "fee": "2.5",
+                        "status": "completed",
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "completedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 20,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1664,7 +2870,23 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Fiat deposit detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "fiatCurrency": "USD",
+                    "amount": "500",
+                    "fee": "2.5",
+                    "status": "completed",
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1694,7 +2916,19 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Mock deposit address for symbol",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "symbol": "BTC",
+                    "walletAddress": "bc1qtraining000000000000000000000000000000000000",
+                    "expiresAt": null
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1724,7 +2958,44 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Crypto deposit recorded and balance credited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "deposit": {
+                      "id": "ff0e8400-e29b-41d4-a716-446655440050",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "amount": "0.05",
+                      "walletAddress": "bc1qabc",
+                      "status": "completed",
+                      "createdAt": "2026-04-09T12:00:00.000Z",
+                      "symbol": "BTC"
+                    },
+                    "balance": {
+                      "id": "bb0e8400-e29b-41d4-a716-446655440011",
+                      "asset": "BTC",
+                      "balance": "0.2",
+                      "balanceAvailable": "0.2",
+                      "balanceLocked": "0"
+                    },
+                    "transaction": {
+                      "id": "bt-3",
+                      "type": "deposit",
+                      "amount": "0.05",
+                      "balanceBefore": "0.15",
+                      "balanceAfter": "0.2",
+                      "refType": "deposit_crypto",
+                      "refId": "ff0e8400-e29b-41d4-a716-446655440050",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    },
+                    "meta": {
+                      "userId": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1759,7 +3030,32 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Paginated crypto deposits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "ff0e8400-e29b-41d4-a716-446655440050",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "amount": "0.05",
+                        "walletAddress": "bc1qabc",
+                        "status": "completed",
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "symbol": "BTC"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 20,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1788,7 +3084,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Crypto deposit detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "ff0e8400-e29b-41d4-a716-446655440050",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "amount": "0.05",
+                    "walletAddress": "bc1qabc",
+                    "status": "completed",
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "symbol": "BTC"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1854,13 +3165,61 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns fiat deposits"
+            "description": "Returns fiat deposits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "fiatCurrency": "USD",
+                        "amount": "500",
+                        "fee": "2.5",
+                        "status": "completed",
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "completedAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 20,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1899,13 +3258,51 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns fiat deposit"
+            "description": "Returns fiat deposit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "dd0e8400-e29b-41d4-a716-446655440030",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "fiatCurrency": "USD",
+                    "amount": "500",
+                    "fee": "2.5",
+                    "status": "completed",
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "completedAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User or deposit not found"
+            "description": "User or deposit not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1953,13 +3350,60 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns crypto deposits"
+            "description": "Returns crypto deposits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "ff0e8400-e29b-41d4-a716-446655440050",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "amount": "0.05",
+                        "walletAddress": "bc1qabc",
+                        "status": "completed",
+                        "createdAt": "2026-04-09T12:00:00.000Z",
+                        "symbol": "BTC"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 20,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1998,13 +3442,50 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns crypto deposit"
+            "description": "Returns crypto deposit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "ff0e8400-e29b-41d4-a716-446655440050",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "amount": "0.05",
+                    "walletAddress": "bc1qabc",
+                    "status": "completed",
+                    "createdAt": "2026-04-09T12:00:00.000Z",
+                    "symbol": "BTC"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User or deposit not found"
+            "description": "User or deposit not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2024,7 +3505,23 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns payment methods"
+            "description": "Returns payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "ee0e8400-e29b-41d4-a716-446655440040",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "type": "card",
+                      "maskedDetails": "**** **** **** 4242",
+                      "isDefault": true,
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2052,7 +3549,21 @@
         },
         "responses": {
           "201": {
-            "description": "Returns created payment method"
+            "description": "Returns created payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "ee0e8400-e29b-41d4-a716-446655440040",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "type": "card",
+                    "maskedDetails": "**** **** **** 4242",
+                    "isDefault": true,
+                    "createdAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2081,7 +3592,16 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2110,7 +3630,21 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Updated default flag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "ee0e8400-e29b-41d4-a716-446655440040",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "type": "card",
+                    "maskedDetails": "**** **** **** 4242",
+                    "isDefault": true,
+                    "createdAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2140,13 +3674,51 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns payment methods"
+            "description": "Returns payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "ee0e8400-e29b-41d4-a716-446655440040",
+                      "userId": "550e8400-e29b-41d4-a716-446655440000",
+                      "type": "card",
+                      "maskedDetails": "**** **** **** 4242",
+                      "isDefault": true,
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2185,13 +3757,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns payment method"
+            "description": "Returns payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "ee0e8400-e29b-41d4-a716-446655440040",
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "type": "card",
+                    "maskedDetails": "**** **** **** 4242",
+                    "isDefault": true,
+                    "createdAt": "2026-04-09T12:00:00.000Z"
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User or payment method not found"
+            "description": "User or payment method not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2211,7 +3819,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Per-asset balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "balances": [
+                      {
+                        "asset": "USD",
+                        "available": "9500.00",
+                        "locked": "500.50",
+                        "total": "10000.50"
+                      },
+                      {
+                        "asset": "BTC",
+                        "available": "0.14",
+                        "locked": "0.01",
+                        "total": "0.15"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2231,7 +3861,30 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Total value and per-asset breakdown in USD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "totalValueUsd": "51250.75",
+                    "assets": [
+                      {
+                        "symbol": "USD",
+                        "amount": "10000.50",
+                        "priceUsd": "1",
+                        "valueUsd": "10000.50"
+                      },
+                      {
+                        "symbol": "BTC",
+                        "amount": "0.15",
+                        "priceUsd": "275000",
+                        "valueUsd": "41250.25"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2251,7 +3904,27 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Allocation percentages by asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "allocations": [
+                      {
+                        "symbol": "BTC",
+                        "percentage": 80.5,
+                        "valueUsd": "41250.25"
+                      },
+                      {
+                        "symbol": "USD",
+                        "percentage": 19.5,
+                        "valueUsd": "10000.50"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2281,13 +3954,57 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns user balances"
+            "description": "Returns user balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "balances": [
+                      {
+                        "asset": "USD",
+                        "available": "9500.00",
+                        "locked": "500.50",
+                        "total": "10000.50"
+                      },
+                      {
+                        "asset": "BTC",
+                        "available": "0.14",
+                        "locked": "0.01",
+                        "total": "0.15"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2317,13 +4034,58 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns portfolio summary with total value"
+            "description": "Returns portfolio summary with total value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "totalValueUsd": "51250.75",
+                    "assets": [
+                      {
+                        "symbol": "USD",
+                        "amount": "10000.50",
+                        "priceUsd": "1",
+                        "valueUsd": "10000.50"
+                      },
+                      {
+                        "symbol": "BTC",
+                        "amount": "0.15",
+                        "priceUsd": "275000",
+                        "valueUsd": "41250.25"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2353,13 +4115,55 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns asset allocation percentages"
+            "description": "Returns asset allocation percentages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "allocations": [
+                      {
+                        "symbol": "BTC",
+                        "percentage": 80.5,
+                        "valueUsd": "41250.25"
+                      },
+                      {
+                        "symbol": "USD",
+                        "percentage": 19.5,
+                        "valueUsd": "10000.50"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2420,7 +4224,35 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Balance transactions (unified)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "deposit",
+                        "asset": "USD",
+                        "amount": "500",
+                        "balanceBefore": "9500",
+                        "balanceAfter": "10000",
+                        "refType": "deposit_fiat",
+                        "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2473,7 +4305,35 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Deposit ledger entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "deposit",
+                        "asset": "USD",
+                        "amount": "500",
+                        "balanceBefore": "9500",
+                        "balanceAfter": "10000",
+                        "refType": "deposit_fiat",
+                        "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2526,7 +4386,33 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Trade fills for the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "tr-1",
+                        "symbol": "BTC_USD",
+                        "quantity": "0.01",
+                        "price": "65000",
+                        "side": "taker",
+                        "takerUserId": "550e8400-e29b-41d4-a716-446655440000",
+                        "makerUserId": "990e8400-e29b-41d4-a716-446655440099",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2563,7 +4449,35 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Withdrawal ledger entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-wd-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "withdraw",
+                        "asset": "USD",
+                        "amount": "-100",
+                        "balanceBefore": "10000",
+                        "balanceAfter": "9900",
+                        "refType": "withdrawal",
+                        "refId": "wd-1",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2638,13 +4552,63 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns transaction history"
+            "description": "Returns transaction history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "deposit",
+                        "asset": "USD",
+                        "amount": "500",
+                        "balanceBefore": "9500",
+                        "balanceAfter": "10000",
+                        "refType": "deposit_fiat",
+                        "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2710,13 +4674,63 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns deposit history"
+            "description": "Returns deposit history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "deposit",
+                        "asset": "USD",
+                        "amount": "500",
+                        "balanceBefore": "9500",
+                        "balanceAfter": "10000",
+                        "refType": "deposit_fiat",
+                        "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2782,13 +4796,61 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns trade history"
+            "description": "Returns trade history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "tr-1",
+                        "symbol": "BTC_USD",
+                        "quantity": "0.01",
+                        "price": "65000",
+                        "side": "taker",
+                        "takerUserId": "550e8400-e29b-41d4-a716-446655440000",
+                        "makerUserId": "990e8400-e29b-41d4-a716-446655440099",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2836,13 +4898,63 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns withdrawal history"
+            "description": "Returns withdrawal history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-wd-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "withdraw",
+                        "asset": "USD",
+                        "amount": "-100",
+                        "balanceBefore": "10000",
+                        "balanceAfter": "9900",
+                        "refType": "withdrawal",
+                        "refId": "wd-1",
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Admin access required"
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Admin access required",
+                    "error": "Forbidden"
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 404,
+                    "message": "User not found",
+                    "error": "Not Found"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2858,12 +4970,24 @@
     "/metrics": {
       "get": {
         "operationId": "MetricsController_metrics",
+        "summary": "Prometheus metrics (text exposition format)",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Prometheus text format",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "# HELP http_requests_total Total HTTP requests\n# TYPE http_requests_total counter\nhttp_requests_total 42\n"
+                }
+              }
+            }
           }
-        }
+        },
+        "tags": [
+          "metrics"
+        ]
       }
     }
   },

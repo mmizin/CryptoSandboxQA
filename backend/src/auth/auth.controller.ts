@@ -18,9 +18,10 @@ import {
   ApiConsumes,
   ApiHeader,
   ApiOperation,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample, ApiJsonExamples } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -60,8 +61,10 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login' })
   @ApiBody({ type: LoginDto })
-  @ApiResponse({ status: 201, description: 'Returns access token' })
-  @ApiResponse({ status: 201, description: 'Returns tempToken when 2FA required' })
+  @ApiJsonExamples(201, 'Returns access token, or a temporary token when 2FA is required', {
+    session: { summary: 'JWT issued', value: OA.auth.accessToken },
+    twoFactor: { summary: '2FA verification required', value: OA.auth.requires2FA },
+  })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
@@ -74,7 +77,7 @@ export class AuthController {
       'Sends an 8-digit code to the email when the account exists. Response is always the same to avoid email enumeration.',
   })
   @ApiBody({ type: ForgotPasswordDto })
-  @ApiResponse({ status: 200, description: 'Generic confirmation message' })
+  @ApiJsonExample(200, 'Generic confirmation message (same whether or not the email exists)', OA.auth.forgotPassword)
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.requestPasswordReset(dto.email);
   }
@@ -86,8 +89,8 @@ export class AuthController {
     description: 'Consumes the code from the reset email and sets a new password. Invalidates all sessions for the user.',
   })
   @ApiBody({ type: ResetPasswordWithCodeDto })
-  @ApiResponse({ status: 200, description: 'Password updated' })
-  @ApiResponse({ status: 400, description: 'Invalid or expired code' })
+  @ApiJsonExample(200, 'Password updated', OA.auth.resetPasswordSuccess)
+  @ApiJsonExample(400, 'Invalid or expired code', OA.httpError.badRequest)
   async resetPassword(@Body() dto: ResetPasswordWithCodeDto) {
     return this.authService.resetPasswordWithCode(dto.email, dto.code, dto.newPassword);
   }
@@ -95,7 +98,7 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
   @ApiBody({ type: RegisterDto })
-  @ApiResponse({ status: 201, description: 'Returns user and access token' })
+  @ApiJsonExample(201, 'Returns user and access token', OA.auth.accessToken)
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto.email, dto.password, dto.displayName);
   }
@@ -109,8 +112,8 @@ export class AuthController {
   })
   @ApiHeader({ name: 'X-Admin-API-Key', description: 'Admin API key from ADMIN_API_KEY env' })
   @ApiBody({ type: CreateAdminDto })
-  @ApiResponse({ status: 201, description: 'Returns admin user and access token' })
-  @ApiResponse({ status: 401, description: 'Invalid or missing admin API key' })
+  @ApiJsonExample(201, 'Returns admin user and access token', OA.auth.adminAccessToken)
+  @ApiJsonExample(401, 'Invalid or missing admin API key', OA.httpError.unauthorized)
   async createAdmin(@Body() dto: CreateAdminDto) {
     return this.authService.createAdmin(dto.email, dto.password, dto.displayName);
   }
@@ -125,9 +128,9 @@ export class AuthController {
       'Persists user and optional profile to the database (same rules as register-with-profile). Does not create a session for the new user.',
   })
   @ApiBody({ type: CreateUserDto })
-  @ApiResponse({ status: 201, description: 'User created' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 409, description: 'Email or username conflict' })
+  @ApiJsonExample(201, 'User created (no session for the new user)', OA.users.withProfile)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(409, 'Email or username conflict', OA.httpError.conflictEmail)
   async createUserAsAdmin(@Body() dto: CreateUserDto) {
     return this.authService.createUserWithProfileAsAdmin({
       email: dto.email,
@@ -174,9 +177,9 @@ export class AuthController {
     description:
       'Single multipart upload. Rows are validated like the import template; duplicates in-DB yield skipped; invalid rows yield error entries. Response lists per-row outcomes in file order.',
   })
-  @ApiResponse({ status: 201, description: 'created / failed / skipped counts and per-row rows' })
-  @ApiResponse({ status: 400, description: 'Missing file or parse error' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
+  @ApiJsonExample(201, 'created / failed / skipped counts and per-row outcomes', OA.auth.bulkImport)
+  @ApiJsonExample(400, 'Missing file or parse error', OA.httpError.badRequest)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
   async bulkImportUsers(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('file field is required');
@@ -190,7 +193,7 @@ export class AuthController {
     description: 'Creates a user (same as register) plus optional UserProfile fields in one request.',
   })
   @ApiBody({ type: RegisterWithProfileDto })
-  @ApiResponse({ status: 201, description: 'Returns user and access token' })
+  @ApiJsonExample(201, 'Returns user and access token', OA.auth.accessToken)
   async registerWithProfile(@Body() dto: RegisterWithProfileDto) {
     return this.authService.registerWithProfile({
       email: dto.email,
@@ -214,8 +217,8 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Impersonate a user (admin only)' })
   @ApiBody({ type: ImpersonateDto })
-  @ApiResponse({ status: 201, description: 'Returns target user token and backToAdminToken' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
+  @ApiJsonExample(201, 'Returns target user token and backToAdminToken', OA.auth.impersonation)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
   async impersonate(@CurrentUser() user: { id: string }, @Body() dto: ImpersonateDto) {
     return this.authService.impersonate(user.id, dto.targetUserId);
   }
@@ -223,7 +226,7 @@ export class AuthController {
   @Post('end-impersonation')
   @ApiOperation({ summary: 'End impersonation and return to admin account' })
   @ApiBody({ type: EndImpersonationDto })
-  @ApiResponse({ status: 200, description: 'Returns admin token' })
+  @ApiJsonExample(200, 'Returns admin session (access token + user)', OA.auth.adminAccessToken)
   async endImpersonation(@Body() dto: EndImpersonationDto) {
     return this.authService.endImpersonation(dto.backToAdminToken);
   }
@@ -232,7 +235,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, SessionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout (invalidate session)' })
-  @ApiResponse({ status: 200, description: 'Session invalidated' })
+  @ApiJsonExample(200, 'Session invalidated', OA.auth.logout)
   async logout(@Headers('authorization') authHeader?: string) {
     const token = extractBearerToken(authHeader);
     if (token) {
@@ -244,7 +247,7 @@ export class AuthController {
   @Post('2fa/verify')
   @ApiOperation({ summary: 'Verify 2FA during login' })
   @ApiBody({ type: Verify2FaDto })
-  @ApiResponse({ status: 201, description: 'Returns access token after 2FA verification' })
+  @ApiJsonExample(201, 'Returns access token after 2FA verification', OA.auth.accessToken)
   async verify2Fa(@Body() dto: Verify2FaDto) {
     return this.authService.verify2Fa(dto.tempToken, dto.code);
   }
@@ -253,7 +256,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, SessionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get 2FA status' })
-  @ApiResponse({ status: 200, description: 'Returns { enabled: boolean }' })
+  @ApiJsonExample(200, 'Returns { enabled: boolean }', OA.auth.twoFaStatus)
   async get2FaStatus(@CurrentUser() user: { id: string }) {
     return this.twoFactorService.getStatus(user.id);
   }
@@ -262,7 +265,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, SessionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get 2FA setup (QR code and secret)' })
-  @ApiResponse({ status: 200, description: 'Returns QR code URL and secret' })
+  @ApiJsonExample(200, 'Returns QR data URL and secret', OA.auth.twoFaSetup)
   async get2FaSetup(@CurrentUser() user: { id: string }) {
     return this.twoFactorService.getSetup(user.id);
   }
@@ -272,7 +275,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Enable 2FA after verifying code' })
   @ApiBody({ type: Enable2FaDto })
-  @ApiResponse({ status: 200, description: '2FA enabled, returns backup codes' })
+  @ApiJsonExample(200, '2FA enabled, returns backup codes', OA.auth.twoFaEnable)
   async enable2Fa(@CurrentUser() user: { id: string }, @Body() dto: Enable2FaDto) {
     return this.twoFactorService.enable(user.id, dto.code);
   }
@@ -282,7 +285,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Disable 2FA' })
   @ApiBody({ type: Disable2FaDto })
-  @ApiResponse({ status: 200, description: '2FA disabled' })
+  @ApiJsonExample(200, '2FA disabled', OA.auth.twoFaDisable)
   async disable2Fa(@CurrentUser() user: { id: string }, @Body() dto: Disable2FaDto) {
     await this.twoFactorService.disable(user.id, dto.code);
     return { success: true };
@@ -292,7 +295,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, SessionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get backup codes (throws - use regenerate)' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Original codes are not retrievable after setup', OA.auth.twoFaBackupCodesInfo)
   async getBackupCodes(@CurrentUser() user: { id: string }) {
     return this.twoFactorService.getBackupCodes(user.id);
   }
@@ -301,7 +304,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, SessionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Regenerate backup codes' })
-  @ApiResponse({ status: 200, description: 'Returns new backup codes' })
+  @ApiJsonExample(200, 'Returns new backup codes', OA.auth.twoFaRegenerate)
   async regenerateBackupCodes(@CurrentUser() user: { id: string }) {
     const codes = await this.twoFactorService.regenerateBackupCodes(user.id);
     return { codes };

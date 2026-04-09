@@ -13,9 +13,10 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -34,7 +35,7 @@ export class DepositsController {
   @Post('fiat')
   @ApiOperation({ summary: 'Deposit fiat (USD/EUR)' })
   @ApiBody({ type: DepositFiatDto })
-  @ApiResponse({ status: 201, description: 'Deposit created and balance updated' })
+  @ApiJsonExample(201, 'Deposit created and balance updated', OA.deposits.fiatCreated)
   async depositFiat(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Body() dto: DepositFiatDto,
@@ -56,7 +57,7 @@ export class DepositsController {
   @ApiQuery({ name: 'offset', required: false })
   @ApiQuery({ name: 'from', required: false, description: 'ISO date' })
   @ApiQuery({ name: 'to', required: false, description: 'ISO date' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Paginated fiat deposits', OA.deposits.fiatList)
   async listFiat(
     @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,
@@ -75,7 +76,7 @@ export class DepositsController {
   @Get('fiat/:id')
   @ApiOperation({ summary: 'Get fiat deposit by ID' })
   @ApiParam({ name: 'id' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Fiat deposit detail', OA.deposits.fiatDepositRow)
   async getFiat(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     return this.depositsService.getFiatDeposit(user.id, id);
   }
@@ -83,7 +84,7 @@ export class DepositsController {
   @Post('crypto/address')
   @ApiOperation({ summary: 'Get wallet address for crypto deposit (mock)' })
   @ApiBody({ type: AddressRequestDto })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Mock deposit address for symbol', OA.deposits.cryptoAddress)
   async getCryptoAddress(@CurrentUser() user: { id: string }, @Body() dto: AddressRequestDto) {
     return this.depositsService.getCryptoDepositAddress(user.id, dto.symbol);
   }
@@ -91,7 +92,7 @@ export class DepositsController {
   @Post('crypto')
   @ApiOperation({ summary: 'Create crypto deposit (credits balance in sandbox)' })
   @ApiBody({ type: DepositCryptoDto })
-  @ApiResponse({ status: 201 })
+  @ApiJsonExample(201, 'Crypto deposit recorded and balance credited', OA.deposits.cryptoCreated)
   async depositCrypto(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Body() dto: DepositCryptoDto,
@@ -112,7 +113,7 @@ export class DepositsController {
   @ApiOperation({ summary: 'List crypto deposits' })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Paginated crypto deposits', OA.deposits.cryptoList)
   async listCrypto(
     @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,
@@ -127,7 +128,7 @@ export class DepositsController {
   @Get('crypto/:id')
   @ApiOperation({ summary: 'Get crypto deposit by ID' })
   @ApiParam({ name: 'id' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Crypto deposit detail', OA.deposits.cryptoDepositRow)
   async getCrypto(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     return this.depositsService.getCryptoDeposit(user.id, id);
   }

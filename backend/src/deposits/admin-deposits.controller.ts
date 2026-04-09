@@ -11,9 +11,10 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -37,9 +38,9 @@ export class AdminDepositsController {
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
   @ApiQuery({ name: 'from', required: false, description: 'Start date (ISO 8601)' })
   @ApiQuery({ name: 'to', required: false, description: 'End date (ISO 8601)' })
-  @ApiResponse({ status: 200, description: 'Returns fiat deposits' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns fiat deposits', OA.deposits.fiatList)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async listFiatDeposits(
     @Param('userId') userId: string,
     @Query('limit') limit?: string,
@@ -61,9 +62,9 @@ export class AdminDepositsController {
   @ApiOperation({ summary: 'Get user fiat deposit by ID (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'id', description: 'Deposit ID' })
-  @ApiResponse({ status: 200, description: 'Returns fiat deposit' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User or deposit not found' })
+  @ApiJsonExample(200, 'Returns fiat deposit', OA.deposits.fiatDepositRow)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User or deposit not found', OA.httpError.notFound)
   async getFiatDeposit(@Param('userId') userId: string, @Param('id') id: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');
@@ -75,9 +76,9 @@ export class AdminDepositsController {
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiQuery({ name: 'limit', required: false, description: 'Max results (1-100)' })
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
-  @ApiResponse({ status: 200, description: 'Returns crypto deposits' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns crypto deposits', OA.deposits.cryptoList)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async listCryptoDeposits(
     @Param('userId') userId: string,
     @Query('limit') limit?: string,
@@ -95,9 +96,9 @@ export class AdminDepositsController {
   @ApiOperation({ summary: 'Get user crypto deposit by ID (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'id', description: 'Deposit ID' })
-  @ApiResponse({ status: 200, description: 'Returns crypto deposit' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User or deposit not found' })
+  @ApiJsonExample(200, 'Returns crypto deposit', OA.deposits.cryptoDepositRow)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User or deposit not found', OA.httpError.notFound)
   async getCryptoDeposit(@Param('userId') userId: string, @Param('id') id: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');

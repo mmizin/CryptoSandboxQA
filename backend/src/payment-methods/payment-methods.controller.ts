@@ -13,9 +13,10 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -31,7 +32,7 @@ export class PaymentMethodsController {
 
   @Get()
   @ApiOperation({ summary: 'List user payment methods' })
-  @ApiResponse({ status: 200, description: 'Returns payment methods' })
+  @ApiJsonExample(200, 'Returns payment methods', OA.paymentMethods.list)
   async list(@CurrentUser() user: { id: string }) {
     return this.paymentMethodsService.findAllByUser(user.id);
   }
@@ -39,7 +40,7 @@ export class PaymentMethodsController {
   @Post()
   @ApiOperation({ summary: 'Add payment method' })
   @ApiBody({ type: CreatePaymentMethodDto })
-  @ApiResponse({ status: 201, description: 'Returns created payment method' })
+  @ApiJsonExample(201, 'Returns created payment method', OA.paymentMethods.row)
   async create(@CurrentUser() user: { id: string }, @Body() dto: CreatePaymentMethodDto) {
     return this.paymentMethodsService.create(user.id, {
       type: dto.type,
@@ -50,7 +51,7 @@ export class PaymentMethodsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Remove payment method' })
   @ApiParam({ name: 'id' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Removed', OA.paymentMethods.deleteSuccess)
   async delete(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     return this.paymentMethodsService.delete(user.id, id);
   }
@@ -58,7 +59,7 @@ export class PaymentMethodsController {
   @Patch(':id/default')
   @ApiOperation({ summary: 'Set default payment method' })
   @ApiParam({ name: 'id' })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Updated default flag', OA.paymentMethods.row)
   async setDefault(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     return this.paymentMethodsService.setDefault(user.id, id);
   }

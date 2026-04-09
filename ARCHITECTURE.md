@@ -6,7 +6,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 
 | Path | Role |
 |------|------|
-| `backend/` | NestJS API, Prisma schema & migrations, seeds |
+| `backend/` | NestJS API, Prisma schema & migrations, seeds; [`src/openapi/`](backend/src/openapi/) helpers and sample payloads for Swagger / `docs/openapi.json` |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
 | `docs/` | Design notes ([API plan](docs/API_DESIGN_PLAN.md), [DB proposal](docs/DATABASE_DESIGN_PROPOSAL.md)), static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md); see [README.md § Documentation](README.md#documentation) for the full doc index |
@@ -235,7 +235,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 ## Observability & ops
 
 - **Swagger**: served at `/api/docs` after backend start; OpenAPI JSON at `/api/docs-json`.
-- **Static spec**: [docs/openapi.json](docs/openapi.json) for offline tools; regenerate via `npm run openapi:generate` from repo root.
+- **Static spec**: [docs/openapi.json](docs/openapi.json) for offline tools; regenerate via `npm run openapi:generate` from repo root. Response **examples** (JSON/text) are maintained in [`backend/src/openapi/`](backend/src/openapi/) (`api-json-example.decorator.ts`, `response-examples.ts`) and emitted into the generated spec.
 - **Prometheus**: `GET /metrics` on the API port.
 - **Compose**: `npm run stack:up` — backend + Postgres + Prometheus + Grafana (see [README.md](README.md)).
 

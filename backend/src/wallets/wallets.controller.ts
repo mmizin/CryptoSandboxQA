@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -15,7 +17,7 @@ export class WalletsController {
 
   @Get()
   @ApiOperation({ summary: 'List all wallets' })
-  @ApiResponse({ status: 200, description: 'Returns user wallets' })
+  @ApiJsonExample(200, 'Returns user wallets', OA.wallets.list)
   async list(@CurrentUser() user: { id: string }) {
     return this.walletsService.findAllByUser(user.id);
   }
@@ -23,7 +25,7 @@ export class WalletsController {
   @Get(':asset')
   @ApiOperation({ summary: 'Get wallet by asset' })
   @ApiParam({ name: 'asset', description: 'Asset symbol (USD, BTC, ETH)' })
-  @ApiResponse({ status: 200, description: 'Returns wallet' })
+  @ApiJsonExample(200, 'Returns wallet', OA.wallets.row)
   async get(@CurrentUser() user: { id: string }, @Param('asset') asset: string) {
     return this.walletsService.getOrCreate(user.id, asset);
   }
@@ -31,7 +33,7 @@ export class WalletsController {
   @Post('deposit')
   @ApiOperation({ summary: 'Deposit (training mode)' })
   @ApiBody({ type: DepositDto })
-  @ApiResponse({ status: 201, description: 'Returns updated wallet' })
+  @ApiJsonExample(201, 'Training credit: deposit row + updated balance + ledger entry', OA.wallets.creditDebit)
   async deposit(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Body() dto: DepositDto,
@@ -48,7 +50,7 @@ export class WalletsController {
   @Post('withdraw')
   @ApiOperation({ summary: 'Withdraw' })
   @ApiBody({ type: DepositDto })
-  @ApiResponse({ status: 201, description: 'Returns updated wallet' })
+  @ApiJsonExample(201, 'Updated balance and withdraw ledger entry', OA.wallets.debit)
   async withdraw(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Body() dto: DepositDto,

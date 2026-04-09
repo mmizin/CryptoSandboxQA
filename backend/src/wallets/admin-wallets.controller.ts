@@ -3,9 +3,10 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -25,9 +26,9 @@ export class AdminWalletsController {
   @Get(':userId/wallets')
   @ApiOperation({ summary: 'List user wallets (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
-  @ApiResponse({ status: 200, description: 'Returns user wallets' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns user wallets', OA.wallets.list)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async listWallets(@Param('userId') userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');
@@ -38,9 +39,9 @@ export class AdminWalletsController {
   @ApiOperation({ summary: 'Get user wallet by asset (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'asset', description: 'Asset symbol (USD, BTC, ETH)' })
-  @ApiResponse({ status: 200, description: 'Returns wallet' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User or wallet not found' })
+  @ApiJsonExample(200, 'Returns wallet', OA.wallets.row)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User or wallet not found', OA.httpError.notFoundWallet)
   async getWallet(@Param('userId') userId: string, @Param('asset') asset: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');

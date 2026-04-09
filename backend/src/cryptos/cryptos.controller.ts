@@ -3,9 +3,10 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { CryptosService } from './cryptos.service';
 
 @ApiTags('cryptos')
@@ -20,7 +21,7 @@ export class CryptosController {
   @ApiQuery({ name: 'search', required: false, description: 'Filter by name or symbol' })
   @ApiQuery({ name: 'sortBy', required: false, description: 'Sort by: name, symbol, price, change24h, volume24h' })
   @ApiQuery({ name: 'sortOrder', required: false, description: 'asc or desc' })
-  @ApiResponse({ status: 200, description: 'Returns cryptos and total count' })
+  @ApiJsonExample(200, 'Returns cryptos and total count', OA.cryptos.list)
   async list(
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -43,7 +44,7 @@ export class CryptosController {
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })
   @ApiQuery({ name: 'interval', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Price history points', OA.cryptos.priceHistory)
   async getPriceHistory(
     @Param('symbol') symbol: string,
     @Query('from') from?: string,
@@ -56,8 +57,8 @@ export class CryptosController {
   @Get(':symbol')
   @ApiOperation({ summary: 'Get single cryptocurrency by symbol' })
   @ApiParam({ name: 'symbol' })
-  @ApiResponse({ status: 200 })
-  @ApiResponse({ status: 404, description: 'Crypto not found' })
+  @ApiJsonExample(200, 'Single market listing', OA.cryptos.one)
+  @ApiJsonExample(404, 'Crypto not found', OA.httpError.notFound)
   async get(@Param('symbol') symbol: string) {
     return this.cryptosService.findBySymbol(symbol);
   }

@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -17,7 +19,7 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Create order' })
   @ApiBody({ type: CreateOrderDto })
-  @ApiResponse({ status: 201, description: 'Returns created order' })
+  @ApiJsonExample(201, 'Returns created order', OA.orders.order)
   async create(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Body() dto: CreateOrderDto,
@@ -45,7 +47,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Set order status (testing)' })
   @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiBody({ type: SetOrderStatusDto })
-  @ApiResponse({ status: 200, description: 'Returns updated order' })
+  @ApiJsonExample(200, 'Returns updated order', OA.orders.order)
   async setStatus(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
     @Param('id') orderId: string,
@@ -61,7 +63,7 @@ export class OrdersController {
   @Post(':id/cancel')
   @ApiOperation({ summary: 'Cancel order' })
   @ApiParam({ name: 'id', description: 'Order ID' })
-  @ApiResponse({ status: 200, description: 'Returns cancelled order' })
+  @ApiJsonExample(200, 'Returns cancelled order', OA.orders.order)
   async cancel(@CurrentUser() user: { id: string }, @Param('id') orderId: string) {
     return this.ordersService.cancel(user.id, orderId);
   }
@@ -75,7 +77,7 @@ export class OrdersController {
   @ApiQuery({ name: 'to', required: false, description: 'ISO date' })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  @ApiResponse({ status: 200, description: 'Returns filtered orders' })
+  @ApiJsonExample(200, 'Returns filtered orders', OA.orders.list)
   async list(
     @CurrentUser() user: { id: string },
     @Query('marketType') marketType?: string,
@@ -101,7 +103,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Orders by date range' })
   @ApiQuery({ name: 'from', required: true })
   @ApiQuery({ name: 'to', required: true })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Orders in date range', OA.orders.list)
   async byDate(
     @CurrentUser() user: { id: string },
     @Query('from') from: string,
@@ -115,7 +117,7 @@ export class OrdersController {
   @Get('by-coin')
   @ApiOperation({ summary: 'Orders by coin/symbol' })
   @ApiQuery({ name: 'symbol', required: true })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Orders for symbol', OA.orders.list)
   async byCoin(
     @CurrentUser() user: { id: string },
     @Query('symbol') symbol: string,
@@ -128,7 +130,7 @@ export class OrdersController {
   @Get(':id')
   @ApiOperation({ summary: 'Get order by ID' })
   @ApiParam({ name: 'id', description: 'Order ID' })
-  @ApiResponse({ status: 200, description: 'Returns order' })
+  @ApiJsonExample(200, 'Returns order', OA.orders.order)
   async get(@CurrentUser() user: { id: string }, @Param('id') orderId: string) {
     return this.ordersService.findById(user.id, orderId);
   }
