@@ -1,11 +1,11 @@
 ---
 name: playwright-trace-cli-analysis
 description: >-
-  Inspects Playwright trace archives via the CLI (`npx playwright trace`) to triage
-  failing or flaky tests, interpret expect errors and snapshots, and suggest minimal
-  fixes. Use when a Playwright test failed or is flaky; when the user provides a
-  `trace.zip` path or `test-results/...` artifact; when debugging Playwright traces
-  from the command line; or when the user asks to analyze trace output without the GUI.
+  Locates a Playwright test by name, re-runs it with `--trace on` and `--retries 0`,
+  then inspects the resulting `trace.zip` via `npx playwright trace` to triage failures
+  and suggest minimal fixes. Use when the user names a failing or flaky test; when they
+  provide a `trace.zip` or `test-results/...` path; or when debugging Playwright traces
+  from the CLI without the GUI.
 ---
 
 # Playwright trace CLI analysis
@@ -15,11 +15,29 @@ Use the **Playwright 1.59+** CLI trace workflow (see [CLI trace analysis for age
 ## Prerequisites
 
 - Run all commands from **`tests/ui-tests`** (where `npx playwright` resolves and `test-results/` paths are correct).
-- A trace archive must exist, typically:
 
-  `test-results/<sanitized-suite>-<sanitized-title>-<project>/trace.zip`
+## First steps (user gives a test name)
 
-  If the user only names a test, help them locate the matching folder under `test-results/` (or they re-run the test with tracing enabled).
+When the user provides a **test name** (title substring, file, or line) but not yet a `trace.zip`:
+
+1. **Find the test** — Search under `tests/ui-tests/tests` (and imports) until the matching `test(...)` / `test.only` / `test.describe` is identified. Resolve ambiguity by asking one short question if multiple tests match.
+2. **Re-run with trace and no retries** — From `tests/ui-tests`, run that test with **`--trace on`** (always record a trace for this run) and **`--retries 0`** (single attempt; avoids extra runs and matches a single clear `trace.zip`):
+
+   ```bash
+   # By spec path
+   npx playwright test tests/e2e/login.spec.ts --trace on --retries 0
+
+   # By test title: -g is shorthand for --grep (regex against test('...') titles)
+   npx playwright test -g "add a todo item" --trace on --retries 0
+   ```
+
+3. **Locate `trace.zip`** — After the run, open the artifact under `test-results/`, typically:
+
+   `test-results/<sanitized-suite>-<sanitized-title>-<project>/trace.zip`
+
+   If the test passed, the trace still exists for analysis; if it failed, proceed to triage below.
+
+When the user **already** has a `trace.zip` path, skip the run and start at **Standard CLI workflow**.
 
 ## Standard CLI workflow
 
@@ -46,7 +64,7 @@ Execute in order; each step uses the trace session opened by `open` until `close
 
 ## Trace availability (this repo)
 
-`tests/ui-tests/playwright.config.ts` sets `trace: 'on-first-retry'`. A trace is produced when a failed test is **retried** (e.g. on CI with `retries > 0`). On a **first-run failure with no retry**, there may be no `trace.zip`. If the user needs a trace on every failure, they can change tracing mode (e.g. `on`, `retain-on-failure`, or `retain-on-failure-and-retries` per Playwright docs)—suggest this only when missing artifacts block debugging; do not change config unless the user wants it.
+`tests/ui-tests/playwright.config.ts` sets `trace: 'on-first-retry'`, so a normal run without CLI overrides may omit a trace on first failure (local `retries: 0`). **Prefer the First steps flow** (`--trace on --retries 0`) when the user names a test so a `trace.zip` is always produced for that run. If artifacts are still missing, suggest checking `test-results/` output or re-running with the same flags; only suggest changing `playwright.config.ts` trace mode if the user wants that permanently.
 
 ## Anti-patterns
 
