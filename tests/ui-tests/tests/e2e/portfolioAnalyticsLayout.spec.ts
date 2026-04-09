@@ -52,10 +52,15 @@ async function prepareRandomDragPlan(dashboard: DashboardPage, testInfo: TestInf
     };
 }
 
+/** Dense pointer path — Firefox + @dnd-kit closestCenter can resolve the wrong grid cell with few move events. */
+const CHART_DRAG_STEPS = 50;
+
 async function executeDragPlan(dashboard: DashboardPage, plan: RandomDragPlan): Promise<void> {
     const source = dashboard.page.getByTestId(plan.initialOrder[plan.from]);
     const target = dashboard.page.getByTestId(plan.initialOrder[plan.to]);
-    await source.dragTo(target, { steps: 15 });
+    await source.scrollIntoViewIfNeeded();
+    await target.scrollIntoViewIfNeeded();
+    await source.dragTo(target, { steps: CHART_DRAG_STEPS });
 }
 
 async function expectChartOrderOrAttachDebug(
