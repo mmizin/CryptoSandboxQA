@@ -3,9 +3,10 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -25,7 +26,7 @@ export class TransactionsController {
   @ApiQuery({ name: 'to', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Balance transactions (unified)', OA.transactions.unified)
   async getTransactions(
     @CurrentUser() user: { id: string },
     @Query('type') type?: string,
@@ -49,7 +50,7 @@ export class TransactionsController {
   @ApiQuery({ name: 'offset', required: false })
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Deposit ledger entries', OA.transactions.deposits)
   async getDeposits(
     @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,
@@ -71,7 +72,7 @@ export class TransactionsController {
   @ApiQuery({ name: 'offset', required: false })
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Trade fills for the user', OA.transactions.trades)
   async getTrades(
     @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,
@@ -91,7 +92,7 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Withdrawal history' })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
-  @ApiResponse({ status: 200 })
+  @ApiJsonExample(200, 'Withdrawal ledger entries', OA.transactions.withdrawals)
   async getWithdrawals(
     @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,

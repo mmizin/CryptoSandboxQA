@@ -9,9 +9,10 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -31,9 +32,9 @@ export class AdminPaymentMethodsController {
   @Get(':userId/payment-methods')
   @ApiOperation({ summary: 'List user payment methods (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
-  @ApiResponse({ status: 200, description: 'Returns payment methods' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns payment methods', OA.paymentMethods.list)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async listPaymentMethods(@Param('userId') userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');
@@ -44,9 +45,9 @@ export class AdminPaymentMethodsController {
   @ApiOperation({ summary: 'Get user payment method by ID (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'id', description: 'Payment method ID' })
-  @ApiResponse({ status: 200, description: 'Returns payment method' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User or payment method not found' })
+  @ApiJsonExample(200, 'Returns payment method', OA.paymentMethods.row)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User or payment method not found', OA.httpError.notFound)
   async getPaymentMethod(@Param('userId') userId: string, @Param('id') id: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');

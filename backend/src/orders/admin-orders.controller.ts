@@ -11,9 +11,10 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -40,9 +41,9 @@ export class AdminOrdersController {
   @ApiQuery({ name: 'to', required: false, description: 'End date (ISO 8601)' })
   @ApiQuery({ name: 'limit', required: false, description: 'Max results (1-100)' })
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
-  @ApiResponse({ status: 200, description: 'Returns filtered orders' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns filtered orders', OA.orders.list)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async listOrders(
     @Param('userId') userId: string,
     @Query('marketType') marketType?: string,
@@ -70,9 +71,9 @@ export class AdminOrdersController {
   @ApiOperation({ summary: 'Get user order by ID (admin only)' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiParam({ name: 'orderId', description: 'Order ID' })
-  @ApiResponse({ status: 200, description: 'Returns order' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User or order not found' })
+  @ApiJsonExample(200, 'Returns order', OA.orders.order)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User or order not found', OA.httpError.notFound)
   async getOrder(
     @Param('userId') userId: string,
     @Param('orderId') orderId: string,

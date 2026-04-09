@@ -11,9 +11,10 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiJsonExample } from '../openapi/api-json-example.decorator';
+import * as OA from '../openapi/response-examples';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -38,9 +39,9 @@ export class AdminTransactionsController {
   @ApiQuery({ name: 'to', required: false, description: 'End date (ISO 8601)' })
   @ApiQuery({ name: 'limit', required: false, description: 'Max results (1-100)' })
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
-  @ApiResponse({ status: 200, description: 'Returns transaction history' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns transaction history', OA.transactions.unified)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async getTransactions(
     @Param('userId') userId: string,
     @Query('type') type?: string,
@@ -67,9 +68,9 @@ export class AdminTransactionsController {
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
   @ApiQuery({ name: 'from', required: false, description: 'Start date (ISO 8601)' })
   @ApiQuery({ name: 'to', required: false, description: 'End date (ISO 8601)' })
-  @ApiResponse({ status: 200, description: 'Returns deposit history' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns deposit history', OA.transactions.deposits)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async getDeposits(
     @Param('userId') userId: string,
     @Query('limit') limit?: string,
@@ -94,9 +95,9 @@ export class AdminTransactionsController {
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
   @ApiQuery({ name: 'from', required: false, description: 'Start date (ISO 8601)' })
   @ApiQuery({ name: 'to', required: false, description: 'End date (ISO 8601)' })
-  @ApiResponse({ status: 200, description: 'Returns trade history' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns trade history', OA.transactions.trades)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async getTrades(
     @Param('userId') userId: string,
     @Query('limit') limit?: string,
@@ -119,9 +120,9 @@ export class AdminTransactionsController {
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiQuery({ name: 'limit', required: false, description: 'Max results (1-100)' })
   @ApiQuery({ name: 'offset', required: false, description: 'Skip N results for pagination' })
-  @ApiResponse({ status: 200, description: 'Returns withdrawal history' })
-  @ApiResponse({ status: 403, description: 'Admin access required' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiJsonExample(200, 'Returns withdrawal history', OA.transactions.withdrawals)
+  @ApiJsonExample(403, 'Admin access required', OA.httpError.forbidden)
+  @ApiJsonExample(404, 'User not found', OA.httpError.notFound)
   async getWithdrawals(
     @Param('userId') userId: string,
     @Query('limit') limit?: string,
