@@ -1,5 +1,5 @@
 ---
-description: Playwright UI tests — URLs, tags, data-driven names, tests/ui-tests
+description: Playwright UI tests — URLs, tags, tests/ui-tests
 globs: tests/ui-tests/**/*.ts
 alwaysApply: false
 ---
@@ -7,6 +7,8 @@ alwaysApply: false
 # Playwright UI tests — CryptoSandboxQA
 
 Applies to files under `tests/ui-tests/`.
+
+**Shared scenario naming** (data-driven matrices, optional `[Boundary]` / `[Stress]` tags): [.cursor/rules/test-scenario-conventions.mdc](.cursor/rules/test-scenario-conventions.mdc).
 
 ## Test tags (`@…`)
 
@@ -39,16 +41,4 @@ When adding or editing specs under `tests/ui-tests/`, **add tags** when the test
 - **Use `RegExp` or a predicate** when you need partial matches, optional query strings, or flexible trailing slashes (e.g. `/\/dashboard/` or `(url) => url.pathname.endsWith("/dashboard")`).
 - **Timeout:** `{ timeout: ms }` in the second argument is valid for slow navigations (e.g. post-login).
 
-## Data-driven scenarios (`name` fields)
-
-For **tables or arrays of cases** (e.g. validation matrices in `tests/unit/`, shared exports consumed by specs), each row’s `name` should start with the asserted copy (`AuthMessages.*` or stable API text), then a **short description of what this row checks** (input + intent or risk in plain language).
-
-**Do not** add labels like `[Equivalence]`, `[Boundary]`, etc. unless that row **clearly** embodies that technique (e.g. you are deliberately testing exactly at a max-length boundary, or a load/stress size). For most rows, a plain description is enough and avoids misleading taxonomy.
-
-Optional **QA technique tags** in square brackets are allowed **only when accurate** — for example `[Stress]` for an intentionally oversized payload, or `[Boundary]` for a value exactly at min/max. If unsure, omit the tag.
-
-Optional: **section comments** above groups, e.g. `// --- emailInvalid ---`, and brief notes where validation rules split outcomes (see `loginInputFields.spec.ts`).
-
-## Where this lives
-
-This is a **Cursor project rule** so assistants align new/edited tests with these patterns. It is not a Playwright MCP concern — MCP is for driving Playwright from tools, not for asserting URL style in source.
+This is a **Cursor project rule** for Playwright URL and tag style. It is not a Playwright MCP concern — MCP is for driving Playwright from tools, not for asserting URL style in source.
