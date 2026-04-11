@@ -8,6 +8,8 @@
     "db:up": "node scripts/db-up.js",
     "stack:up": "docker compose --profile observability up -d",
     "stack:down": "docker compose --profile observability down",
+    "jira:up": "docker compose --profile jira up -d",
+    "jira:down": "docker compose --profile jira down",
     "db:down": "node scripts/db-down.js",
     "db:reset": "docker compose down -v",
     "db:dump": "node scripts/dump.js",

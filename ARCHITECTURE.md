@@ -25,7 +25,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | Frontend | Next.js (React), Zustand (where used), Socket.IO client, **@dnd-kit** (sortable drag-and-drop on dashboard Portfolio Analytics) |
 | API docs | Swagger UI + OpenAPI JSON (`/api/docs`, `/api/docs-json`) |
 | Metrics | `prom-client` — `GET /metrics` (Prometheus text format) |
-| Tooling | npm workspaces, Docker Compose (Postgres + **Mailpit** for dev SMTP + optional observability stack) |
+| Tooling | npm workspaces, Docker Compose (Postgres + **Mailpit** for dev SMTP + optional observability stack + optional **Jira** with dedicated Postgres via `jira` profile) |
 
 ---
 

@@ -11,6 +11,7 @@
 - [Documentation](#documentation)
 - [Testing & automation](#testing--automation)
 - [Docker Compose (full stack with observability)](#docker-compose-full-stack-with-observability)
+- [Docker Compose (Jira)](#docker-compose-jira)
 - [Detailed setup](#detailed-setup)
 - [Usage](#usage)
 - [Password reset & Mailpit (dev)](#password-reset--mailpit-dev)
@@ -130,6 +131,35 @@ npm run stack:down
 3. Grafana connects to Prometheus — open http://localhost:3002, add a panel and query `up{job="backend"}`
 
 Ports are configurable via `.env` (e.g. `BACKEND_PORT`, `PROMETHEUS_PORT`, `GRAFANA_PORT`). See [Environment Variables](#environment-variables).
+
+---
+
+## Docker Compose (Jira)
+
+Optional **[Jira Software](https://www.atlassian.com/software/jira)** (official `atlassian/jira-software` image) with a **dedicated PostgreSQL** container for local QA or process practice. This is **not** the application database (`cryptosandbox`).
+
+**Start** (also starts unprofiled services such as Postgres + Mailpit if they are not already running):
+
+```bash
+npm run jira:up
+# or: docker compose --profile jira up -d
+```
+
+**Stop** Jira and its database container:
+
+```bash
+npm run jira:down
+# or: docker compose --profile jira down
+```
+
+| Item | Detail |
+|------|--------|
+| **URL** | http://localhost:8080 (override with `JIRA_HTTP_PORT` in `.env`) |
+| **First run** | Open the URL and complete Atlassian setup (admin user, **evaluation/trial** license when prompted). First startup can take several minutes. |
+| **Resources** | The Jira container is capped at **3 GiB** RAM with a **2048 MiB** JVM heap; allow enough Docker Desktop / host memory. |
+| **Data** | Named volumes persist Jira home and Jira Postgres data across `jira:down`. **`npm run db:reset`** removes **all** Compose project volumes, including Jira’s, if they exist. |
+
+Configure database user, password, DB name, and HTTP port via `.env` — see [Environment variables](#environment-variables) (`JIRA_*`).
 
 ---
 
@@ -284,6 +314,8 @@ Mailpit and `SMTP_*` / `MAIL_FROM` drive **all** backend mail: reset codes, welc
 | `MAIL_FROM` | *(see `.env.example`)* | `From:` for all transactional emails. |
 | `PASSWORD_RESET_CODE_PEPPER` | falls back to `JWT_SECRET` | Optional extra secret for hashing reset codes. |
 | `MAILPIT_HTTP_PORT` / `MAILPIT_SMTP_PORT` | `8025` / `1025` | Published ports for the `mailpit` Compose service. |
+| `JIRA_POSTGRES_USER` / `JIRA_POSTGRES_PASSWORD` / `JIRA_POSTGRES_DB` | `jira` / `jira` / `jira` | Jira-only Postgres (Compose profile `jira`); not the app DB. |
+| `JIRA_HTTP_PORT` | `8080` | Host port for the Jira web UI (`npm run jira:up`). |
 
 Put SMTP and secrets in the **repository root** `.env` when using `npm run dev` — Nest loads it even though the API process cwd is `backend/`. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
