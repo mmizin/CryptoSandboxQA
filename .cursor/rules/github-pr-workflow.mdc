@@ -1,0 +1,27 @@
+---
+description: Open PR to master, merge and delete branch only after user approval
+globs: "**/*"
+alwaysApply: true
+---
+
+# GitHub PR — create, merge, delete branch (after approval)
+
+When the user asks to **open a PR**, **merge to master**, or **clean up the branch** after work is done:
+
+## Auth (local)
+
+- Follow [.cursor/rules/github-personal-token.mdc](github-personal-token.mdc): root `.env` may define `GITHUB_TOKEN`; for `gh`, run `export GH_TOKEN="$GITHUB_TOKEN"` in the same shell after sourcing `.env`. Do not print or commit tokens.
+
+## Workflow order
+
+1. **Push** the feature branch to `origin` if it is not already pushed (`git push -u origin <branch>`).
+2. **Open the PR** targeting **`master`** (this repo’s default integration branch), with a clear title and short body. Prefer **`gh pr create --base master`** when `gh` is available and authenticated; otherwise give the compare URL: `https://github.com/<owner>/<repo>/compare/master...<branch>`.
+3. **Stop before merge.** Do **not** merge until the user has **approved** the PR on GitHub (review approval / green checks per team rules) **or** they send an explicit message such as **“approved, merge”** / **“merge the PR”** after reviewing.
+4. **Merge** only after that approval: e.g. `gh pr merge --merge` or `gh pr merge --squash` if the user prefers squashing (ask once if unclear). Use **`--delete-branch`** so the **remote** feature branch is removed when GitHub allows it.
+5. **Local cleanup** after a successful merge: `git checkout master`, `git pull`, then `git branch -d <feature-branch>` (use `-D` only if the user confirms the branch should be discarded unmerged).
+
+## Rules
+
+- **Never merge without** either visible approval on the PR or an **explicit** merge instruction from the user after they have had a chance to review.
+- If **branch protection** blocks merge (reviews required, failing checks), report that and wait for the user to fix or approve on GitHub.
+- If **`gh` is missing or unauthenticated**, do not invent tokens—tell the user to install/`gh auth login` or merge via the GitHub UI, and still follow the **approval-before-merge** rule.

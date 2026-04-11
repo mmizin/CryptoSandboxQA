@@ -6,6 +6,7 @@ alwaysApply: true
 
 # GitHub personal token (local)
 
+- PR create / merge / delete-branch steps: [.cursor/rules/github-pr-workflow.mdc](.cursor/rules/github-pr-workflow.mdc).
 - The repo may define **`GITHUB_TOKEN`** in the **root** `.env` (gitignored). Use it only when the user asks for **local** GitHub actions (REST API, `gh` CLI, PR/merge automation) and credentials are required in the environment.
 - **Tooling convention:** GitHub CLI prefers **`GH_TOKEN`**. After loading `.env`, use e.g. `export GH_TOKEN="$GITHUB_TOKEN"` before running `gh` or `curl` to `api.github.com` (or set `GITHUB_TOKEN` if the tool reads it).
 - **Never** commit real tokens, **never** paste tokens into chat or logs, **never** put live values in `.env.example` — comments and empty placeholders only.
