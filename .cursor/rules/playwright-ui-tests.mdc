@@ -33,6 +33,8 @@ test.describe("Feature", { tag: ["@e2e"] }, () => {
 
 Apply **one or more** tags where it helps. Prefer `@merge-gate` on tests that are part of the pre-merge job. Avoid overloading `@unit` here — these are Playwright tests, not Jest unit tests.
 
+**Folder layout vs tags:** `tests/ui-tests/tests/e2e/` holds **journey / multi-step** specs; `tests/ui-tests/tests/unit/` holds **narrow UI** checks (e.g. validation matrices). That split is **where the file lives**. Tags like `@smoke` or `@merge-gate` describe **how often / which job runs the test**—the same spec can live under `e2e/` and still be tagged `@smoke`. **Regression** is usually a CI profile or grep over paths/tags, not a third parallel folder. Test-design output that records folder + planned tags lives in [.cursor/skills/test-design-techniques/SKILL.md](../skills/test-design-techniques/SKILL.md) (“Automation placement”).
+
 When adding or editing specs under `tests/ui-tests/`, **add tags** when the test fits the vocabulary above or when CI needs a new filter name (document new tags in this table).
 
 ## `expect(page).toHaveURL(...)`
