@@ -1,27 +1,75 @@
 ---
-description: Open PR to master, merge and delete branch only after user approval
+description: GitHub PR via gh or REST API — never replace PR with local merge to master
 globs: "**/*"
 alwaysApply: true
 ---
 
-# GitHub PR — create, merge, delete branch (after approval)
+# GitHub — PR first, merge on GitHub only
 
-When the user asks to **open a PR**, **merge to master**, or **clean up the branch** after work is done:
+When the user asks to **open a PR**, **merge**, or **finish GitHub-side** after a feature branch:
+
+## What is forbidden
+
+- **Do not** “finish” work by running `git checkout master`, `git merge <feature-branch>`, and `git push origin master` **instead of** opening a mergeable PR on GitHub. That bypasses the PR and is wrong unless the user **explicitly** asks for a **local merge without a PR** (rare).
+- **Do not** treat a vague **“approved”** as permission to merge. Merge only after: the PR exists **and** either (a) the user approves/reviews on GitHub as your process requires, or (b) they send an explicit instruction such as **“merge the PR”** / **“merge to master”** referring to that PR.
 
 ## Auth (local)
 
-- Follow [.cursor/rules/github-personal-token.mdc](github-personal-token.mdc): root `.env` may define `GITHUB_TOKEN`; for `gh`, run `export GH_TOKEN="$GITHUB_TOKEN"` in the same shell after sourcing `.env`. Do not print or commit tokens.
+- Root **`.env`** (gitignored) may define **`GITHUB_TOKEN`**. For **`gh`**, run `export GH_TOKEN="$GITHUB_TOKEN"` after sourcing `.env` in the same shell.
+- For **`curl`** to `api.github.com`, use **`Authorization: Bearer $GITHUB_TOKEN`**. Never print tokens, commit them, or paste them into chat or logs.
+- Tokens are **personal / dev-only**; do not put them in CI or shared config unless the user asks.
+
+## Resolve `owner/repo`
+
+From the repo root:
+
+```bash
+git remote get-url origin
+```
+
+Use `owner` and `repo` in API paths (e.g. `https://github.com/mmizin/CryptoSandboxQA` → `mmizin` / `CryptoSandboxQA`).
 
 ## Workflow order
 
-1. **Push** the feature branch to `origin` if it is not already pushed (`git push -u origin <branch>`).
-2. **Open the PR** targeting **`master`** (this repo’s default integration branch), with a clear title and short body. Prefer **`gh pr create --base master`** when `gh` is available and authenticated; otherwise give the compare URL: `https://github.com/<owner>/<repo>/compare/master...<branch>`.
-3. **Stop before merge.** Do **not** merge until the user has **approved** the PR on GitHub (review approval / green checks per team rules) **or** they send an explicit message such as **“approved, merge”** / **“merge the PR”** after reviewing.
-4. **Merge** only after that approval: e.g. `gh pr merge --merge` or `gh pr merge --squash` if the user prefers squashing (ask once if unclear). Use **`--delete-branch`** so the **remote** feature branch is removed when GitHub allows it.
-5. **Local cleanup** after a successful merge: `git checkout master`, `git pull`, then `git branch -d <feature-branch>` (use `-D` only if the user confirms the branch should be discarded unmerged).
+1. **Push** the feature branch: `git push -u origin <branch>` (if not already pushed).
+2. **Open a PR** targeting **`master`** with a clear title and short body:
+   - **Prefer** `gh pr create --base master --head <branch> ...` when `gh` is installed and works.
+   - **If `gh` is missing or broken**, create the PR with the **GitHub REST API** (do **not** stop at “here is the compare URL” when `GITHUB_TOKEN` is available in `.env`):
 
-## Rules
+```bash
+set -a && [ -f .env ] && . ./.env && set +a
+# OWNER REPO from git remote, e.g. mmizin CryptoSandboxQA
+curl -sS -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  "https://api.github.com/repos/OWNER/REPO/pulls" \
+  -d '{"title":"TITLE","head":"BRANCH","base":"master","body":"BODY"}'
+```
 
-- **Never merge without** either visible approval on the PR or an **explicit** merge instruction from the user after they have had a chance to review.
-- If **branch protection** blocks merge (reviews required, failing checks), report that and wait for the user to fix or approve on GitHub.
-- If **`gh` is missing or unauthenticated**, do not invent tokens—tell the user to install/`gh auth login` or merge via the GitHub UI, and still follow the **approval-before-merge** rule.
+3. **Stop** until merge is allowed (review / checks / explicit user instruction per team practice).
+4. **Merge on GitHub** — not by local `git merge` into `master`:
+   - **`gh pr merge`** (with `--delete-branch` if desired), or
+   - **REST API:** `PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge` with the same auth headers (optionally delete the remote feature branch afterward with `DELETE /repos/{owner}/{repo}/git/refs/heads/<branch>` if it remains).
+5. **Local cleanup after a successful GitHub merge:** `git fetch origin`, `git checkout master`, `git pull origin master`, then `git branch -d <feature-branch>` if that branch still exists locally (use `-D` only when the user confirms discarding an unmerged branch).
+
+## After merge approval: agent should finish the job
+
+When the user **explicitly** asks to merge (e.g. **«merge the PR»**, **«смержи PR»**, **«merge PR #N»**), the agent **should** perform the full sequence — not stop at “open the PR on the web”:
+
+1. Merge the PR on GitHub (`gh pr merge` or REST API `PUT .../pulls/{pull_number}/merge`).
+2. Remove the remote feature branch if it still exists (`gh pr merge --delete-branch`, or delete the ref via API).
+3. **Sync locally:** `git fetch origin`, `git checkout master`, `git pull origin master`.
+4. **Remove the local feature branch** when safe: `git branch -d <feature-branch>`.
+
+If **`gh`** is missing, use **`curl`** + **`GITHUB_TOKEN`** for merge (and branch delete if needed). If merge fails (branch protection, conflicts), report the error and stop.
+
+## If there is no token
+
+If **`gh`** is unavailable **and** **`GITHUB_TOKEN`** is not loaded, say so and give the **compare URL**  
+`https://github.com/<owner>/<repo>/compare/master...<branch>`  
+— still **do not** merge locally to `master` unless the user explicitly asks for that.
+
+## Branch protection
+
+If GitHub blocks merge (required reviews, failing checks), report it and wait; do not force-push around protection.
