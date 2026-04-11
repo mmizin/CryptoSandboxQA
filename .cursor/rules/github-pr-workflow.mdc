@@ -50,8 +50,19 @@ curl -sS -X POST \
 3. **Stop** until merge is allowed (review / checks / explicit user instruction per team practice).
 4. **Merge on GitHub** — not by local `git merge` into `master`:
    - **`gh pr merge`** (with `--delete-branch` if desired), or
-   - **REST API:** `PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge` with the same auth headers.
-5. **Local cleanup:** `git checkout master`, `git pull origin master`, `git branch -d <feature-branch>` (or `-D` only if the user confirms discarding an unmerged branch).
+   - **REST API:** `PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge` with the same auth headers (optionally delete the remote feature branch afterward with `DELETE /repos/{owner}/{repo}/git/refs/heads/<branch>` if it remains).
+5. **Local cleanup after a successful GitHub merge:** `git fetch origin`, `git checkout master`, `git pull origin master`, then `git branch -d <feature-branch>` if that branch still exists locally (use `-D` only when the user confirms discarding an unmerged branch).
+
+## After merge approval: agent should finish the job
+
+When the user **explicitly** asks to merge (e.g. **«merge the PR»**, **«смержи PR»**, **«merge PR #N»**), the agent **should** perform the full sequence — not stop at “open the PR on the web”:
+
+1. Merge the PR on GitHub (`gh pr merge` or REST API `PUT .../pulls/{pull_number}/merge`).
+2. Remove the remote feature branch if it still exists (`gh pr merge --delete-branch`, or delete the ref via API).
+3. **Sync locally:** `git fetch origin`, `git checkout master`, `git pull origin master`.
+4. **Remove the local feature branch** when safe: `git branch -d <feature-branch>`.
+
+If **`gh`** is missing, use **`curl`** + **`GITHUB_TOKEN`** for merge (and branch delete if needed). If merge fails (branch protection, conflicts), report the error and stop.
 
 ## If there is no token
 
