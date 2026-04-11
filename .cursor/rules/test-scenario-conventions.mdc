@@ -1,0 +1,31 @@
+---
+description: Shared test scenario naming — data-driven rows, optional QA tags, tests/
+globs: tests/**/*.ts
+alwaysApply: false
+---
+
+# Test scenario conventions — CryptoSandboxQA
+
+Applies to automated tests under `tests/` (UI, API, performance, etc.). Tool-specific rules (e.g. Playwright tags, `toHaveURL`) live in their own Cursor rules; this file covers **how scenarios are named and grouped** in code.
+
+This is **not** a requirement to document formal test-design methods (equivalence partitioning, pairwise, etc.) when authoring plans. It applies to **parameterized and data-driven** cases in source: matrix `name` fields, `test.each` / table-driven rows, `it.each`, and similar.
+
+## Data-driven `name` fields and row labels
+
+For **tables or arrays of cases**, each row’s `name` (or equivalent label) should start with the **stable expected outcome** — asserted copy (`AuthMessages.*`, stable API message, status expectation), then a **short description of what this row checks** (inputs + intent or risk in plain language).
+
+## Optional QA technique tags
+
+**Do not** add labels like `[Equivalence]`, `[Boundary]`, etc. unless that row **clearly** embodies that idea (e.g. you are deliberately testing exactly at a max-length boundary, or a load/stress size). For most rows, a plain description is enough and avoids misleading taxonomy.
+
+Optional **QA technique tags** in square brackets are allowed **only when accurate** — for example `[Stress]` for an intentionally oversized payload, or `[Boundary]` for a value exactly at min/max. If unsure, omit the tag.
+
+## Grouping and reviewability
+
+Optional **section comments** above groups, e.g. `// --- emailInvalid ---`, and brief notes where validation rules split outcomes.
+
+Prefer scenarios that are **understandable in isolation** where practical (clear intent for reviewers and future maintainers).
+
+## Do not add tests unless asked
+
+Follow [.cursor/rules/no-unrequested-tests.mdc](.cursor/rules/no-unrequested-tests.mdc): do not create or extend automated tests unless the user explicitly asks.

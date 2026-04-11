@@ -59,7 +59,7 @@ Execute in order; each step uses the trace session opened by `open` until `close
 ## Fix guidance
 
 - Prefer the **smallest** change: stabilize locators, adjust assertions, add targeted waits, fix `baseURL` or route assumptions, or correct environment/config—not broad refactors.
-- For this repo’s UI tests, follow [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc) (e.g. `toHaveURL` with **path strings** when `baseURL` is set in `playwright.config.ts`).
+- For this repo’s UI tests: data-driven / matrix **names** follow [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc); Playwright **URLs and tags** follow [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc) (e.g. `toHaveURL` with **path strings** when `baseURL` is set in `playwright.config.ts`).
 - **Do not** add new test files or new test cases unless the user explicitly asks — see [.cursor/rules/no-unrequested-tests.mdc](../../rules/no-unrequested-tests.mdc).
 
 ## Trace availability (this repo)
