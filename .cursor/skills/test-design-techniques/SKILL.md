@@ -48,6 +48,7 @@ Apply when the feature fits:
 - **Requirements traceability** — Optional column: requirement or user story ID → scenario (lightweight traceability when useful).
 - **Test data and oracles** — Explicit prerequisites, inputs, and **expected results** per scenario.
 - **Environment / compatibility** — When relevant (browsers, roles, API versions), add a small matrix without bloating every feature.
+- **Automation placement** — When cases may become Playwright UI tests, record **target folder** and **planned run tags** (see [Automation placement (planned UI)](#automation-placement-planned-ui) below). This is planning metadata, not a substitute for the optional `[Boundary]` / `[Stress]` row tags in [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc).
 
 ## Documentation: test design vs test plan
 
@@ -57,7 +58,32 @@ Apply when the feature fits:
 ## Logical vs physical
 
 - **Logical** (default): scenarios, coverage, techniques used, risks addressed.
-- **Physical**: concrete automation scripts, tool commands, or data setup scripts—**out of scope** unless the user asks. If they ask for automation, follow [.cursor/rules/no-unrequested-tests.mdc](../../rules/no-unrequested-tests.mdc) and, for UI tests, [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
+- **Physical**: concrete automation scripts, tool commands, or data setup scripts—**out of scope** unless the user asks. Naming a **planned** target folder or tags in a test-design table is still **logical** (traceability to future automation). If they ask for automation, follow [.cursor/rules/no-unrequested-tests.mdc](../../rules/no-unrequested-tests.mdc) and, for UI tests, [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
+
+## Automation placement (planned UI)
+
+Use this when the user cares **where** Playwright specs will live and **how** runs will be filtered—so automation work can pick the right directory and tags without reclassifying cases.
+
+**Target folder** under `tests/ui-tests/tests/` (this repo):
+
+| Planned level | Typical content | Folder |
+| ------------- | --------------- | ------ |
+| **E2E** | Multi-step flows, journeys, cross-page behavior | `e2e/` |
+| **Narrow UI** | Field/form validation matrices, single-page checks (still Playwright) | `unit/` |
+
+The `unit/` name means **isolated UI checks** here, not Jest/Vitest unit tests—see [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
+
+**Run profile (tags)** — orthogonal to folder. Record planned tags so CI/smoke/regression strategy stays explicit:
+
+| Concept | How to capture |
+| ------- | -------------- |
+| **Smoke** / **merge gate** | Planned tags such as `@smoke`, `@merge-gate` (see Playwright rule vocabulary). |
+| **Regression** | Often a **suite or job** (e.g. all e2e except smoke-only, or nightly full run), not a duplicate tree of folders. Optional `@regression` if the team standardizes it and documents it next to other tags. |
+| **Client validation** | `@client-validation` for matrices aligned with `tests/ui-tests/tests/unit/`. |
+
+Do **not** use `@unit` for Playwright—reserved for non-browser unit test runners.
+
+**Separation from QA technique tags:** `[Boundary]`, `[Stress]`, etc. describe **test-design intent** on a row or scenario name. **Automation target** and **planned tags** are separate columns or fields so reviewers can see both without conflating them.
 
 ## Technique selection workflow
 
@@ -78,8 +104,8 @@ Structure the answer for reviewability:
 
 1. **Assumptions** and **scope** / **out of scope**.
 2. **Risk notes** (brief): what must not break; what was prioritized.
-3. **Coverage table**: technique or category → scenario ID or title (optional **requirement ID** column).
-4. **Scenarios**: ID or title, preconditions, steps, test data, **expected result** (oracle).
+3. **Coverage table**: technique or category → scenario ID or title; optional **requirement ID**; when UI automation is in scope, optional **automation target** (`e2e` / `unit` or path under `tests/ui-tests/tests/`) and **planned tags** (e.g. `@smoke`, `@merge-gate`, `@client-validation`).
+4. **Scenarios**: ID or title, preconditions, steps, test data, **expected result** (oracle); optional **automation target** and **planned tags** per row when helpful.
 5. If the output will map to **data-driven / matrix** tests later: row **`name`** pattern per [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc)—stable expected outcome first, then short description of inputs and intent.
 
 ## Optional QA technique tags
