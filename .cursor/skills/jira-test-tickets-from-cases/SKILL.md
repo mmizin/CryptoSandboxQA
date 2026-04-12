@@ -1,12 +1,14 @@
 ---
 name: jira-test-tickets-from-cases
 description: >-
-  Creates Jira Test issues from categorized test cases (API, UI, Integration)
-  using the Atlassian MCP: one Test issue per non-empty layer, links each to a
-  user-provided Story, rich descriptions on Test issues, and Subtask children
-  per logical case (one subtask for parametrized / data-driven matrix groups).
-  Use when the user wants test cases pushed to Jira as Test tickets with
-  subtasks, or asks to create Jira issues from a test design via MCP.
+  Creates Jira Test and Subtask issues from categorized test cases (API, UI,
+  Integration) using the Atlassian MCP. The Story is never created here: the user
+  supplies an existing Story (issue key or browse URL—extract the key for API
+  calls). If test cases are not provided yet, run test-design-techniques first
+  (it owns repo/spec research and Jira-oriented case shape), then continue here
+  to materialize issues. One Test issue per non-empty layer, link to Story, rich
+  descriptions, Subtasks per case or matrix group. Use when pushing test design
+  to Jira via MCP.
 ---
 
 # Jira test tickets from test cases (MCP)
@@ -20,19 +22,55 @@ Turn a **test design** (or explicit test case list) into **Jira work items** wit
 - Put **full context** in each **`Test` issue description** (story reference, scope, assumptions, environment, overview table).
 - Create **`Subtask` issues** under each **`Test`**: **one subtask per logical test case**, except **one subtask for an entire parametrized / data-driven scenario** with a **data matrix** in the subtask body.
 
-Do **not** create the Story; the user provides its key (e.g. `KAN-42`).
+Do **not** create the Story; the user identifies it by **issue key** (e.g. `KAN-42`) **or** a **browse URL** to that issue (e.g. `https://<site>.atlassian.net/browse/KAN-42`). If they pass a URL, **parse the issue key** for MCP calls such as **`getJiraIssue`**.
+
+## Workflow (command order)
+
+1. **Collect:** Story (**key** or **browse URL**), **`projectKey`**, optional **`cloudId`**, and—if present—**categorized test cases** (API / UI / Integration).
+2. **Test cases:** If the user did **not** provide a usable categorized case set, **run** [.cursor/skills/test-design-techniques/SKILL.md](../test-design-techniques/SKILL.md) **first** (repo and spec research live there, including the **Jira handoff** shape). **Then** return to this skill and **materialize** Jira issues. Do **not** skip test-design when cases are missing.
+3. **Create in Jira:** Satisfy [Prerequisites](#prerequisites-before-jira-issue-creation), then follow [MCP workflow](#mcp-workflow-order-matters).
 
 ## When to use
 
 - The user asks to **create Jira tickets from test cases**, **push test design to Jira**, or **structure API/UI/integration tests in Jira** using MCP.
-- They provide (or you derive from context) a **Story key** and **project key**, plus test cases or a test-design output.
+- They provide a **Story** as **key or browse link**, **`projectKey`** when needed, and either **test cases** (or output from **test-design-techniques**) or an explicit ask to derive cases first.
 
-If test cases do not exist yet, run or align with [.cursor/skills/test-design-techniques/SKILL.md](../test-design-techniques/SKILL.md) first; then apply this skill to **materialize** issues in Jira.
+## Prerequisites: before Jira issue creation
+
+Do **not** author **`Test`** / **`Subtask`** issues from generic templates until the blocks below are done. Summarize findings in each **`Test`** issue under **Evidence** (see [Templates](#templates)).
+
+### 1. Test cases (required)
+
+- **From test-design:** You already followed [Workflow](#workflow-command-order) and have output that includes the [Jira handoff](../test-design-techniques/SKILL.md#jira-handoff-when-creating-tickets) shape—**API** / **UI** / **Integration** groupings, subtask-level or matrix-level cases, evidence pointers.
+- **From the user:** Cases are grouped into **API** / **UI** / **Integration** with enough detail to write **Subtask** steps and oracles. If they are thin, run or extend **test-design-techniques** before creating issues.
+
+### 2. Evidence and oracles (in-repo features)
+
+**Repository and spec research** for test design belongs in [.cursor/skills/test-design-techniques/SKILL.md](../test-design-techniques/SKILL.md)—do not duplicate that workflow here.
+
+When **test-design** already ran, **reuse its Evidence** in **`Test`** descriptions and **Subtask** bodies. When the user supplied cases **without** that pass, still ground **Subtask** text in concrete sources before **`createJiraIssue`**:
+
+| Source | What to extract |
+| ------ | --------------- |
+| [ARCHITECTURE.md](../../../ARCHITECTURE.md) | Modules, routes, auth/session, pointers to constraint files |
+| [docs/QA_TESTING_FEATURES.md](../../../docs/QA_TESTING_FEATURES.md) | `data-testid`, field rules, training surfaces |
+| [docs/openapi.json](../../../docs/openapi.json) | Endpoints, request/response shapes, status codes |
+| **Implementation** | Relevant `frontend/`, `backend/` (pages, DTOs, services, guards) for the feature |
+| **Existing automation** | `tests/ui-tests/` page objects or specs when they cover the same flow |
+
+If the feature is **not** in this repository, say so in the **`Test`** issue description and rely on the Jira Story, linked issues, and user input.
+
+### 3. Jira Story and related work (mandatory)
+
+After **`cloudId`** is available (see [MCP workflow](#mcp-workflow-order-matters)):
+
+1. **`getJiraIssue`** (`issueIdOrKey` = the Story **key**; if the user gave a **browse URL**, resolve it to the key first, use `responseContentFormat`: `markdown` when helpful) — capture summary, description, acceptance criteria, status.
+2. **Linked / related work:** inspect link fields on the issue, use **`getJiraIssueRemoteIssueLinks`** when needed, and/or **`searchJiraIssuesUsingJql`** (e.g. `issue in linkedIssues("STORY-KEY")`, parent Epic, subtasks—adjust JQL to what the site supports) so test scope **aligns** with **Relates**, **Blocks**, existing specs, and does not **duplicate** work already tracked unless the user wants overlap.
 
 ## Jira hierarchy (required)
 
 ```text
-Story (existing, user-provided key)
+Story (existing; user gives key or browse URL → normalize to key)
   └── issue link ──► Test (API)     ──► Subtask (per case or matrix group)
   └── issue link ──► Test (UI)      ──► Subtask (…)
   └── issue link ──► Test (Integration) ──► Subtask (…)
@@ -56,21 +94,32 @@ For **other projects or sites**, always confirm names with **`getJiraProjectIssu
 
 ## MCP workflow (order matters)
 
-Use the **Atlassian** MCP server (e.g. `plugin-atlassian-atlassian`). **Read tool schemas** in the MCP descriptors before calling if parameters are unclear.
+Use the **Atlassian MCP that Cursor shows as “Atlassian (plugin)”** in Settings → MCP. In MCP descriptor paths it is **`plugin-atlassian-atlassian`** (internal name `atlassian`). That is the server that exposes **`getAccessibleAtlassianResources`**, **`createJiraIssue`**, **`createIssueLink`**, etc.
+
+Enable **Atlassian (plugin)** in **Cursor → Settings → MCP** if those tools are not already available to the agent.
+
+**Read tool schemas** in the MCP descriptors before calling if parameters are unclear.
+
+Complete [Prerequisites](#prerequisites-before-jira-issue-creation) (**test cases**, **Evidence** where needed, **Story** §3) before **`createJiraIssue`**. Story loading aligns with steps below once **`cloudId`** is known.
+
+**Story:** use only the user-provided **Story** (**key** or **browse URL**; normalize to the key). Do **not** call **`createJiraIssue`** (or otherwise create) a Story; if the identifier is missing, ask for it.
 
 1. **`getAccessibleAtlassianResources`**  
    Resolve **`cloudId`** if the user did not provide a site URL / hostname.
 
-2. **`getJiraProjectIssueTypesMetadata`** (`projectIdOrKey`)  
+2. **`getJiraIssue`** (and linked-issue discovery per [Prerequisites](#prerequisites-before-jira-issue-creation) §3)  
+   Load the **Story** and related issues before finalizing scope and duplicates.
+
+3. **`getJiraProjectIssueTypesMetadata`** (`projectIdOrKey`)  
    Confirm exact strings for **`Test`** and **`Subtask`** (or equivalents).
 
-3. For each **non-empty** layer (**API** / **UI** / **Integration**):
+4. For each **non-empty** layer (**API** / **UI** / **Integration**):
    - **`createJiraIssue`**: `projectKey`, `issueTypeName`: `Test`, **`summary`**, **`description`** (see [Templates](#templates)).
    - **`createIssueLink`**: link **Story** ↔ this **`Test`** issue (see [Linking to the Story](#linking-to-the-story)).
    - For each **subtask group** (one logical case, or one data-driven group):
      - **`createJiraIssue`**: `issueTypeName`: `Subtask`, **`parent`**: `Test` issue key, **`summary`**, **`description`**.
 
-4. If creation fails with missing required fields: **`getJiraIssueTypeMetaWithFields`** for the project + issue type id, then retry **`createJiraIssue`** with **`additional_fields`** as required by the API.
+5. If creation fails with missing required fields: **`getJiraIssueTypeMetaWithFields`** for the project + issue type id, then retry **`createJiraIssue`** with **`additional_fields`** as required by the API.
 
 Prefer **`contentFormat`: `markdown`** for descriptions unless ADF is required for the project.
 
@@ -79,7 +128,7 @@ Prefer **`contentFormat`: `markdown`** for descriptions unless ADF is required f
 | Input | Notes |
 | ----- | ----- |
 | **`projectKey`** | e.g. `KAN` |
-| **`storyKey`** | Existing Story to link to (e.g. `KAN-42`) |
+| **`storyKey`** | Existing Story: **key** (`KAN-42`) **or** **browse URL** (`…/browse/KAN-42`); normalize to the key for API calls |
 | **`cloudId`** | From `getAccessibleAtlassianResources` or user’s site URL |
 | **Categorized cases** | Split into **API** / **UI** / **Integration** |
 | **Epic** | Optional; only mention in description if the user asks |
@@ -125,6 +174,7 @@ Examples: `Test (UI): Login validation — KAN-42`, `Test (API): Orders API — 
 
 - **Related Story:** `<StoryKey>` (link or key).
 - **Layer:** API | UI | Integration.
+- **Evidence:** pointers to repo truth and Jira context (e.g. `ARCHITECTURE.md` section, `path/to/file.tsx`, OpenAPI `POST /…`, linked Jira keys reviewed).
 - **Scope / out of scope** (short).
 - **Assumptions & environment** (e.g. base URL, role, feature flags).
 - **Coverage overview:** table listing logical case IDs or titles that will appear as subtasks (or matrix groups).
@@ -141,8 +191,8 @@ Example: `TC-UI-01: Valid credentials redirect to dashboard`. Use **one** subtas
 
 - **Objective**
 - **Preconditions**
-- **Steps** (or **Parameterized steps** + **Data** table for matrix)
-- **Expected result**
+- **Steps** (or **Parameterized steps** + **Data** table for matrix) — use **specific** URLs, field names, selectors (`data-testid` when documented), and API payloads **from repository research**, not generic placeholders.
+- **Expected result** — observable oracles (status code + body shape, redirect path, UI state, storage) tied to the implementation where applicable.
 
 ## Failure handling
 
@@ -152,6 +202,8 @@ Example: `TC-UI-01: Valid credentials redirect to dashboard`. Use **one** subtas
 
 ## Anti-patterns
 
+- **Creating a Story** — the Story must already exist; only **`Test`** and **`Subtask`** issues are created, linked to the user’s Story (**key** or URL resolved to key).
+- Writing **`Test`** or **`Subtask`** bodies from **generic product templates** without completing [Prerequisites](#prerequisites-before-jira-issue-creation) (test cases, Evidence, Jira Story/links).
 - Creating **one `Test` issue per single test case** when the plan is **one `Test` per layer** (API/UI/Integration).
 - Setting subtask **`parent`** to the **Story** (default is **`Test`**).
 - Omitting the **Story link** on the **`Test`** issues.

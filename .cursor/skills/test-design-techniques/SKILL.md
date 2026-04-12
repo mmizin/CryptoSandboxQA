@@ -4,11 +4,16 @@ description: >-
   Applies structured test design techniques (equivalence partitioning, boundary
   value analysis, state transitions, pairwise combinations, decision tables,
   CRUD/process cycles, exploratory charters, error guessing) to produce test
-  cases, scenarios, and coverage mapping with risk awareness. Produces test
-  design documents with test data and expected results; optionally outlines test
-  plans when the user asks for strategy-level deliverables. Use when the user
-  asks for test cases, test scenarios, test design, coverage, or QA scenarios
-  for a feature, API, UI, or workflow—not when they only want code changes.
+  cases, scenarios, and coverage mapping with risk awareness. For features
+  implemented in this repo, ground scenarios in ARCHITECTURE.md, QA docs,
+  OpenAPI, and source before listing cases. Where it helps and is not noisy,
+  include sample API payloads/responses or UI references (e.g. screenshot notes).
+  When output will feed Jira Test/Subtask creation, use the Jira handoff shape
+  (layers, subtask granularity, evidence). Produces test design documents with
+  test data and expected results; optionally outlines test plans when the user
+  asks for strategy-level deliverables. Use when the user asks for test cases,
+  test scenarios, test design, coverage, or QA scenarios for a feature, API, UI,
+  or workflow—not when they only want code changes.
 ---
 
 # Test design techniques
@@ -20,6 +25,8 @@ Test design should **detect critical defects**, **reduce redundant tests** while
 ## When to use
 
 Use this skill when the user asks for **test cases**, **scenarios**, **coverage**, **test design**, or **QA scenarios** for functionality (API, UI, workflows, business rules). If the request is ambiguous between a **test plan** (strategy, scope, schedule) and a **test design / case list** (scenarios, data, expected results), ask one short clarifying question or default to **test design / cases** and offer an optional test-plan outline.
+
+When the feature **lives in this repository**, read **[ARCHITECTURE.md](../../ARCHITECTURE.md)**, **[docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md)**, and relevant **OpenAPI** / implementation files—**this skill owns that research** before listing cases. Derive steps and **oracles** (routes, payloads, validation, UI state) from that evidence. If the work will be **pushed to Jira**, structure cases per [Jira handoff (when creating tickets)](#jira-handoff-when-creating-tickets); loading the **Story** and linked issues in Jira happens when executing [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) **after** test cases exist. If the feature is external or unspecified, state assumptions explicitly.
 
 ## Core techniques
 
@@ -49,6 +56,18 @@ Apply when the feature fits:
 - **Test data and oracles** — Explicit prerequisites, inputs, and **expected results** per scenario.
 - **Environment / compatibility** — When relevant (browsers, roles, API versions), add a small matrix without bloating every feature.
 - **Automation placement** — When cases may become Playwright UI tests, record **target folder** and **planned run tags** (see [Automation placement (planned UI)](#automation-placement-planned-ui) below). This is planning metadata, not a substitute for the optional `[Boundary]` / `[Stress]` row tags in [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc).
+- **Optional illustrations** — When it clarifies the oracle and **would not be overkill**, add:
+  - **API:** a concise **request** example (JSON body, key headers) and **response** example (status + representative success/error body) taken from OpenAPI, Swagger, or observed behavior—not full schemas unless the user needs them.
+  - **UI:** a **screenshot** attachment or a short note on **what to capture** (state before/after, error region) when visuals matter (layout, modals, validation placement). Skip screenshots for every trivial row of a matrix.
+
+## Data-driven scenarios: one logical case, not many clones
+
+When the **same flow** applies and only **inputs or expected outcomes** change (equivalence classes, boundary table, login valid vs invalid, API validation matrix):
+
+- Represent it as **one** scenario or **one** data-driven group: shared **steps** plus a **data table** (parameters → expected result).
+- When mapping to Jira (see [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) **Subtask granularity**), use **one `Subtask`** for that whole matrix and **list all parameter rows** there—do **not** split into separate subtasks such as “valid login” and “invalid login” if the only difference is the data passed through the same steps.
+
+Create a **separate** scenario or subtask only when something **materially differs**: different **navigation** or **screens**, different **API** or **side effects**, different **preconditions** or **cleanup**, or a **distinct risk** that deserves its own trace—not a mere parameter swap on the same script.
 
 ## Documentation: test design vs test plan
 
@@ -105,8 +124,25 @@ Structure the answer for reviewability:
 1. **Assumptions** and **scope** / **out of scope**.
 2. **Risk notes** (brief): what must not break; what was prioritized.
 3. **Coverage table**: technique or category → scenario ID or title; optional **requirement ID**; when UI automation is in scope, optional **automation target** (`e2e` / `unit` or path under `tests/ui-tests/tests/`) and **planned tags** (e.g. `@smoke`, `@merge-gate`, `@client-validation`).
-4. **Scenarios**: ID or title, preconditions, steps, test data, **expected result** (oracle); optional **automation target** and **planned tags** per row when helpful.
-5. If the output will map to **data-driven / matrix** tests later: row **`name`** pattern per [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc)—stable expected outcome first, then short description of inputs and intent.
+4. **Scenarios**: ID or title, preconditions, steps, test data, **expected result** (oracle); optional **automation target** and **planned tags** per row when helpful. For API cases, optional **request/response examples** in fenced code blocks when useful; for UI, optional **screenshot** or “capture” note when useful (see [Small supplements](#small-supplements)).
+5. If the output will map to **data-driven / matrix** tests later: row **`name`** pattern per [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc)—stable expected outcome first, then short description of inputs and intent. Prefer **one** matrix block per flow rather than many near-duplicate scenarios—see [Data-driven scenarios: one logical case, not many clones](#data-driven-scenarios-one-logical-case-not-many-clones).
+6. If the next step is **Jira Test/Subtask** creation: follow [Jira handoff (when creating tickets)](#jira-handoff-when-creating-tickets) so the case list maps cleanly to [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md).
+
+## Jira handoff (when creating tickets)
+
+Use this when the user will create issues with [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) (or has asked for test design **before** that skill runs). **Repository and Story research** split: **test-design-techniques** produces grounded cases and **Evidence**; the Jira skill loads the **Story** in Jira and creates **`Test`** / **`Subtask`** issues—see that skill’s [Workflow](../jira-test-tickets-from-cases/SKILL.md#workflow-command-order).
+
+Deliver a variant of the test design that is easy to **copy into Jira**:
+
+| Expectation | What to provide |
+| ----------- | ---------------- |
+| **Layers** | Every case is labeled **API**, **UI**, or **Integration** (the Jira skill emits **one `Test` issue per non-empty layer**). |
+| **Subtask mapping** | **One** scenario row (or **one** matrix group with a data table) ↔ **one** future **Subtask** title, except where [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) allows a single subtask for a full matrix—see **Subtask granularity** there and [Data-driven scenarios](#data-driven-scenarios-one-logical-case-not-many-clones) here. |
+| **Evidence** | Short pointers for the **`Test`** issue description: repo paths, OpenAPI operations, `data-testid`, linked Jira keys reviewed—so the agent does not re-research from scratch. |
+| **Naming** | Scenario titles readable as **`TC-<Layer>-<NN>:`** subtask summaries (see Jira skill templates). |
+| **Coverage overview** | A small table: **Layer** → list of case titles that will become subtasks (or one row per matrix group). |
+
+If the user has **not** asked for Jira yet but might, still using **API** / **UI** / **Integration** groupings in the coverage table makes later handoff trivial.
 
 ## Optional QA technique tags
 
@@ -118,6 +154,8 @@ Producing test cases or test design **does not** mean adding or extending automa
 
 ## Anti-patterns
 
+- **Generic** scenarios (e.g. “enter valid credentials”) with no **repo- or spec-backed** oracles when the behavior is implemented in this codebase.
+- **Splitting** a pure **data-driven** flow into many separate scenarios or Jira subtasks when only **parameters** differ—use one matrix / one subtask unless the flow or risk genuinely diverges.
 - Ad-hoc bullet lists with no coverage rationale or technique mapping.
 - Duplicate scenarios under different names.
 - Treating exploratory sessions as fully scripted regression coverage without stating limits.
