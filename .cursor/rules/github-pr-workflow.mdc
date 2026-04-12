@@ -8,11 +8,6 @@ alwaysApply: true
 
 When the user asks to **open a PR**, **merge**, or **finish GitHub-side** after a feature branch:
 
-## Agent environments (Cursor / sandboxes)
-
-- **`gh` is often absent.** Follow [Workflow order](#workflow-order): use **`curl`** + **`GITHUB_TOKEN`** from `.env` when creating or merging PRs. **Do not** tell the user that `gh` is missing, that the sandbox lacks `gh`, or similar—just complete the action and report the **PR URL** or outcome.
-- Mention tooling only when something **blocks** the workflow (e.g. no token: give compare URL per [If there is no token](#if-there-is-no-token)).
-
 ## What is forbidden
 
 - **Do not** “finish” work by running `git checkout master`, `git merge <feature-branch>`, and `git push origin master` **instead of** opening a mergeable PR on GitHub. That bypasses the PR and is wrong unless the user **explicitly** asks for a **local merge without a PR** (rare).
