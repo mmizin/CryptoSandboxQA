@@ -2,13 +2,14 @@
 name: jira-test-tickets-from-cases
 description: >-
   Creates Jira Test and Subtask issues from categorized test cases (API, UI,
-  Integration) using the Atlassian MCP. The Story is never created here: the user
-  supplies an existing Story (issue key or browse URL—extract the key for API
-  calls). If test cases are not provided yet, run test-design-techniques first
-  (it owns repo/spec research and Jira-oriented case shape), then continue here
-  to materialize issues. One Test issue per non-empty layer, link to Story, rich
-  descriptions, Subtasks per case or matrix group. Use when pushing test design
-  to Jira via MCP.
+  Integration) using the Atlassian MCP. Subtask bodies must include full data
+  matrices with explicit parameter values per row, planned Playwright tags when
+  provided, and row counts—no abbreviated or umbrella placeholder rows unless
+  the user scoped smoke-only. The Story is never created here: the user supplies
+  an existing Story (issue key or browse URL). If test cases are not provided
+  yet, run test-design-techniques first, then materialize issues. One Test issue
+  per non-empty layer, link to Story. Use when pushing test design to Jira via
+  MCP.
 ---
 
 # Jira test tickets from test cases (MCP)
@@ -19,8 +20,8 @@ Turn a **test design** (or explicit test case list) into **Jira work items** wit
 
 - **One `Test` issue per layer** that has at least one case: **API**, **UI**, **Integration**. Omit layers with zero cases.
 - **Link** each `Test` issue to the **Story** the user supplies (issue link, not Epic parent).
-- Put **full context** in each **`Test` issue description** (story reference, scope, assumptions, environment, overview table).
-- Create **`Subtask` issues** under each **`Test`**: **one subtask per logical test case**, except **one subtask for an entire parametrized / data-driven scenario** with a **data matrix** in the subtask body.
+- Put **full context** in each **`Test` issue description** (story reference, scope, assumptions, environment, overview table, **planned tags** when the handoff includes them).
+- Create **`Subtask` issues** under each **`Test`**: **one subtask per logical test case**, except **one subtask for an entire parametrized / data-driven scenario** with a **complete data matrix** (all rows, explicit parameters, **Total rows: N**) in the subtask body—not a shortened sample unless **Scope** allows smoke-only.
 
 Do **not** create the Story; the user identifies it by **issue key** (e.g. `KAN-42`) **or** a **browse URL** to that issue (e.g. `https://<site>.atlassian.net/browse/KAN-42`). If they pass a URL, **parse the issue key** for MCP calls such as **`getJiraIssue`**.
 
@@ -41,8 +42,9 @@ Do **not** author **`Test`** / **`Subtask`** issues from generic templates until
 
 ### 1. Test cases (required)
 
-- **From test-design:** You already followed [Workflow](#workflow-command-order) and have output that includes the [Jira handoff](../test-design-techniques/SKILL.md#jira-handoff-when-creating-tickets) shape—**API** / **UI** / **Integration** groupings, subtask-level or matrix-level cases, evidence pointers.
-- **From the user:** Cases are grouped into **API** / **UI** / **Integration** with enough detail to write **Subtask** steps and oracles. If they are thin, run or extend **test-design-techniques** before creating issues.
+- **From test-design:** You already followed [Workflow](#workflow-command-order) and have output that includes the [Jira handoff](../test-design-techniques/SKILL.md#jira-handoff-when-creating-tickets) shape—**API** / **UI** / **Integration** groupings, subtask-level or matrix-level cases, evidence pointers, **explicit inputs per matrix row**, **planned tags** when UI automation is in scope, and **Total rows: N** for each matrix.
+- **From the user:** Cases are grouped into **API** / **UI** / **Integration** with enough detail to write **Subtask** steps and oracles. If cases are **thin**, **contain umbrella placeholders** (e.g. “invalid email (various)”), or **lack row-level parameters**, run or extend **test-design-techniques** before creating issues—**do not** copy placeholder wording into Jira.
+- **Quality bar:** Jira **`Test`** / **`Subtask`** descriptions must match the **test-design handoff** the user or agent just produced: same **row count**, same **explicit** input cells, same **oracles** and **tags**. Do **not** treat any static path inside this skill as the source of truth; **the handoff document or conversation output** is authoritative unless the user explicitly asks for a smaller **smoke** scope (then label **Scope** on the `Test` issue).
 
 ### 2. Evidence and oracles (in-repo features)
 
@@ -113,13 +115,17 @@ Complete [Prerequisites](#prerequisites-before-jira-issue-creation) (**test case
 3. **`getJiraProjectIssueTypesMetadata`** (`projectIdOrKey`)  
    Confirm exact strings for **`Test`** and **`Subtask`** (or equivalents).
 
-4. For each **non-empty** layer (**API** / **UI** / **Integration**):
+4. **Pre-flight (before `createJiraIssue` for `Test` / `Subtask`):**  
+   - **Parametrized subtasks:** Description contains the **full** markdown matrix from the test-design handoff: **explicit** input cells per row, **oracles**, **planned tags** (or stated once), **Total rows: N** matching **N** in the handoff. Reject **umbrella-only** rows (“invalid email (various)”) unless the parent **`Test`** issue **Scope** explicitly says smoke/sample.  
+   - **Updating existing issues:** If a Subtask already exists with a **thin** matrix, use **`editJiraIssue`** to replace the description with the full table—do not leave placeholder rows.
+
+5. For each **non-empty** layer (**API** / **UI** / **Integration**):
    - **`createJiraIssue`**: `projectKey`, `issueTypeName`: `Test`, **`summary`**, **`description`** (see [Templates](#templates)).
    - **`createIssueLink`**: link **Story** ↔ this **`Test`** issue (see [Linking to the Story](#linking-to-the-story)).
    - For each **subtask group** (one logical case, or one data-driven group):
      - **`createJiraIssue`**: `issueTypeName`: `Subtask`, **`parent`**: `Test` issue key, **`summary`**, **`description`**.
 
-5. If creation fails with missing required fields: **`getJiraIssueTypeMetaWithFields`** for the project + issue type id, then retry **`createJiraIssue`** with **`additional_fields`** as required by the API.
+6. If creation fails with missing required fields: **`getJiraIssueTypeMetaWithFields`** for the project + issue type id, then retry **`createJiraIssue`** with **`additional_fields`** as required by the API.
 
 Prefer **`contentFormat`: `markdown`** for descriptions unless ADF is required for the project.
 
@@ -156,9 +162,20 @@ Default for **KAN**: **`Relates`** between **Story** and each **`Test`** issue.
 ## Subtask granularity
 
 - **One subtask per** independent logical test case (preconditions, steps, expected result).
-- **One subtask for** a **parametrized / data-driven** scenario: single title (e.g. “Login — validation matrix”), shared steps, and a **table** of rows (inputs → expected outcome). Do **not** split each matrix row into a separate subtask unless the user asks.
+- **One subtask for** a **parametrized / data-driven** scenario: single title (e.g. “Login — validation matrix”), shared steps, and a **full** **Data** table—**every** row from test-design with **literal or precisely described** inputs (no umbrella-only cells). Include **Planned tags** per row or state once if the whole matrix shares one profile. End with **Total rows: N**. Do **not** split each matrix row into a separate subtask unless the user asks.
+- **One subtask ≠ one short paragraph:** a parametrized subtask may still be **one** issue, but its **description** must hold the **complete** matrix (often dozens of rows)—not a 3–4 row sample unless **Scope** on the parent **`Test`** issue says **smoke-only** or the user requested it.
 
 Align naming with [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc) when the source uses matrix row names or QA tags.
+
+### Matrix wording: good vs bad (illustrative)
+
+| Bad (do not ship) | Good |
+| ----------------- | ---- |
+| Input: “invalid email” | Input: `user@` (missing domain); expected: format error per constraints |
+| “Negative cases” as one row | One row per concrete invalid value with explicit oracle |
+| Four representative rows when handoff had twenty | All **N** rows from test-design, or **Scope: smoke (4 of 20)** stated on `Test` issue |
+
+Tag vocabulary for planned Playwright runs aligns with [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc) (e.g. `@smoke`, `@merge-gate`, `@client-validation`, `@e2e`).
 
 ## Templates
 
@@ -175,9 +192,10 @@ Examples: `Test (UI): Login validation — KAN-42`, `Test (API): Orders API — 
 - **Related Story:** `<StoryKey>` (link or key).
 - **Layer:** API | UI | Integration.
 - **Evidence:** pointers to repo truth and Jira context (e.g. `ARCHITECTURE.md` section, `path/to/file.tsx`, OpenAPI `POST /…`, linked Jira keys reviewed).
-- **Scope / out of scope** (short).
+- **Scope / out of scope** (short). If matrices are **smoke-only** or **sample** (not full equivalence coverage), say so here.
 - **Assumptions & environment** (e.g. base URL, role, feature flags).
-- **Coverage overview:** table listing logical case IDs or titles that will appear as subtasks (or matrix groups).
+- **Planned tags / run profile** (when test-design provided them): e.g. “Planned tags: `@merge-gate`, `@client-validation`” for the layer or matrix—copy from the handoff.
+- **Coverage overview:** table listing logical case IDs or titles that will appear as subtasks (or matrix groups), with **Total rows** per matrix when known.
 
 ### `Subtask` summary
 
@@ -191,8 +209,10 @@ Example: `TC-UI-01: Valid credentials redirect to dashboard`. Use **one** subtas
 
 - **Objective**
 - **Preconditions**
-- **Steps** (or **Parameterized steps** + **Data** table for matrix) — use **specific** URLs, field names, selectors (`data-testid` when documented), and API payloads **from repository research**, not generic placeholders.
-- **Expected result** — observable oracles (status code + body shape, redirect path, UI state, storage) tied to the implementation where applicable.
+- **Steps** (or **Parameterized steps** + **Data matrix** for parametrized flows) — use **specific** URLs, field names, selectors (`data-testid` when documented), and API payloads **from repository research**, not generic placeholders.
+- **Data matrix:** markdown table with **every** row from the test-design handoff—columns at minimum: **Row name**, **Explicit inputs** (per field or parameter), **Expected oracle**, **Planned tags** (per row or noted once if identical). **No** umbrella-only input cells unless **Scope** on the parent `Test` issue explicitly allows smoke/sample coverage.
+- **Total rows: N** — immediately after the table; **N** must match the handoff.
+- **Expected result** — for the matrix as a whole: observable oracles (status code + body shape, redirect path, UI state, storage) tied to the implementation where applicable; optional **Notes** for split behavior (e.g. native browser validation vs app-rendered error) when documented in research.
 
 ## Failure handling
 
@@ -204,6 +224,9 @@ Example: `TC-UI-01: Valid credentials redirect to dashboard`. Use **one** subtas
 
 - **Creating a Story** — the Story must already exist; only **`Test`** and **`Subtask`** issues are created, linked to the user’s Story (**key** or URL resolved to key).
 - Writing **`Test`** or **`Subtask`** bodies from **generic product templates** without completing [Prerequisites](#prerequisites-before-jira-issue-creation) (test cases, Evidence, Jira Story/links).
+- **Abbreviated matrices** in a parametrized **`Subtask`**—a few “representative” rows when the handoff listed **many**—without labeling **smoke-only** on the **`Test`** issue **Scope**.
+- **Umbrella input cells** without explicit values: e.g. “invalid email (various)”, “negative cases”, “pass invalid parameters”.
+- **Dropping planned tags** from the handoff when the user or test-design included them for UI work.
 - Creating **one `Test` issue per single test case** when the plan is **one `Test` per layer** (API/UI/Integration).
 - Setting subtask **`parent`** to the **Story** (default is **`Test`**).
 - Omitting the **Story link** on the **`Test`** issues.

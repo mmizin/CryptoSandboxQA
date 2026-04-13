@@ -4,16 +4,16 @@ description: >-
   Applies structured test design techniques (equivalence partitioning, boundary
   value analysis, state transitions, pairwise combinations, decision tables,
   CRUD/process cycles, exploratory charters, error guessing) to produce test
-  cases, scenarios, and coverage mapping with risk awareness. For features
-  implemented in this repo, ground scenarios in ARCHITECTURE.md, QA docs,
-  OpenAPI, and source before listing cases. Where it helps and is not noisy,
-  include sample API payloads/responses or UI references (e.g. screenshot notes).
-  When output will feed Jira Test/Subtask creation, use the Jira handoff shape
-  (layers, subtask granularity, evidence). Produces test design documents with
-  test data and expected results; optionally outlines test plans when the user
-  asks for strategy-level deliverables. Use when the user asks for test cases,
-  test scenarios, test design, coverage, or QA scenarios for a feature, API, UI,
-  or workflow—not when they only want code changes.
+  cases, scenarios, and coverage mapping with risk awareness. Matrices must use
+  explicit parameter values per row (no umbrella placeholders), include planned
+  Playwright run tags where relevant, and use the Jira handoff shape when work
+  feeds Jira. For features implemented in this repo, ground scenarios in
+  ARCHITECTURE.md, QA docs, OpenAPI, and source before listing cases. Produces
+  test design documents with test data and expected results; optionally outlines
+  test plans when the user asks for strategy-level deliverables. Use when the
+  user asks for test cases, test scenarios, test design, coverage, or QA
+  scenarios for a feature, API, UI, or workflow—not when they only want code
+  changes.
 ---
 
 # Test design techniques
@@ -69,6 +69,15 @@ When the **same flow** applies and only **inputs or expected outcomes** change (
 
 Create a **separate** scenario or subtask only when something **materially differs**: different **navigation** or **screens**, different **API** or **side effects**, different **preconditions** or **cleanup**, or a **distinct risk** that deserves its own trace—not a mere parameter swap on the same script.
 
+A **parametrized matrix still means every row is explicit**: the subtask or scenario body must list **all** rows with concrete inputs and oracles—**not** a few “representative” rows unless the user explicitly scoped **smoke-only** or **sample** coverage.
+
+## Explicit parameters and detailed matrix depth (mandatory)
+
+- **Concrete inputs:** Each matrix row lists **literal** values or **unambiguous constructions** (e.g. “repeat `a` to length `EMAIL_MAX_LENGTH + 1`” when constants are known from research). Do **not** use umbrella cells such as “invalid parameters”, “bad email”, or “invalid email (various)” when **multiple distinct invalid values** are in scope—use **one row per value**. A single catch-all row is allowed **only** when the user explicitly chose **smoke-only** / **sample** scope; state that in **Assumptions** or **Scope**.
+- **Equivalence and boundaries:** Equivalence partitioning and boundary-value analysis imply **multiple explicit rows**, not one generic “invalid” row.
+- **Depth:** For validation-heavy features, default to **one row per distinct class + boundary + material risk**—not a 3–5 row illustrative sample unless scope is explicitly narrow.
+- **Row names:** Prefer **stable outcome first**, then input nuance—see [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc).
+
 ## Documentation: test design vs test plan
 
 - **Test design / test cases** (default output): scenarios, test data, expected results, and coverage mapping—often documented in a **test design document** or test-case specification. (Do not confuse with **Test-Driven Development**; here “test design” means planned scenarios, not a dev methodology.)
@@ -92,15 +101,20 @@ Use this when the user cares **where** Playwright specs will live and **how** ru
 
 The `unit/` name means **isolated UI checks** here, not Jest/Vitest unit tests—see [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
 
-**Run profile (tags)** — orthogonal to folder. Record planned tags so CI/smoke/regression strategy stays explicit:
+**Run profile (tags)** — orthogonal to folder. Record **planned tags** on each matrix row (or once per matrix if every row shares the same profile) so CI/smoke/regression strategy stays explicit and [Jira handoff](#jira-handoff-when-creating-tickets) can copy the same values into **`Test`** / **`Subtask`** descriptions.
 
-| Concept | How to capture |
-| ------- | -------------- |
-| **Smoke** / **merge gate** | Planned tags such as `@smoke`, `@merge-gate` (see Playwright rule vocabulary). |
-| **Regression** | Often a **suite or job** (e.g. all e2e except smoke-only, or nightly full run), not a duplicate tree of folders. Optional `@regression` if the team standardizes it and documents it next to other tags. |
-| **Client validation** | `@client-validation` for matrices aligned with `tests/ui-tests/tests/unit/`. |
+**Playwright tag vocabulary (this repo)** — use these names when planning UI automation; extend only if the team documents new tags:
 
-Do **not** use `@unit` for Playwright—reserved for non-browser unit test runners.
+| Tag | Use |
+| --- | --- |
+| `@e2e` | Real browser flows (often default on a `describe` or file). |
+| `@smoke` | Small, fast checks for frequent runs. |
+| `@merge-gate` | Expected to pass before merge (wire in CI as needed). |
+| `@client-validation` | Client-side field/form validation matrices. |
+
+**Regression** is usually a **CI job** or **grep/path profile** (e.g. full suite nightly), not necessarily a single `@regression` tag—unless the project standardizes that tag in [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
+
+Do **not** use `@unit` on Playwright tests—reserved for non-browser unit test runners. **Folder** (`e2e/` vs narrow UI checks under `tests/ui-tests/tests/unit/`) is **where** the file lives; **tags** describe **how / which job** runs the test. **Regression** coverage is usually a **suite or CI job** (path/grep), not a duplicate folder tree.
 
 **Separation from QA technique tags:** `[Boundary]`, `[Stress]`, etc. describe **test-design intent** on a row or scenario name. **Automation target** and **planned tags** are separate columns or fields so reviewers can see both without conflating them.
 
@@ -123,8 +137,8 @@ Structure the answer for reviewability:
 
 1. **Assumptions** and **scope** / **out of scope**.
 2. **Risk notes** (brief): what must not break; what was prioritized.
-3. **Coverage table**: technique or category → scenario ID or title; optional **requirement ID**; when UI automation is in scope, optional **automation target** (`e2e` / `unit` or path under `tests/ui-tests/tests/`) and **planned tags** (e.g. `@smoke`, `@merge-gate`, `@client-validation`).
-4. **Scenarios**: ID or title, preconditions, steps, test data, **expected result** (oracle); optional **automation target** and **planned tags** per row when helpful. For API cases, optional **request/response examples** in fenced code blocks when useful; for UI, optional **screenshot** or “capture” note when useful (see [Small supplements](#small-supplements)).
+3. **Coverage table**: technique or category → scenario ID or title; optional **requirement ID**; when UI automation is in scope, **automation level** (e2e journey vs narrow UI check) and **planned tags** per scenario or matrix (see [Automation placement (planned UI)](#automation-placement-planned-ui)).
+4. **Scenarios**: ID or title, preconditions, steps, **explicit test data** (literals or precise constructions—no umbrella placeholders unless smoke/sample scope is explicit), **expected result** (oracle); **planned tags** per row or per matrix when helpful. For API cases, optional **request/response examples** in fenced code blocks when useful; for UI, optional **screenshot** or “capture” note when useful (see [Small supplements](#small-supplements)).
 5. If the output will map to **data-driven / matrix** tests later: row **`name`** pattern per [.cursor/rules/test-scenario-conventions.mdc](../../rules/test-scenario-conventions.mdc)—stable expected outcome first, then short description of inputs and intent. Prefer **one** matrix block per flow rather than many near-duplicate scenarios—see [Data-driven scenarios: one logical case, not many clones](#data-driven-scenarios-one-logical-case-not-many-clones).
 6. If the next step is **Jira Test/Subtask** creation: follow [Jira handoff (when creating tickets)](#jira-handoff-when-creating-tickets) so the case list maps cleanly to [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md).
 
@@ -138,11 +152,25 @@ Deliver a variant of the test design that is easy to **copy into Jira**:
 | ----------- | ---------------- |
 | **Layers** | Every case is labeled **API**, **UI**, or **Integration** (the Jira skill emits **one `Test` issue per non-empty layer**). |
 | **Subtask mapping** | **One** scenario row (or **one** matrix group with a data table) ↔ **one** future **Subtask** title, except where [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) allows a single subtask for a full matrix—see **Subtask granularity** there and [Data-driven scenarios](#data-driven-scenarios-one-logical-case-not-many-clones) here. |
+| **Matrix columns (minimum)** | Each data matrix must include: **Row name / ID**, **Explicit inputs** (per field, literal or precise construction), **Expected oracle** (message, status code, body shape, UI state), **Planned tags** (e.g. `@merge-gate`, `@client-validation`) **per row** or **once** for the whole matrix if identical—aligned with [Automation placement (planned UI)](#automation-placement-planned-ui). Optional **Notes** (e.g. native browser validation vs inline app message) when research supports it. |
+| **Row count** | State **Total rows: N** for each matrix so Jira creation can be verified against the handoff. |
 | **Evidence** | Short pointers for the **`Test`** issue description: repo paths, OpenAPI operations, `data-testid`, linked Jira keys reviewed—so the agent does not re-research from scratch. |
 | **Naming** | Scenario titles readable as **`TC-<Layer>-<NN>:`** subtask summaries (see Jira skill templates). |
 | **Coverage overview** | A small table: **Layer** → list of case titles that will become subtasks (or one row per matrix group). |
 
 If the user has **not** asked for Jira yet but might, still using **API** / **UI** / **Integration** groupings in the coverage table makes later handoff trivial.
+
+### Fictional matrix example (illustrative only)
+
+The table below shows **density**, **explicit inputs**, and **tags**—not a real feature spec.
+
+| Row name | Email | Password | Expected oracle | Planned tags |
+| -------- | ----- | -------- | --------------- | ------------ |
+| `Email required: empty` | `""` | `validPass1` | Inline error for required email (or equivalent app message) | `@merge-gate`, `@client-validation` |
+| `Email invalid: missing @` | `userdomain.com` | `validPass1` | Inline error for invalid email format | `@merge-gate`, `@client-validation` |
+| `Password too short: length 5` | `user@example.com` | `"abcde"` | Message: password shorter than minimum length | `@merge-gate`, `@client-validation` |
+
+**Total rows: 3** (example only; real handoffs list every row for the scope—no “invalid email (various)”.)
 
 ## Optional QA technique tags
 
@@ -155,6 +183,8 @@ Producing test cases or test design **does not** mean adding or extending automa
 ## Anti-patterns
 
 - **Generic** scenarios (e.g. “enter valid credentials”) with no **repo- or spec-backed** oracles when the behavior is implemented in this codebase.
+- **Umbrella matrix cells**—e.g. “invalid parameters”, “bad email”, “invalid email (various)”—when multiple distinct values belong in scope; use **one** row **per** value or **explicit** smoke/sample scope.
+- **Abbreviated** matrices (few illustrative rows) when full equivalence/boundary coverage was **not** scoped as smoke-only—see [Explicit parameters and detailed matrix depth](#explicit-parameters-and-detailed-matrix-depth-mandatory).
 - **Splitting** a pure **data-driven** flow into many separate scenarios or Jira subtasks when only **parameters** differ—use one matrix / one subtask unless the flow or risk genuinely diverges.
 - Ad-hoc bullet lists with no coverage rationale or technique mapping.
 - Duplicate scenarios under different names.
