@@ -1,5 +1,6 @@
 ---
-name: post-codegen-review
+name: agent-post-codegen-review
+model: inherit
 description: >-
   Post-codegen and PR-readiness reviewer for this repo. Use proactively
   immediately after writing or generating code, after applying the
