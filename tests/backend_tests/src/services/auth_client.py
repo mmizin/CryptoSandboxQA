@@ -9,18 +9,14 @@ from typing import Any, Optional
 
 import httpx
 
-from models.user.user_types import UserWithProfileTestData
+from utils.env_loader import ensure_repo_env_loaded
+from models import UserWithProfileTestData
 
-
-def get_api_url() -> str:
-    """Same resolution order as Playwright BaseApi.getApiUrl."""
-    url = os.environ.get("API_URL", "").strip() or os.environ.get("NEXT_PUBLIC_API_URL", "").strip()
-    if not url:
-        raise RuntimeError("API_URL or NEXT_PUBLIC_API_URL is not set")
-    return url.rstrip("/")
+from .base_client import BaseClient
 
 
 def get_admin_api_key() -> str:
+    ensure_repo_env_loaded()
     key = os.environ.get("ADMIN_API_KEY", "").strip()
     if not key:
         raise RuntimeError("ADMIN_API_KEY is not set")
@@ -60,46 +56,24 @@ def registration_dict_from_test_data(user: UserWithProfileTestData) -> dict[str,
     return out
 
 
-def raise_for_status_with_body(response: httpx.Response) -> None:
-    """
-    Like ``response.raise_for_status()`` but include a truncated response body in the error
-    message for 4xx/5xx (helps debug validation and server errors).
-    """
-    try:
-        response.raise_for_status()
-    except httpx.HTTPStatusError as e:
-        snippet = ""
-        try:
-            snippet = (e.response.text or "")[:4000]
-        except Exception:
-            snippet = "<unreadable body>"
-        msg = f"{e.request.method} {e.request.url} -> {e.response.status_code}\n{snippet}"
-        raise httpx.HTTPStatusError(msg, request=e.request, response=e.response) from e
-
-
-class AuthClient:
+class AuthClient(BaseClient):
     """Sync httpx wrapper for registration endpoints."""
-
-    def __init__(self, base_url: str | None = None, *, client: httpx.Client | None = None) -> None:
-        self._base_url = (base_url or get_api_url()).rstrip("/")
-        self._owns_client = client is None
-        self._client = client or httpx.Client(base_url=self._base_url, timeout=30.0)
-
-    def close(self) -> None:
-        if self._owns_client:
-            self._client.close()
 
     def __enter__(self) -> AuthClient:
         return self
 
-    def __exit__(self, *args: object) -> None:
-        self.close()
-
-    def register_with_profile(self, user: UserWithProfileTestData) -> dict[str, Any]:
+    def register_with_profile(
+        self,
+        user: UserWithProfileTestData,
+        *,
+        expected_failure: bool = False,
+    ) -> dict[str, Any] | httpx.Response:
         payload = registration_dict_from_test_data(user)
-        response = self._client.post("/auth/register-with-profile", json=payload)
-        raise_for_status_with_body(response)
-        return response.json()
+        return self.post(
+            "/auth/register-with-profile",
+            json=payload,
+            expected_failure=expected_failure,
+        )
 
     def create_admin(
         self,
@@ -107,14 +81,15 @@ class AuthClient:
         password: str,
         display_name: Optional[str],
         admin_api_key: str,
-    ) -> dict[str, Any]:
+        *,
+        expected_failure: bool = False,
+    ) -> dict[str, Any] | httpx.Response:
         body: dict[str, Any] = {"email": email, "password": password}
         if display_name is not None:
             body["displayName"] = display_name
-        response = self._client.post(
+        return self.post(
             "/auth/admin/register",
             json=body,
             headers={"X-Admin-API-Key": admin_api_key},
+            expected_failure=expected_failure,
         )
-        raise_for_status_with_body(response)
-        return response.json()
