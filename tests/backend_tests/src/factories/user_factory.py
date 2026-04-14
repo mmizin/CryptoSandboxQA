@@ -12,6 +12,8 @@ from strategies.user.user_creation_strategy import UserCreationStrategy
 
 
 class UserFactory:
+    """Strategy-first API (same argument order as ``tests/ui-tests/src/factories/user.factory.ts``)."""
+
     def create(
         self,
         strategy: UserCreationStrategy,

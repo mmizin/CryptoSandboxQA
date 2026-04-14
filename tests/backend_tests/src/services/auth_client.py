@@ -5,8 +5,6 @@ HTTP client for auth endpoints (aligned with tests/ui-tests/src/services/auth.ap
 from __future__ import annotations
 
 import os
-from dataclasses import asdict
-from datetime import datetime
 from typing import Any, Optional
 
 import httpx
@@ -30,19 +28,53 @@ def get_admin_api_key() -> str:
 
 
 def registration_dict_from_test_data(user: UserWithProfileTestData) -> dict[str, Any]:
-    """JSON body for POST /auth/register-with-profile (omit Nones; keep email/password)."""
-    raw = asdict(user)
+    """
+    JSON body for POST /auth/register-with-profile.
+
+    Matches backend ``RegisterWithProfileDto`` (camelCase): only registration/profile fields;
+    post-auth-only keys on ``UserWithProfileTestData`` (``id``, ``emailVerifiedAt``, ``createdAt``,
+    ``updatedAt``, ``profile``) are not sent.
+    """
+    # Same field set as tests/ui-tests registerUserWithProfile payload / Nest RegisterWithProfileDto
+    candidates: dict[str, Any] = {
+        "email": user.email,
+        "password": user.password,
+        "displayName": user.displayName,
+        "username": user.username,
+        "fullName": user.fullName,
+        "photoUrl": user.photoUrl,
+        "bio": user.bio,
+        "websiteUrl": user.websiteUrl,
+        "location": user.location,
+        "birthday": user.birthday,
+        "languageCode": user.languageCode,
+        "timezone": user.timezone,
+        "preferences": user.preferences,
+    }
     out: dict[str, Any] = {}
-    for key, value in raw.items():
-        if value is None:
-            continue
-        if isinstance(value, datetime):
-            out[key] = value.isoformat()
-        else:
+    for key, value in candidates.items():
+        if key in ("email", "password"):
             out[key] = value
-    out["email"] = user.email
-    out["password"] = user.password
+        elif value is not None:
+            out[key] = value
     return out
+
+
+def raise_for_status_with_body(response: httpx.Response) -> None:
+    """
+    Like ``response.raise_for_status()`` but include a truncated response body in the error
+    message for 4xx/5xx (helps debug validation and server errors).
+    """
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        snippet = ""
+        try:
+            snippet = (e.response.text or "")[:4000]
+        except Exception:
+            snippet = "<unreadable body>"
+        msg = f"{e.request.method} {e.request.url} -> {e.response.status_code}\n{snippet}"
+        raise httpx.HTTPStatusError(msg, request=e.request, response=e.response) from e
 
 
 class AuthClient:
@@ -66,7 +98,7 @@ class AuthClient:
     def register_with_profile(self, user: UserWithProfileTestData) -> dict[str, Any]:
         payload = registration_dict_from_test_data(user)
         response = self._client.post("/auth/register-with-profile", json=payload)
-        response.raise_for_status()
+        raise_for_status_with_body(response)
         return response.json()
 
     def create_admin(
@@ -84,5 +116,5 @@ class AuthClient:
             json=body,
             headers={"X-Admin-API-Key": admin_api_key},
         )
-        response.raise_for_status()
+        raise_for_status_with_body(response)
         return response.json()

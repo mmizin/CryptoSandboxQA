@@ -1,5 +1,8 @@
 """
 API-backed user creation strategies (mirrors tests/ui-tests/src/strategies/user/api.strategy.ts).
+
+Python uses ``AuthClient`` in place of Playwright ``AuthApi`` + ``APIRequestContext``;
+behavior matches ``registerUserWithProfile`` vs ``createAdmin``.
 """
 
 from __future__ import annotations
@@ -22,10 +25,12 @@ class ApiUserCreationStrategy:
         return registered_test_user_from_auth_result(user, auth)
 
 
-class AdminApiUserCreationStrategy:
+class AdminApiUserCreationStrategy(ApiUserCreationStrategy):
     """
     Bootstrap via POST /auth/admin/register — only email, password, displayName are sent;
     profile-only fields on UserWithProfileTestData are ignored by the API.
+
+    Same inheritance shape as TS ``AdminApiUserCreationStrategy extends ApiUserCreationStrategy``.
     """
 
     def __init__(
@@ -33,7 +38,7 @@ class AdminApiUserCreationStrategy:
         client: AuthClient,
         admin_api_key: Optional[str] = None,
     ) -> None:
-        self._client = client
+        super().__init__(client)
         self._admin_api_key = admin_api_key
 
     def create_user(self, user: UserWithProfileTestData) -> RegisteredTestUser:
