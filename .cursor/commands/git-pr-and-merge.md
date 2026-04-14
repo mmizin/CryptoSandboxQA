@@ -6,10 +6,11 @@ Use the normal repo mechanics ([.cursor/rules/git-flow.mdc](.cursor/rules/git-fl
 
 ## Do this
 
-1. **Push** the current branch if it is not on the remote yet.
-2. **Open a PR** targeting **`master`** (or another base branch only if the user named one in the same message).
-3. **Merge** the PR on GitHub right away (`gh pr merge` or equivalent). Prefer merge/squash/rebase according to repo conventions if any; otherwise use a sensible default (e.g. merge commit or squash—pick what matches existing PRs).
-4. If **merge is blocked** (required checks failing, conflicts, branch protection, or `gh` errors), **report what failed** and stop—do not bypass protections without the user explicitly asking for that.
+1. **Post-codegen review** — Invoke the **`agent-post-codegen-review`** subagent defined in [.cursor/agents/post-codegen-review.md](../agents/post-codegen-review.md) on the current branch’s changes against the PR base (default **`master`**: e.g. `git diff master...HEAD` or equivalent). Treat its output as a gate: if it reports **Critical** issues, **summarize them and stop**—do not push, open a PR, or merge until the user fixes them or clearly says to proceed anyway. Include **Warnings/Suggestions** in a short note (e.g. PR description or reply) when you continue.
+2. **Push** the current branch if it is not on the remote yet.
+3. **Open a PR** targeting **`master`** (or another base branch only if the user named one in the same message).
+4. **Merge** the PR on GitHub right away (`gh pr merge` or equivalent). Prefer merge/squash/rebase according to repo conventions if any; otherwise use a sensible default (e.g. merge commit or squash—pick what matches existing PRs).
+5. If **merge is blocked** (required checks failing, conflicts, branch protection, or `gh` errors), **report what failed** and stop—do not bypass protections without the user explicitly asking for that.
 
 ## After merge
 
