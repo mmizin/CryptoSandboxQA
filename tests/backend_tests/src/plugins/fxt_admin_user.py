@@ -1,8 +1,5 @@
 """
-Pytest fixtures for backend API tests.
-
-``fxt_admin_user`` is a factory: call it with an optional ``UserBuilder`` configure callback
-(and optional ``minimal=True``) to get an ``AdminRegisteredTestUser``.
+Factory fixture ``fxt_admin_user``: optional ``UserBuilder`` configure callback and ``minimal=True``.
 """
 
 from __future__ import annotations
