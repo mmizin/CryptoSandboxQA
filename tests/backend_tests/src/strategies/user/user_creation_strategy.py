@@ -6,12 +6,14 @@ Implementations: ``ApiUserCreationStrategy``, ``AdminApiUserCreationStrategy`` (
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, TypeVar
 
 from models.user.registered_user import RegisteredTestUser
 from models.user.user_types import UserWithProfileTestData
 
+TRegisteredUser = TypeVar("TRegisteredUser", bound=RegisteredTestUser)
 
-class UserCreationStrategy(Protocol):
-    def create_user(self, user: UserWithProfileTestData) -> RegisteredTestUser:
+
+class UserCreationStrategy(Protocol[TRegisteredUser]):
+    def create_user(self, user: UserWithProfileTestData) -> TRegisteredUser:
         """Persist or bootstrap a user and return bearer token + merged test data."""

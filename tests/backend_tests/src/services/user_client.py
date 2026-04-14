@@ -36,12 +36,9 @@ class UserClient(BaseClient):
     def __enter__(self) -> UserClient:
         return self
 
-    def get_me(
-        self,
-        *,
-        expected_failure: bool = False,
-    ) -> dict[str, Any] | httpx.Response:
-        return self.get("/users/me", expected_failure=expected_failure)
+    def get_me(self) -> dict[str, Any] | httpx.Response:
+
+        return self.get("/users/me")
 
 
 def user_client_from_registered(user: RegisteredTestUser, **kwargs: Any) -> UserClient:

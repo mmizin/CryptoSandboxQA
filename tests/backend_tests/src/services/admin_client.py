@@ -26,9 +26,16 @@ class AdminClient(UserClient):
         expected_failure: bool = False,
     ) -> dict[str, Any] | list[Any] | httpx.Response:
         params = {"search": search} if search is not None else None
-        return self.get("/users", params=params, expected_failure=expected_failure)
+        return self.get(
+            "/users",
+            params=params,
+            expected_failure=expected_failure,
+        )
 
 
-def admin_client_from_registered(user: AdminRegisteredTestUser, **kwargs: Any) -> AdminClient:
+def admin_client_from_registered(
+    user: AdminRegisteredTestUser,
+    **kwargs: Any,
+) -> AdminClient:
     """Factory: build an ``AdminClient`` from an admin bootstrap result."""
     return AdminClient(user.access_token, **kwargs)
