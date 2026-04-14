@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from typing import Optional
 
+from models.user.admin_registered_user import (
+    AdminRegisteredTestUser,
+    admin_registered_test_user_from_auth_result,
+)
 from models.user.registered_user import RegisteredTestUser, registered_test_user_from_auth_result
 from models.user.user_types import UserWithProfileTestData
 from services.auth_client import AuthClient, get_admin_api_key
@@ -41,7 +45,7 @@ class AdminApiUserCreationStrategy(ApiUserCreationStrategy):
         super().__init__(client)
         self._admin_api_key = admin_api_key
 
-    def create_user(self, user: UserWithProfileTestData) -> RegisteredTestUser:
+    def create_user(self, user: UserWithProfileTestData) -> AdminRegisteredTestUser:
         key = self._admin_api_key if self._admin_api_key is not None else get_admin_api_key()
         auth = self._client.create_admin(
             email=user.email,
@@ -49,4 +53,4 @@ class AdminApiUserCreationStrategy(ApiUserCreationStrategy):
             display_name=user.displayName,
             admin_api_key=key,
         )
-        return registered_test_user_from_auth_result(user, auth)
+        return admin_registered_test_user_from_auth_result(user, auth)
