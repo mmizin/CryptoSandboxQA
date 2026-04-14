@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
-import { getApiUrl } from "../api/base.api";
-import { AuthApi } from "../api/auth.api";
+import { getApiUrl } from "../services/base.api";
+import { AuthApi } from "../services/auth.api";
 import { UserBuilder } from "../builders/user.builder";
 import { UserFactory } from "../factories/user.factory";
 import type { TestUser } from "../models/user/TestUser";

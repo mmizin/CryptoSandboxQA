@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
-import { BaseApi } from "../../api/base.api";
-import type { UserApi } from "../../api/user.api";
+import { BaseApi } from "../../services/base.api";
+import type { UserApi } from "../../services/user.api";
 import type { UserWithProfileTestData } from "./user.types";
 
 export class TestUser extends BaseApi {

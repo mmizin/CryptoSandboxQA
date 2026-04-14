@@ -1,7 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
-import type { AuthApi, AuthResult } from "../../api/auth.api";
-import { getAdminApiKey } from "../../api/admin.api";
-import { UserApi } from "../../api/user.api";
+import type { AuthApi, AuthResult } from "../../services/auth.api";
+import { getAdminApiKey } from "../../services/admin.api";
+import { UserApi } from "../../services/user.api";
 import type { UserWithProfileTestData } from "../../models/user/user.types";
 import { AdminUser } from "../../models/user/AdminUser";
 import { TestUser } from "../../models/user/TestUser";
