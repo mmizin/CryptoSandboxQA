@@ -4,7 +4,7 @@
 
 ## Do this
 
-1. **Post-codegen review** — Invoke the **`agent-post-codegen-review`** subagent defined in [.cursor/agents/post-codegen-review.md](../agents/post-codegen-review.md) on the current branch’s changes against the PR base (default **`master`**: e.g. `git diff master...HEAD` or equivalent). Treat its output as a gate: if it reports **Critical** issues, **summarize them and stop**—do not push or open a PR until the user fixes them or clearly says to proceed anyway. Include **Warnings/Suggestions** in a short note (e.g. PR description or reply) when you continue.
+1. **Post-codegen review** — Invoke the **`agent-post-codegen-review`** subagent defined in [.cursor/agents/agent-post-codegen-review.md](../agents/agent-post-codegen-review.md) on the current branch’s changes against the PR base (default **`master`**: e.g. `git diff master...HEAD` or equivalent). Treat its output as a gate: if it reports **Critical** issues, **summarize them and stop**—do not push or open a PR until the user fixes them or clearly says to proceed anyway. Include **Warnings/Suggestions** in a short note (e.g. PR description or reply) when you continue.
 2. **Push** the current branch if it is not on the remote yet.
 3. **Open a PR** targeting **`master`** (or another base branch only if the user named one in the same message). Share the PR URL in your reply.
 4. If **PR creation fails** (auth, conflicts with base, `gh` errors, branch protection), **report what failed** and stop.
