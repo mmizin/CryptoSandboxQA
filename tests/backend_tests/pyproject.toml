@@ -5,4 +5,4 @@ requires-python = ">=3.10"
 description = "Python API tests for CryptoSandboxQA (scaffolding)."
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]
