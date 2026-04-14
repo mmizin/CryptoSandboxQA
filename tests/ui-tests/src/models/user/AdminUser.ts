@@ -1,5 +1,5 @@
 import type { APIRequestContext } from "@playwright/test";
-import type { UserApi } from "../../api/user.api";
+import type { UserApi } from "../../services/user.api";
 import { TestUser } from "./TestUser";
 import type { UserWithProfileTestData } from "./user.types";
 
