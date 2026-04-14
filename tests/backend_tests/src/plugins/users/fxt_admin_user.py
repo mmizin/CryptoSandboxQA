@@ -5,7 +5,7 @@ Factory fixture ``fxt_admin_user``: optional ``UserBuilder`` configure callback 
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Optional, cast
+from typing import Optional
 
 import pytest
 
@@ -31,13 +31,7 @@ def fxt_admin_user() -> AdminUserFactory:
         minimal: bool = False,
     ) -> AdminRegisteredTestUser:
         if minimal:
-            return cast(
-                AdminRegisteredTestUser,
-                factory.create_minimal(strategy, configure=configure),
-            )
-        return cast(
-            AdminRegisteredTestUser,
-            factory.create(strategy, configure=configure),
-        )
+            return factory.create_minimal(strategy, configure=configure)
+        return factory.create(strategy, configure=configure)
 
     return _make

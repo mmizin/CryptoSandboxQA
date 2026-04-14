@@ -7,8 +7,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 from builders.user_builder import UserBuilder
-from models.user.registered_user import RegisteredTestUser
-from strategies.user.user_creation_strategy import UserCreationStrategy
+from strategies.user.user_creation_strategy import TRegisteredUser, UserCreationStrategy
 
 
 class UserFactory:
@@ -16,9 +15,9 @@ class UserFactory:
 
     def create(
         self,
-        strategy: UserCreationStrategy,
+        strategy: UserCreationStrategy[TRegisteredUser],
         configure: Optional[Callable[[UserBuilder], UserBuilder]] = None,
-    ) -> RegisteredTestUser:
+    ) -> TRegisteredUser:
         builder = UserBuilder()
         if configure:
             builder = configure(builder)
@@ -26,9 +25,9 @@ class UserFactory:
 
     def create_minimal(
         self,
-        strategy: UserCreationStrategy,
+        strategy: UserCreationStrategy[TRegisteredUser],
         configure: Optional[Callable[[UserBuilder], UserBuilder]] = None,
-    ) -> RegisteredTestUser:
+    ) -> TRegisteredUser:
         builder: UserBuilder = UserBuilder().required()
         if configure:
             builder = configure(builder)
