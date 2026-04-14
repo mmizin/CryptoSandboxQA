@@ -15,7 +15,10 @@ from utils.env_loader import ensure_repo_env_loaded
 def get_api_url() -> str:
     """Same resolution order as Playwright BaseApi.getApiUrl."""
     ensure_repo_env_loaded()
-    url = os.environ.get("API_URL", "").strip() or os.environ.get("NEXT_PUBLIC_API_URL", "").strip()
+    url = (
+        os.environ.get("API_URL", "").strip()
+        or os.environ.get("NEXT_PUBLIC_API_URL", "").strip()
+    )
     if not url:
         raise RuntimeError("API_URL or NEXT_PUBLIC_API_URL is not set")
     return url.rstrip("/")
@@ -34,7 +37,9 @@ def raise_for_status_with_body(response: httpx.Response) -> None:
             snippet = (e.response.text or "")[:4000]
         except Exception:
             snippet = "<unreadable body>"
-        msg = f"{e.request.method} {e.request.url} -> {e.response.status_code}\n{snippet}"
+        msg = (
+            f"{e.request.method} {e.request.url} -> {e.response.status_code}\n{snippet}"
+        )
         raise httpx.HTTPStatusError(msg, request=e.request, response=e.response) from e
 
 
