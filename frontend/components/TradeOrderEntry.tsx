@@ -20,6 +20,9 @@ interface TradeOrderEntryProps {
 const buttonBase =
   'rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700';
 
+const submitButtonSell =
+  'rounded-lg px-4 py-2 text-sm font-medium border-0 outline-none focus:outline-none bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-500/50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
+
 export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubmitted }: TradeOrderEntryProps) {
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
@@ -163,7 +166,7 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
             onClick={() => setSide('buy')}
             className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
               side === 'buy'
-                ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800'
+                ? 'bg-emerald-500/40 text-emerald-300 ring-2 ring-emerald-400/50 shadow-sm shadow-emerald-500/20 group-data-[theme=light]:bg-emerald-200 group-data-[theme=light]:text-emerald-950 group-data-[theme=light]:ring-emerald-500/40'
                 : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
             }`}
           >
@@ -174,8 +177,8 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
             onClick={() => setSide('sell')}
             className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
               side === 'sell'
-                ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
-                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
+                ? 'bg-red-500/40 text-red-300 ring-2 ring-red-400/50 shadow-sm shadow-red-500/20 group-data-[theme=light]:bg-red-200 group-data-[theme=light]:text-red-950 group-data-[theme=light]:ring-red-500/40'
+                : 'bg-red-500/10 text-red-400/90 hover:bg-red-500/20 hover:text-red-300 group-data-[theme=light]:bg-red-50 group-data-[theme=light]:text-red-700 group-data-[theme=light]:hover:bg-red-100 group-data-[theme=light]:hover:text-red-800'
             }`}
           >
             Sell
@@ -261,7 +264,11 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
         {success && <p className="text-sm text-emerald-400">{success}</p>}
         <SubmitLoadingBar active={submitLoading} label="Placing order…" />
         <div className="flex gap-2 pt-1">
-          <button type="submit" disabled={submitLoading || !selectedCoin} className={buttonBase}>
+          <button
+            type="submit"
+            disabled={submitLoading || !selectedCoin}
+            className={side === 'buy' ? buttonBase : submitButtonSell}
+          >
             {submitLoading ? 'Submitting...' : 'Submit'}
           </button>
           <button type="button" onClick={handleReset} disabled={submitLoading} className={buttonBase}>
