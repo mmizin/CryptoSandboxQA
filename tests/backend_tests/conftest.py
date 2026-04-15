@@ -8,4 +8,5 @@ from __future__ import annotations
 
 pytest_plugins = [
     "plugins.users.fxt_admin_user",
+    "plugins.users.fxt_regular_user",
 ]
