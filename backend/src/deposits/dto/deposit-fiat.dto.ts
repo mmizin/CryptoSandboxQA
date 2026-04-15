@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
+const PAYMENT_METHOD_TYPES = ['card', 'sepa', 'applepay'] as const;
+
 export class DepositFiatDto {
   @ApiProperty({ enum: ['USD', 'EUR'] })
   @IsIn(['USD', 'EUR'])
@@ -17,9 +19,11 @@ export class DepositFiatDto {
   paymentMethodId?: string;
 
   @ApiPropertyOptional({
-    description: 'Inline payment (when no saved method)',
-    example: { type: 'card', last4: '4242', brand: 'visa' },
+    enum: PAYMENT_METHOD_TYPES,
+    description:
+      'How the deposit was funded when not using a saved method. When omitted, defaults to card. Ignored when paymentMethodId is set (type is taken from the saved payment method).',
   })
   @IsOptional()
-  paymentMethod?: { type: string; last4?: string; brand?: string; iban_masked?: string };
+  @IsIn([...PAYMENT_METHOD_TYPES])
+  paymentMethodType?: (typeof PAYMENT_METHOD_TYPES)[number];
 }

@@ -215,8 +215,12 @@ export const walletsApi = {
 };
 
 export const depositsApi = {
-  depositFiat: (data: { fiatCurrency: string; amount: number; paymentMethodId?: string }) =>
-    api('/deposits/fiat', { method: 'POST', body: JSON.stringify(data) }),
+  depositFiat: (data: {
+    fiatCurrency: string;
+    amount: number;
+    paymentMethodId?: string;
+    paymentMethodType?: 'card' | 'sepa' | 'applepay';
+  }) => api('/deposits/fiat', { method: 'POST', body: JSON.stringify(data) }),
   listFiat: (params?: { limit?: number; offset?: number; from?: string; to?: string }) => {
     const sp = new URLSearchParams(params as Record<string, string>);
     return api<{ data: unknown[]; total: number }>(`/deposits/fiat${sp.toString() ? `?${sp}` : ''}`);

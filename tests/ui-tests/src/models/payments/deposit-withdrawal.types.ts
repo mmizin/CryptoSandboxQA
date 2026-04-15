@@ -26,6 +26,8 @@ export type DepositFiat = {
     amount: string;
     fee: string;
     status: DepositStatus;
+    paymentMethodId: string | null;
+    paymentMethodType: string | null;
     createdAt: string;
     completedAt: string | null;
 };

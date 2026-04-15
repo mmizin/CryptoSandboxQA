@@ -2670,8 +2670,10 @@
                       "userId": "550e8400-e29b-41d4-a716-446655440000",
                       "fiatCurrency": "USD",
                       "amount": "500",
-                      "fee": "2.5",
+                      "fee": "12.5",
                       "status": "completed",
+                      "paymentMethodId": null,
+                      "paymentMethodType": "card",
                       "createdAt": "2026-04-09T12:00:00.000Z",
                       "completedAt": "2026-04-09T12:00:00.000Z"
                     },
@@ -2762,8 +2764,10 @@
                         "userId": "550e8400-e29b-41d4-a716-446655440000",
                         "fiatCurrency": "USD",
                         "amount": "500",
-                        "fee": "2.5",
+                        "fee": "12.5",
                         "status": "completed",
+                        "paymentMethodId": null,
+                        "paymentMethodType": "card",
                         "createdAt": "2026-04-09T12:00:00.000Z",
                         "completedAt": "2026-04-09T12:00:00.000Z"
                       }
@@ -2815,8 +2819,10 @@
                     "userId": "550e8400-e29b-41d4-a716-446655440000",
                     "fiatCurrency": "USD",
                     "amount": "500",
-                    "fee": "2.5",
+                    "fee": "12.5",
                     "status": "completed",
+                    "paymentMethodId": null,
+                    "paymentMethodType": "card",
                     "createdAt": "2026-04-09T12:00:00.000Z",
                     "completedAt": "2026-04-09T12:00:00.000Z"
                   }
@@ -3112,8 +3118,10 @@
                         "userId": "550e8400-e29b-41d4-a716-446655440000",
                         "fiatCurrency": "USD",
                         "amount": "500",
-                        "fee": "2.5",
+                        "fee": "12.5",
                         "status": "completed",
+                        "paymentMethodId": null,
+                        "paymentMethodType": "card",
                         "createdAt": "2026-04-09T12:00:00.000Z",
                         "completedAt": "2026-04-09T12:00:00.000Z"
                       }
@@ -3203,8 +3211,10 @@
                     "userId": "550e8400-e29b-41d4-a716-446655440000",
                     "fiatCurrency": "USD",
                     "amount": "500",
-                    "fee": "2.5",
+                    "fee": "12.5",
                     "status": "completed",
+                    "paymentMethodId": null,
+                    "paymentMethodType": "card",
                     "createdAt": "2026-04-09T12:00:00.000Z",
                     "completedAt": "2026-04-09T12:00:00.000Z"
                   }
@@ -5575,14 +5585,14 @@
             "type": "string",
             "description": "Saved payment method ID"
           },
-          "paymentMethod": {
-            "type": "object",
-            "description": "Inline payment (when no saved method)",
-            "example": {
-              "type": "card",
-              "last4": "4242",
-              "brand": "visa"
-            }
+          "paymentMethodType": {
+            "type": "string",
+            "enum": [
+              "card",
+              "sepa",
+              "applepay"
+            ],
+            "description": "How the deposit was funded when not using a saved method. When omitted, defaults to card. Ignored when paymentMethodId is set (type is taken from the saved payment method)."
           }
         },
         "required": [
