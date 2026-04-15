@@ -1494,6 +1494,68 @@
         ]
       }
     },
+    "/wallets/transfer": {
+      "post": {
+        "operationId": "WalletsController_transfer",
+        "summary": "Transfer crypto to another user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Updated sender balance and internal transfer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "balance": {
+                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
+                      "asset": "BTC",
+                      "balance": "0.14",
+                      "balanceAvailable": "0.14",
+                      "balanceLocked": "0"
+                    },
+                    "transaction": {
+                      "id": "bt-tr-1",
+                      "type": "transfer",
+                      "amount": "-0.01",
+                      "balanceBefore": "0.15",
+                      "balanceAfter": "0.14",
+                      "refType": "internal_transfer",
+                      "refId": "tf-550e8400-e29b-41d4-a716-446655440099",
+                      "createdAt": "2026-04-09T12:00:00.000Z"
+                    },
+                    "transfer": {
+                      "id": "tf-550e8400-e29b-41d4-a716-446655440099",
+                      "toUserId": "660e8400-e29b-41d4-a716-446655440001",
+                      "asset": "BTC",
+                      "amount": "0.01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "wallets"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/wallets/withdraw": {
       "post": {
         "operationId": "WalletsController_withdraw",
@@ -4186,6 +4248,7 @@
                         "balanceAfter": "10000",
                         "refType": "deposit_fiat",
                         "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "metadata": {},
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -4267,6 +4330,7 @@
                         "balanceAfter": "10000",
                         "refType": "deposit_fiat",
                         "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "metadata": {},
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -4411,6 +4475,93 @@
                         "balanceAfter": "9900",
                         "refType": "withdrawal",
                         "refId": "wd-1",
+                        "metadata": {},
+                        "createdAt": "2026-04-09T12:00:00.000Z"
+                      }
+                    ],
+                    "total": 1,
+                    "meta": {
+                      "total": 1,
+                      "limit": 50,
+                      "offset": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "transactions"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/transactions/transfers": {
+      "get": {
+        "operationId": "TransactionsController_getTransfers",
+        "summary": "Internal crypto transfer history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer ledger entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "id": "bt-tr-1",
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "transfer",
+                        "asset": "BTC",
+                        "amount": "-0.01",
+                        "balanceBefore": "0.15",
+                        "balanceAfter": "0.14",
+                        "refType": "internal_transfer",
+                        "refId": "tf-550e8400-e29b-41d4-a716-446655440099",
+                        "metadata": {
+                          "direction": "out",
+                          "peerUserId": "660e8400-e29b-41d4-a716-446655440001",
+                          "peerEmail": "p***@example.com"
+                        },
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -4514,6 +4665,7 @@
                         "balanceAfter": "10000",
                         "refType": "deposit_fiat",
                         "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "metadata": {},
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -4636,6 +4788,7 @@
                         "balanceAfter": "10000",
                         "refType": "deposit_fiat",
                         "refId": "dd0e8400-e29b-41d4-a716-446655440030",
+                        "metadata": {},
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -4860,6 +5013,7 @@
                         "balanceAfter": "9900",
                         "refType": "withdrawal",
                         "refId": "wd-1",
+                        "metadata": {},
                         "createdAt": "2026-04-09T12:00:00.000Z"
                       }
                     ],
@@ -5464,6 +5618,34 @@
         },
         "required": [
           "code"
+        ]
+      },
+      "TransferDto": {
+        "type": "object",
+        "properties": {
+          "asset": {
+            "type": "string",
+            "example": "BTC",
+            "description": "Cryptocurrency asset symbol; must match an active asset with asset_type crypto."
+          },
+          "amount": {
+            "type": "number",
+            "example": 0.5,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000000000,
+            "description": "Strictly positive amount; max 1,000,000,000."
+          },
+          "toEmail": {
+            "type": "string",
+            "example": "peer@example.com",
+            "description": "Registered user email of the recipient (case-insensitive)."
+          }
+        },
+        "required": [
+          "asset",
+          "amount",
+          "toEmail"
         ]
       },
       "WithdrawDto": {

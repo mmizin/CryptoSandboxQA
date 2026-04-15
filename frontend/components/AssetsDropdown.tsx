@@ -92,6 +92,17 @@ export function AssetsDropdown() {
           >
             Withdrawal
           </Link>
+          <Link
+            href="/assets/transfer"
+            className={menuLinkClass}
+            role="menuitem"
+            onClick={(e) => {
+              guardNav(e);
+              setOpen(false);
+            }}
+          >
+            Transfer
+          </Link>
         </div>
       )}
     </div>

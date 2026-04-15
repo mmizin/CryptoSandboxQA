@@ -212,6 +212,8 @@ export const walletsApi = {
   list: () => api<Array<{ id: string; asset: string; balance: string }>>('/wallets'),
   withdraw: (asset: string, amount: number) =>
     api('/wallets/withdraw', { method: 'POST', body: JSON.stringify({ asset, amount }) }),
+  transfer: (data: { asset: string; amount: number; toEmail: string }) =>
+    api('/wallets/transfer', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const depositsApi = {
@@ -270,6 +272,12 @@ export const transactionsApi = {
       `/transactions/withdrawals${sp.toString() ? `?${sp}` : ''}`,
     );
   },
+  getTransfers: (params?: { limit?: number; offset?: number; from?: string; to?: string }) => {
+    const sp = new URLSearchParams(params as Record<string, string>);
+    return api<{ data: BalanceTransactionItem[]; total: number }>(
+      `/transactions/transfers${sp.toString() ? `?${sp}` : ''}`,
+    );
+  },
 };
 
 /** Row from `GET /transactions`, `GET /transactions/withdrawals`, etc. */
@@ -283,6 +291,7 @@ export type BalanceTransactionItem = {
   balanceAfter: string;
   refType: string | null;
   refId: string | null;
+  metadata?: Record<string, unknown> | null;
   createdAt: string;
 };
 
