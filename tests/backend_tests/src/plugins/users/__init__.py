@@ -1,1 +1,1 @@
-"""User-related pytest fixtures (admin bootstrap, registration, etc.)."""
+"""User-related pytest fixtures: ``fxt_admin_user``, ``fxt_regular_user``."""

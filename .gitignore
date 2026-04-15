@@ -162,3 +162,6 @@ playwright-report/
 blob-report/
 **/playwright/.cache/
 **/playwright/.auth/
+
+# Python egg info
+*.egg-info/
