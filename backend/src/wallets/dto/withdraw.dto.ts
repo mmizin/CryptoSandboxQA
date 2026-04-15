@@ -10,8 +10,9 @@ export class WithdrawDto {
   @ApiProperty({
     example: 100,
     minimum: 0,
+    exclusiveMinimum: true,
     maximum: WALLET_WITHDRAW_AMOUNT_MAX,
-    description: `Positive amount; max ${WALLET_WITHDRAW_AMOUNT_MAX.toLocaleString()}.`,
+    description: `Strictly positive amount (must be greater than zero); max ${WALLET_WITHDRAW_AMOUNT_MAX.toLocaleString()}.`,
   })
   @IsNumber()
   @IsPositive()
