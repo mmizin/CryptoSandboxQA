@@ -41,7 +41,12 @@ export default function DashboardPage() {
     setDepositLoading(true);
     try {
       if (depositAsset === 'USD' || depositAsset === 'EUR') {
-        await depositsApi.depositFiat({ fiatCurrency: depositAsset, amount: amt });
+        // Quick deposit has no method picker; default matches backend default for omitted paymentMethodType.
+        await depositsApi.depositFiat({
+          fiatCurrency: depositAsset,
+          amount: amt,
+          paymentMethodType: 'card',
+        });
       } else {
         const addrRes = await depositsApi.getCryptoAddress(depositAsset);
         if (!addrRes.walletAddress) {

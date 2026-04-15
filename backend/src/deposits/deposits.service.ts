@@ -4,10 +4,18 @@ import { simulatedPersistDelay } from '../common/simulated-persist-delay';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletsService } from '../wallets/wallets.service';
 import { MailService } from '../mail/mail.service';
+import { PaymentMethodsService } from '../payment-methods/payment-methods.service';
 
 const FIAT_CURRENCIES = ['USD', 'EUR'] as const;
 const CARD_FEE_PERCENT = 2.5;
 const SEPA_FEE = 0;
+
+function fiatFeeForMethodType(amount: number, paymentMethodType: string): Decimal {
+  if (paymentMethodType === 'sepa') {
+    return new Decimal(SEPA_FEE);
+  }
+  return new Decimal(amount).mul(CARD_FEE_PERCENT).div(100);
+}
 
 @Injectable()
 export class DepositsService {
@@ -15,6 +23,7 @@ export class DepositsService {
     private prisma: PrismaService,
     private walletsService: WalletsService,
     private mailService: MailService,
+    private paymentMethodsService: PaymentMethodsService,
   ) {}
 
   async depositFiat(
@@ -23,6 +32,7 @@ export class DepositsService {
       fiatCurrency: string;
       amount: number;
       paymentMethodId?: string;
+      paymentMethodType?: 'card' | 'sepa' | 'applepay';
       auditMetadata?: Record<string, unknown>;
     },
   ) {
@@ -33,9 +43,22 @@ export class DepositsService {
       throw new BadRequestException('Amount must be positive');
     }
 
+    let paymentMethodId: string | null = null;
+    let paymentMethodType: string;
+    if (data.paymentMethodId) {
+      const pm = await this.paymentMethodsService.findByUserAndId(userId, data.paymentMethodId);
+      if (!pm) {
+        throw new NotFoundException('Payment method not found');
+      }
+      paymentMethodId = pm.id;
+      paymentMethodType = pm.type;
+    } else {
+      paymentMethodType = data.paymentMethodType ?? 'card';
+    }
+
     await simulatedPersistDelay();
 
-    const fee = CARD_FEE_PERCENT > 0 ? new Decimal(data.amount).mul(CARD_FEE_PERCENT).div(100) : new Decimal(SEPA_FEE);
+    const fee = fiatFeeForMethodType(data.amount, paymentMethodType);
     const amountToCredit = new Decimal(data.amount);
 
     const deposit = await this.prisma.$transaction(async (tx) => {
@@ -45,8 +68,8 @@ export class DepositsService {
           fiatCurrency: data.fiatCurrency,
           amount: amountToCredit,
           fee,
-          paymentMethodId: data.paymentMethodId || null,
-          paymentMethodType: data.paymentMethodId ? 'card' : null,
+          paymentMethodId,
+          paymentMethodType,
           status: 'completed', // Sandbox: instant completion
           completedAt: new Date(),
         },
@@ -229,7 +252,18 @@ export class DepositsService {
     return this.mapDepositCryptoWithAsset(dep);
   }
 
-  private mapDepositFiat(d: { id: string; userId: string; fiatCurrency: string; amount: Decimal; fee: Decimal; status: string; createdAt: Date; completedAt: Date | null }) {
+  private mapDepositFiat(d: {
+    id: string;
+    userId: string;
+    fiatCurrency: string;
+    amount: Decimal;
+    fee: Decimal;
+    status: string;
+    createdAt: Date;
+    completedAt: Date | null;
+    paymentMethodId: string | null;
+    paymentMethodType: string | null;
+  }) {
     return {
       id: d.id,
       userId: d.userId,
@@ -237,6 +271,8 @@ export class DepositsService {
       amount: d.amount.toString(),
       fee: d.fee.toString(),
       status: d.status,
+      paymentMethodId: d.paymentMethodId,
+      paymentMethodType: d.paymentMethodType,
       createdAt: d.createdAt,
       completedAt: d.completedAt,
     };

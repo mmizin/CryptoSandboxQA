@@ -125,6 +125,7 @@ export function DepositCashForm({ disabled = false }: DepositCashFormProps) {
       await depositsApi.depositFiat({
         fiatCurrency: state.currency,
         amount: amountNum,
+        paymentMethodType: state.paymentMethod,
       });
       setSubmitMessage({
         type: 'success',

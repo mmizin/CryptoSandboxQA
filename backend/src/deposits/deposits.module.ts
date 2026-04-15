@@ -7,9 +7,10 @@ import { WalletsModule } from '../wallets/wallets.module';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
+import { PaymentMethodsModule } from '../payment-methods/payment-methods.module';
 
 @Module({
-  imports: [WalletsModule, AuthModule, UsersModule, MailModule],
+  imports: [WalletsModule, AuthModule, UsersModule, MailModule, PaymentMethodsModule],
   controllers: [DepositsController, AdminDepositsController],
   providers: [DepositsService, SessionGuard],
   exports: [DepositsService],

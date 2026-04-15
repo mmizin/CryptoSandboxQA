@@ -81,8 +81,8 @@ flowchart TB
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
 | **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
 | **CryptosModule** | Read API for `cryptos` table (market listings / markets UI) |
-| **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions`; **deposit receipt** email via `MailService` after success |
-| **PaymentMethodsModule** | User payment methods (`user_payment_methods`); used by fiat deposits |
+| **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions`; **deposit receipt** email via `MailService` after success; **`POST /deposits/fiat`** persists `payment_method_type` (optional body field, default `card`) and optional `payment_method_id` when a saved method is selected; list/detail responses include both fields |
+| **PaymentMethodsModule** | User payment methods (`user_payment_methods`); **`POST /deposits/fiat`** resolves `payment_method_type` from the saved row when `paymentMethodId` is sent |
 | **PortfolioModule** | Authenticated portfolio: balances, summary, allocation |
 | **TransactionsModule** | User-facing transaction history (aggregates deposits, trades, withdrawals as exposed by API) |
 | **WebSocketModule** | **TickerGateway** — Socket.IO namespace `/ticker` |

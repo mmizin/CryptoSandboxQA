@@ -47,6 +47,7 @@ export class DepositsController {
       fiatCurrency: dto.fiatCurrency,
       amount: dto.amount,
       paymentMethodId: dto.paymentMethodId,
+      paymentMethodType: dto.paymentMethodType,
       auditMetadata,
     });
   }
