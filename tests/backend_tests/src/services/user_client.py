@@ -6,13 +6,17 @@ HTTP client for user-scoped routes (aligned with tests/ui-tests/src/services/use
 
 from __future__ import annotations
 
-from typing import Any
+from functools import cached_property
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
 from models.user.registered_user import RegisteredTestUser
 
 from .base_client import BaseClient, get_api_url
+
+if TYPE_CHECKING:
+    from .orders_client import OrdersClient
 
 
 class UserClient(BaseClient):
@@ -37,6 +41,13 @@ class UserClient(BaseClient):
 
     def __enter__(self) -> UserClient:
         return self
+
+    @cached_property
+    def orders(self) -> OrdersClient:
+        """Orders API (``/orders``); shares this client's httpx session and Bearer token."""
+        from .orders_client import OrdersClient
+
+        return OrdersClient.from_user_client(self)
 
     def get_me(self) -> dict[str, Any] | httpx.Response:
 

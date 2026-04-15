@@ -61,6 +61,16 @@ class BaseClient:
         self._owns_client = client is None
         self._client = client or httpx.Client(base_url=self._base_url, timeout=timeout)
 
+    @property
+    def base_url(self) -> str:
+        """API origin (no trailing slash), for composing sub-clients."""
+        return self._base_url
+
+    @property
+    def http_client(self) -> httpx.Client:
+        """Underlying httpx client (share with OrdersClient, etc.)."""
+        return self._client
+
     def close(self) -> None:
         if self._owns_client:
             self._client.close()
