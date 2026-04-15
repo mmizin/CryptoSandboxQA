@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   validateDepositCryptoForm,
@@ -24,7 +24,16 @@ const initialState: DepositCryptoFormState = {
   amount: '',
 };
 
-export function DepositCryptoForm() {
+interface DepositCryptoFormProps {
+  /** When true, all controls are disabled (e.g. inactive pane on split deposit page). */
+  disabled?: boolean;
+}
+
+export function DepositCryptoForm({ disabled = false }: DepositCryptoFormProps) {
+  const id = useId();
+  const cryptoInputId = `${id}-crypto`;
+  const amountInputId = `${id}-amount`;
+
   const [state, setState] = useState<DepositCryptoFormState>(initialState);
   const [errors, setErrors] = useState<DepositCryptoFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof DepositCryptoFormState, boolean>>>({});
@@ -151,10 +160,11 @@ export function DepositCryptoForm() {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl shadow-black/20 p-6 sm:p-8 transition-colors duration-200 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white group-data-[theme=light]:shadow-slate-200/50">
       <form onSubmit={handleSubmit} className="space-y-6">
+        <fieldset disabled={disabled} className="border-0 p-0 m-0 min-w-0 space-y-6">
         {/* Crypto selection */}
         <div>
           <label
-            htmlFor="crypto"
+            htmlFor={cryptoInputId}
             className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
           >
             Cryptocurrency
@@ -166,12 +176,14 @@ export function DepositCryptoForm() {
             </span>
           </label>
           <CryptoSearchSelect
+            inputId={cryptoInputId}
             value={state.crypto}
             onChange={(symbol, _price) => {
               updateField('crypto', symbol);
               markTouched('crypto');
             }}
             error={!!displayErrors.crypto}
+            disabled={disabled}
           />
           {(touched.crypto || displayErrors.crypto) && displayErrors.crypto && (
             <p className="mt-1 text-sm text-red-400">{displayErrors.crypto}</p>
@@ -215,7 +227,7 @@ export function DepositCryptoForm() {
         {/* Amount */}
         <div>
           <label
-            htmlFor="amount"
+            htmlFor={amountInputId}
             className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
           >
             Amount to deposit
@@ -227,7 +239,7 @@ export function DepositCryptoForm() {
             </span>
           </label>
           <input
-            id="amount"
+            id={amountInputId}
             type="number"
             placeholder="e.g. 0.001"
             value={state.amount}
@@ -297,6 +309,7 @@ export function DepositCryptoForm() {
             Reset
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
   );
