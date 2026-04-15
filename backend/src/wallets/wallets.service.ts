@@ -435,6 +435,25 @@ export class WalletsService {
     });
   }
 
+  /**
+   * `POST /wallets/withdraw`: only assets with `asset_type === 'crypto'`.
+   * Fiat balances are debited elsewhere (e.g. orders); `debit` does not enforce asset type.
+   */
+  async withdrawForUser(
+    userId: string,
+    asset: string,
+    amount: number | Decimal,
+    options?: { auditMetadata?: Record<string, unknown> },
+  ): Promise<DebitResult> {
+    const assetRow = await this.getAssetBySymbol(asset);
+    if (assetRow.assetType !== 'crypto') {
+      throw new BadRequestException(
+        'Fiat withdrawals are not supported; only cryptocurrency withdrawals are allowed.',
+      );
+    }
+    return this.debit(userId, asset, amount, options);
+  }
+
   async getBalance(userId: string, asset: string): Promise<Decimal> {
     const assetRow = await this.getAssetBySymbol(asset);
     const balance = await this.prisma.userBalance.findUnique({

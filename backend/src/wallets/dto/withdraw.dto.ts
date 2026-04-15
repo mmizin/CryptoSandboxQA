@@ -1,10 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsNumber, IsPositive, Max } from 'class-validator';
+import { IsNumber, IsPositive, IsString, Max, MaxLength, MinLength } from 'class-validator';
 import { WALLET_WITHDRAW_AMOUNT_MAX } from '../../common/validation.constants';
 
 export class WithdrawDto {
-  @ApiProperty({ enum: ['USD', 'EUR', 'BTC', 'ETH'], example: 'USD' })
-  @IsIn(['USD', 'EUR', 'BTC', 'ETH'])
+  @ApiProperty({
+    example: 'BTC',
+    description:
+      'Cryptocurrency asset symbol. Must match an active asset with asset_type crypto; fiat symbols are rejected.',
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(32)
   asset: string;
 
   @ApiProperty({

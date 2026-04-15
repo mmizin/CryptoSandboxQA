@@ -5,9 +5,21 @@
 
 export const WALLET_WITHDRAW_AMOUNT_MAX = 1_000_000_000;
 
-const WITHDRAW_ASSETS = ['USD', 'EUR', 'BTC', 'ETH'] as const;
+/** Same tradable crypto base assets as backend seed (`backend/prisma/seed-lib.js` ASSET_DEFS). */
+const WITHDRAW_ASSETS = [
+  'BTC',
+  'ETH',
+  'SOL',
+  'XRP',
+  'BNB',
+  'ADA',
+  'DOGE',
+  'AVAX',
+  'LINK',
+  'LTC',
+] as const;
 export type WithdrawAsset = (typeof WITHDRAW_ASSETS)[number];
-/** Same set as backend `WithdrawDto.asset` */
+/** Crypto symbols aligned with backend withdraw (DB asset_type crypto); API rejects fiat. */
 export const WITHDRAW_ASSET_OPTIONS: readonly WithdrawAsset[] = WITHDRAW_ASSETS;
 
 export function validateWithdrawAmount(amountStr: string): string | null {

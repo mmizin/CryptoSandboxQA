@@ -1519,17 +1519,17 @@
                     "userId": "550e8400-e29b-41d4-a716-446655440000",
                     "balance": {
                       "id": "aa0e8400-e29b-41d4-a716-446655440010",
-                      "asset": "USD",
-                      "balance": "9900.00",
-                      "balanceAvailable": "9900.00",
+                      "asset": "BTC",
+                      "balance": "0.14",
+                      "balanceAvailable": "0.14",
                       "balanceLocked": "0"
                     },
                     "transaction": {
                       "id": "bt-wd-2",
                       "type": "withdraw",
-                      "amount": "-100",
-                      "balanceBefore": "10000",
-                      "balanceAfter": "9900",
+                      "amount": "-0.01",
+                      "balanceBefore": "0.15",
+                      "balanceAfter": "0.14",
                       "refType": null,
                       "refId": null,
                       "createdAt": "2026-04-09T12:00:00.000Z"
@@ -5461,13 +5461,8 @@
         "properties": {
           "asset": {
             "type": "string",
-            "enum": [
-              "USD",
-              "EUR",
-              "BTC",
-              "ETH"
-            ],
-            "example": "USD"
+            "example": "BTC",
+            "description": "Cryptocurrency asset symbol. Must match an active asset with asset_type crypto; fiat symbols are rejected."
           },
           "amount": {
             "type": "number",

@@ -151,22 +151,22 @@ export const wallets = {
       balanceLocked: '0.01',
     },
   ],
-  /** `POST /wallets/withdraw` — balance + ledger row (no synthetic deposit). */
+  /** `POST /wallets/withdraw` — balance + ledger row (no synthetic deposit). Crypto only. */
   debit: {
     userId: '550e8400-e29b-41d4-a716-446655440000',
     balance: {
       id: 'aa0e8400-e29b-41d4-a716-446655440010',
-      asset: 'USD',
-      balance: '9900.00',
-      balanceAvailable: '9900.00',
+      asset: 'BTC',
+      balance: '0.14',
+      balanceAvailable: '0.14',
       balanceLocked: '0',
     },
     transaction: {
       id: 'bt-wd-2',
       type: 'withdraw',
-      amount: '-100',
-      balanceBefore: '10000',
-      balanceAfter: '9900',
+      amount: '-0.01',
+      balanceBefore: '0.15',
+      balanceAfter: '0.14',
       refType: null,
       refId: null,
       createdAt: ISO,
