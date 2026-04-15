@@ -190,7 +190,6 @@ No schema changes required for this plan; only new/modified endpoints and servic
 |--------|------|-------------|------|
 | GET | `/wallets` | List all user balances | JWT |
 | GET | `/wallets/:asset` | Get balance by asset | JWT |
-| POST | `/wallets/deposit` | Simple deposit (training mode, existing) | JWT |
 | POST | `/wallets/withdraw` | Simple withdraw (existing) | JWT |
 
 ---

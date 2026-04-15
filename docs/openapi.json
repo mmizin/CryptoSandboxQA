@@ -1494,70 +1494,6 @@
         ]
       }
     },
-    "/wallets/deposit": {
-      "post": {
-        "operationId": "WalletsController_deposit",
-        "summary": "Deposit (training mode)",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DepositDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Training credit: deposit row + updated balance + ledger entry",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "userId": "550e8400-e29b-41d4-a716-446655440000",
-                    "deposit": {
-                      "id": "dd0e8400-e29b-41d4-a716-446655440030",
-                      "depositType": "fiat",
-                      "fiatCurrency": "USD",
-                      "amount": "100.00",
-                      "status": "completed",
-                      "completedAt": "2026-04-09T12:00:00.000Z"
-                    },
-                    "balance": {
-                      "id": "aa0e8400-e29b-41d4-a716-446655440010",
-                      "asset": "USD",
-                      "balance": "10100.50",
-                      "balanceAvailable": "10100.50",
-                      "balanceLocked": "0"
-                    },
-                    "transaction": {
-                      "id": "bt-1",
-                      "type": "deposit",
-                      "amount": "100",
-                      "balanceBefore": "10000.5",
-                      "balanceAfter": "10100.5",
-                      "refType": "deposit_fiat",
-                      "refId": "dd0e8400-e29b-41d4-a716-446655440030",
-                      "createdAt": "2026-04-09T12:00:00.000Z"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "wallets"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
     "/wallets/withdraw": {
       "post": {
         "operationId": "WalletsController_withdraw",
@@ -1568,7 +1504,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DepositDto"
+                "$ref": "#/components/schemas/WithdrawDto"
               }
             }
           }
@@ -5520,7 +5456,7 @@
           "code"
         ]
       },
-      "DepositDto": {
+      "WithdrawDto": {
         "type": "object",
         "properties": {
           "asset": {
@@ -5537,8 +5473,9 @@
             "type": "number",
             "example": 100,
             "minimum": 0,
+            "exclusiveMinimum": true,
             "maximum": 1000000000,
-            "description": "Positive amount; max 1,000,000,000 (aligned with dashboard client validation)."
+            "description": "Strictly positive amount (must be greater than zero); max 1,000,000,000."
           }
         },
         "required": [

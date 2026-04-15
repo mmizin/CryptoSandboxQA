@@ -210,8 +210,6 @@ export const usersApi = {
 
 export const walletsApi = {
   list: () => api<Array<{ id: string; asset: string; balance: string }>>('/wallets'),
-  deposit: (asset: string, amount: number) =>
-    api('/wallets/deposit', { method: 'POST', body: JSON.stringify({ asset, amount }) }),
   withdraw: (asset: string, amount: number) =>
     api('/wallets/withdraw', { method: 'POST', body: JSON.stringify({ asset, amount }) }),
 };

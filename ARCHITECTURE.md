@@ -77,7 +77,7 @@ flowchart TB
 | **MailModule** | Shared **nodemailer** delivery (`MailService`): password reset, **welcome** on `POST /auth/register` / `POST /auth/register-with-profile`, **order** status (open / filled / canceled + maker filled from matching), **fiat/crypto deposit** confirmations — same SMTP/Mailpit rules as reset |
 | **AuthModule** | Register, register-with-profile, login, logout; **password reset** (`POST /auth/forgot-password` → email/logs **8-digit code**, `POST /auth/reset-password` with code); optional SMTP (`MailModule` / nodemailer; **Mailpit** in Compose); JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
 | **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields; **admin** `GET /users/bulk/export` (presets: first 100 / last 100 by `createdAt`, or date range up to 500 rows; `format=json|csv`; no password hashes) |
-| **WalletsModule** | Balances per asset (`user_balances`), training deposit/withdraw via service layer with `balance_transactions` audit; training **fiat/crypto credits** that create `deposits_fiat` / `deposits_crypto` rows send the same **deposit receipt** emails as `DepositsModule` (via `MailService`) |
+| **WalletsModule** | Balances per asset (`user_balances`); **`POST /wallets/withdraw`** and shared credit/debit logic with `balance_transactions` audit; [`DepositsModule`](backend/src/deposits/deposits.module.ts) calls [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) for fiat/crypto deposits and sends **deposit receipt** emails (via `MailService`) |
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
 | **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
 | **CryptosModule** | Read API for `cryptos` table (market listings / markets UI) |
@@ -130,7 +130,7 @@ Admin controllers use the `admin/users` prefix and require an admin-authenticate
 |------|--------|
 | **Welcome** | Sent after `AuthService.register` / `registerWithProfile` (not admin-only create paths). Errors are **logged**; registration still succeeds. |
 | **Orders** | [`OrdersService`](backend/src/orders/orders.service.ts) notifies **open** / **filled** / **cancelled** after create (final state post-`matchOrder`), **cancel**, and **setStatus**. [`MatchingService`](backend/src/orders/matching.service.ts) emails the **maker** when their order becomes **filled** (taker notification comes from create’s end-state only, avoiding duplicate filled mail). |
-| **Deposits** | [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto; [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) training paths that insert deposit rows. Errors **logged**; deposit still succeeds. |
+| **Deposits** | [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto; [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) updates balances and creates deposit rows. Errors **logged**; deposit still succeeds. |
 | **Reset vs. rest** | **Password reset** still **throws** on SMTP failure when host is set (client sees error). Other mail types swallow delivery errors after logging. |
 
 Manual / automation notes: [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) § *Transactional email*.
@@ -211,7 +211,7 @@ sequenceDiagram
 |-------|---------|
 | `/` | Landing |
 | `/login`, `/register`, `/forgot-password`, `/reset-password` | Auth |
-| `/dashboard` | Wallets / trading overview |
+| `/dashboard` | Wallets / trading overview; **Quick deposit** uses `POST /deposits/fiat` (USD/EUR) or `POST /deposits/crypto/address` + `POST /deposits/crypto` (BTC/ETH), same as `/deposit-cash` / `/deposit-crypto` |
 | `/market` | Order book, place orders |
 | `/history` | Order / activity history |
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
@@ -229,7 +229,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
-**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Shared **API** limits for the same fields: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_DEPOSIT_AMOUNT_MAX` on `DepositDto`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
+**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/dashboardDepositValidation.ts`](frontend/lib/dashboardDepositValidation.ts) (dashboard quick deposit — reuses [`depositCashValidation.ts`](frontend/lib/depositCashValidation.ts) / [`depositCryptoValidation.ts`](frontend/lib/depositCryptoValidation.ts)). Shared **API** limits: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_WITHDRAW_AMOUNT_MAX` on [`WithdrawDto`](backend/src/wallets/dto/withdraw.dto.ts) for `POST /wallets/withdraw`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
 
 ---
 
