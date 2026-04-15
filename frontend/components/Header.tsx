@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { useTheme } from '@/lib/useTheme';
 import { TradeDropdown } from '@/components/TradeDropdown';
+import { AssetsDropdown } from '@/components/AssetsDropdown';
 
 function DepositCryptoDropdown() {
   const { user, loading } = useAuth(false);
@@ -427,6 +428,7 @@ export function Header() {
           <BuyCryptoDropdown />
           <DepositCryptoDropdown />
           <MarketsDropdown />
+          <AssetsDropdown />
           <TradeDropdown />
         </div>
 
