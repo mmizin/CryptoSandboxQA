@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
-import { walletsApi, ordersApi } from '@/lib/api';
+import { walletsApi, ordersApi, depositsApi } from '@/lib/api';
 import { DashboardCharts } from '@/components/DashboardCharts';
-import { TrainingDepositMessages, validateTrainingDepositAmount } from '@/lib/trainingDepositConstraints';
+import { validateDashboardDepositAmount } from '@/lib/dashboardDepositValidation';
+import { DEPOSIT_AMOUNT_MAX } from '@/lib/depositCashValidation';
+import { DEPOSIT_CRYPTO_AMOUNT_MAX } from '@/lib/depositCryptoValidation';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth(true);
@@ -29,7 +31,7 @@ export default function DashboardPage() {
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validationErr = validateTrainingDepositAmount(depositAmount);
+    const validationErr = validateDashboardDepositAmount(depositAsset, depositAmount);
     if (validationErr) {
       setDepositError(validationErr);
       return;
@@ -38,7 +40,20 @@ export default function DashboardPage() {
     setDepositError('');
     setDepositLoading(true);
     try {
-      await walletsApi.deposit(depositAsset, amt);
+      if (depositAsset === 'USD' || depositAsset === 'EUR') {
+        await depositsApi.depositFiat({ fiatCurrency: depositAsset, amount: amt });
+      } else {
+        const addrRes = await depositsApi.getCryptoAddress(depositAsset);
+        if (!addrRes.walletAddress) {
+          setDepositError('Wallet address unavailable for this asset.');
+          return;
+        }
+        await depositsApi.depositCrypto({
+          symbol: depositAsset,
+          amount: amt,
+          walletAddress: addrRes.walletAddress,
+        });
+      }
       setDepositAmount('');
       walletsApi.list().then(setWallets);
     } catch (err) {
@@ -143,9 +158,9 @@ export default function DashboardPage() {
           </section>
 
           <section className={cardClass}>
-            <h2 className={cardTitle}>Deposit (training)</h2>
+            <h2 className={cardTitle}>Quick deposit</h2>
             <p className="text-sm text-slate-400 mb-4 group-data-[theme=light]:text-slate-600">
-              Add funds to test orders — no real money.
+              Add funds to test orders — no real money. Same API as Deposit cash / Deposit crypto.
             </p>
             <form onSubmit={handleDeposit} className="space-y-4">
               <div className="flex gap-3 flex-wrap">
@@ -169,13 +184,16 @@ export default function DashboardPage() {
                   }}
                   step="any"
                   min="0"
-                  max={1_000_000_000}
+                  max={
+                    depositAsset === 'USD' || depositAsset === 'EUR'
+                      ? DEPOSIT_AMOUNT_MAX
+                      : DEPOSIT_CRYPTO_AMOUNT_MAX
+                  }
                   required
                   data-testid="dashboard-deposit-amount"
                   aria-invalid={!!depositError}
                   className={`rounded-lg border bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none w-32 group-data-[theme=light]:bg-white group-data-[theme=light]:text-slate-900 ${
-                    depositError === TrainingDepositMessages.invalid ||
-                    depositError === TrainingDepositMessages.tooLarge
+                    depositError
                       ? 'border-red-500 group-data-[theme=light]:border-red-500'
                       : 'border-slate-600 group-data-[theme=light]:border-slate-300'
                   }`}

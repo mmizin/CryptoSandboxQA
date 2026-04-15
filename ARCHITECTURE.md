@@ -211,7 +211,7 @@ sequenceDiagram
 |-------|---------|
 | `/` | Landing |
 | `/login`, `/register`, `/forgot-password`, `/reset-password` | Auth |
-| `/dashboard` | Wallets / trading overview |
+| `/dashboard` | Wallets / trading overview; **Quick deposit** uses `POST /deposits/fiat` (USD/EUR) or `POST /deposits/crypto/address` + `POST /deposits/crypto` (BTC/ETH), same as `/deposit-cash` / `/deposit-crypto` |
 | `/market` | Order book, place orders |
 | `/history` | Order / activity history |
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
@@ -229,7 +229,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
-**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/trainingDepositConstraints.ts`](frontend/lib/trainingDepositConstraints.ts). Shared **API** limits for the same fields: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_DEPOSIT_AMOUNT_MAX` on `DepositDto`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
+**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/dashboardDepositValidation.ts`](frontend/lib/dashboardDepositValidation.ts) (dashboard quick deposit — reuses [`depositCashValidation.ts`](frontend/lib/depositCashValidation.ts) / [`depositCryptoValidation.ts`](frontend/lib/depositCryptoValidation.ts)). Shared **API** limits: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_DEPOSIT_AMOUNT_MAX` on [`DepositDto`](backend/src/wallets/dto/deposit.dto.ts) for direct `POST /wallets/deposit` only). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
 
 ---
 

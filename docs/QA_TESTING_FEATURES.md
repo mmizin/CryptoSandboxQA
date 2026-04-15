@@ -36,9 +36,9 @@ Implementation lives in:
 |--------|---------|
 | [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) | Auth forms: constants (`PASSWORD_MIN_LENGTH`, `EMAIL_MAX_LENGTH`, …), `AuthMessages`, validators |
 | [`frontend/lib/searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
-| [`frontend/lib/trainingDepositConstraints.ts`](../frontend/lib/trainingDepositConstraints.ts) | Dashboard training deposit amount |
+| [`frontend/lib/dashboardDepositValidation.ts`](../frontend/lib/dashboardDepositValidation.ts) | Dashboard quick deposit amount (delegates to deposit cash / crypto validators) |
 
-**Backend parity:** Shared limits in [`backend/src/common/validation.constants.ts`](../backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH` **254**, `WALLET_DEPOSIT_AMOUNT_MAX` **1_000_000_000**) match the frontend modules above. DTOs apply `@IsEmail()` + `@MaxLength(254)` on email and `@IsPositive()` + `@Max(WALLET_DEPOSIT_AMOUNT_MAX)` on [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) amount. Same email cap on [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ForgotPasswordDto`](../backend/src/auth/dto/forgot-password.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`RegisterWithProfileDto`](../backend/src/auth/dto/register-with-profile.dto.ts), [`CreateAdminDto`](../backend/src/auth/dto/create-admin.dto.ts), and admin user DTOs with an `email` field.
+**Backend parity:** `EMAIL_MAX_LENGTH` **254** matches auth validators. `WALLET_DEPOSIT_AMOUNT_MAX` applies only to direct **`POST /wallets/deposit`** ([`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts)); the dashboard quick deposit uses **`POST /deposits/fiat`** or **`POST /deposits/crypto`** instead. DTOs apply `@IsEmail()` + `@MaxLength(254)` on email and `@IsPositive()` + `@Max(WALLET_DEPOSIT_AMOUNT_MAX)` on [`DepositDto`](../backend/src/wallets/dto/deposit.dto.ts) amount. Same email cap on [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ForgotPasswordDto`](../backend/src/auth/dto/forgot-password.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`RegisterWithProfileDto`](../backend/src/auth/dto/register-with-profile.dto.ts), [`CreateAdminDto`](../backend/src/auth/dto/create-admin.dto.ts), and admin user DTOs with an `email` field.
 
 ### Rules by field (auth)
 
@@ -65,7 +65,7 @@ Implementation lives in:
 | Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../frontend/components/TradeCoinTable.tsx) |
 | Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx) |
 | Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../frontend/app/admin/impersonate/page.tsx) |
-| Dashboard | Training deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | Must parse to a **positive** number; **≤ 1_000_000_000** (same max on API `POST /wallets/deposit`) | Messages: `Enter a positive amount`, `Amount must be at most …` ([`trainingDepositConstraints`](../frontend/lib/trainingDepositConstraints.ts)) |
+| Dashboard | Quick deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | **USD/EUR:** same rules as Deposit cash — min **1**, max **50_000**, max **2** decimal places ([`validateDepositAmount`](../frontend/lib/depositCashValidation.ts)). **BTC/ETH:** same as Deposit crypto — min **0.00001**, max **100**, max **8** decimal places ([`validateDepositCryptoAmount`](../frontend/lib/depositCryptoValidation.ts)). Submits to **`POST /deposits/fiat`** or **`POST /deposits/crypto`** (after address via **`POST /deposits/crypto/address`**). | Error strings match those modules (e.g. `Amount is required`, `Minimum amount is …`, `Maximum amount is …`). |
 
 ### Other forms (dedicated validators, not the same module as auth)
 
@@ -81,7 +81,7 @@ These screens already use **feature-specific** validation modules (ranges, IBAN,
 
 ### Automation (when you add tests)
 
-- Assert on **`data-testid`** and the exact **error strings** from `AuthMessages` / `TrainingDepositMessages` in the table above. If you change copy in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), update any tests in the same change.
+- Assert on **`data-testid`** and the exact **error strings** from `AuthMessages` and the dashboard / deposit validators in the tables above. If you change copy in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), update any tests in the same change.
 
 ### API vs client
 
