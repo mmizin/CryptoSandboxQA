@@ -45,7 +45,7 @@ try {
   ).trim();
   const total = parseInt(countResult, 10) || 0;
   if (total === 0) {
-    console.log('Database is empty. Skipping dump (run db:seed first to create demo data).');
+    console.log('Database is empty. Skipping dump (run npm run setup, or db:seed for demo accounts).');
     process.exit(0);
   }
 } catch (e) {

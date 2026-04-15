@@ -34,17 +34,17 @@ npm install
 # 2. Start PostgreSQL + Mailpit (Docker)
 npm run db:up
 
-# 3. Setup DB & create .env (one-time)
+# 3. Setup DB & create `.env`, then apply schema + baseline market data (one-time)
 npm run setup
 
 # 4. Run the app
 npm run dev
 
-# 5. (Optional) Seed demo data (run after setup)
+# 5. (Optional) Create demo logins — `demo@example.com` / `password123`, `qa@example.com` / `qa123`
 npm run db:seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and register. Use demo accounts from step 5 if you ran the seed (`demo@example.com` / `password123`, etc.).
+Open [http://localhost:3000](http://localhost:3000) and register. Use step 5 if you want the shared demo accounts without registering.
 
 After `setup`, add **SMTP** lines to the **repository root** `.env` if you want reset emails in Mailpit (see [Password reset & Mailpit](#password-reset--mailpit-dev)). The backend startup log lists API, frontend, and Mailpit URLs.
 
@@ -188,15 +188,13 @@ npm run db:restore
 
 > **Requires `db:up` and `setup` first.** Schema must exist before restoring data.
 
-**Seed demo data** (demo users with wallets, tickers):
+**Optional demo accounts** (shared QA logins with balances):
 
 ```bash
 npm run db:seed
 ```
 
-> **Requires `setup` first.** Run `npm run setup` before seeding to create the database schema.
-
-Creates `demo@example.com` / `password123` and `qa@example.com` / `qa123` with BTC, ETH, USD wallets. Run after `setup` when you want reproducible sample data. Safe to run multiple times (skips existing users).
+> **Requires `setup` first** (schema + baseline market data). This command only adds `demo@example.com` / `password123` and `qa@example.com` / `qa123` if they do not exist yet. If you never run it, you can still use the app and register a new user.
 
 Or install PostgreSQL locally and ensure a database `cryptosandbox` exists.
 
@@ -215,6 +213,7 @@ This script:
 - Runs Prisma migrations
 - Generates Prisma client
 - Restores from `data/postgres-dump.sql` if the file exists (e.g. after `db:reset`)
+- Applies **baseline market data** (assets, trading pairs, tickers, and the `cryptos` catalog used by Markets and buy/deposit pickers) — idempotent upserts
 
 **No manual `.env` editing needed** — defaults work with the Docker Postgres.
 
@@ -237,7 +236,7 @@ npm run frontend:dev  # Frontend on port 3000
 
 ## Usage
 
-1. Register at [http://localhost:3000/register](http://localhost:3000/register) — or run `npm run db:seed` (after `setup`) for demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`)
+1. Register at [http://localhost:3000/register](http://localhost:3000/register) — or run `npm run db:seed` for optional demo accounts (`demo@example.com` / `password123`, `qa@example.com` / `qa123`) after `setup`
 2. Login and deposit USD (training mode)
 3. Go to Market to place orders
 4. View order history

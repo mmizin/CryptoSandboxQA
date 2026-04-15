@@ -115,7 +115,7 @@ Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../
 1. **Database:** `user_password_resets` table must exist — run **`npm run setup`** or **`npm run db:migrate`** so Prisma `db push` applies [`schema.prisma`](../backend/prisma/schema.prisma).
 2. **Mailpit:** `npm run db:up` starts Postgres + Mailpit (see root [`docker-compose.yml`](../docker-compose.yml)). SMTP **1025**, UI **8025** (ports overridable via `MAILPIT_SMTP_PORT` / `MAILPIT_HTTP_PORT`).
 3. **Env (repo root `.env` recommended):** `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_SECURE=false`. Optional: `MAIL_FROM`. Nest loads root `.env` when the API runs from the `backend/` workspace—see [`nestEnvFilePaths()`](../backend/src/app.module.ts) in [ARCHITECTURE.md](../ARCHITECTURE.md).
-4. **Registered user:** Forgot-password **sends nothing** if `email` is not in `users` (response still looks like success). Use a seeded account (e.g. `demo@example.com` after `npm run db:seed`) or register first.
+4. **Registered user:** Forgot-password **sends nothing** if `email` is not in `users` (response still looks like success). Use a seeded account (e.g. `demo@example.com` after optional `npm run db:seed`) or register first.
 
 ### Manual test checklist
 
