@@ -1,5 +1,7 @@
 """
 HTTP client for user-scoped routes (aligned with tests/ui-tests/src/services/user.api.ts).
+
+``RegisteredTestUser.api`` is a lazy alias: same client as ``user_client_from_registered(user)``.
 """
 
 from __future__ import annotations

@@ -5,9 +5,13 @@ Result of a successful registration/bootstrap (aligned with TestUser.data + toke
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any
+from functools import cached_property
+from typing import TYPE_CHECKING, Any
 
 from models.user.user_types import UserWithProfileTestData
+
+if TYPE_CHECKING:
+    from services.user_client import UserClient
 
 
 @dataclass
@@ -16,6 +20,16 @@ class RegisteredTestUser:
 
     access_token: str
     data: dict[str, Any]
+
+    @cached_property
+    def api(self) -> UserClient:
+        """
+        Authenticated HTTP client for this user (Bearer JWT). Lazily built; one ``UserClient``
+        per ``RegisteredTestUser`` instance. Same token as ``user_client_from_registered(self)``.
+        """
+        from services.user_client import user_client_from_registered
+
+        return user_client_from_registered(self)
 
 
 def registered_test_user_from_auth_result(
