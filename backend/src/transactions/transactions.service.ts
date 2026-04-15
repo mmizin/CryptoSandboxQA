@@ -55,6 +55,7 @@ export class TransactionsService {
         balanceAfter: t.balanceAfter.toString(),
         refType: t.refType,
         refId: t.refId,
+        metadata: t.metadata,
         createdAt: t.createdAt,
       })),
       total,
@@ -116,6 +117,16 @@ export class TransactionsService {
     return this.getTransactions(userId, {
       ...params,
       type: 'withdraw',
+    });
+  }
+
+  async getTransferHistory(
+    userId: string,
+    params?: { limit?: number; offset?: number; from?: string; to?: string },
+  ) {
+    return this.getTransactions(userId, {
+      ...params,
+      type: 'transfer',
     });
   }
 }

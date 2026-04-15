@@ -103,4 +103,26 @@ export class TransactionsController {
       offset: offset ? parseInt(offset, 10) : undefined,
     });
   }
+
+  @Get('transfers')
+  @ApiOperation({ summary: 'Internal crypto transfer history' })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'offset', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiJsonExample(200, 'Transfer ledger entries', OA.transactions.transfers)
+  async getTransfers(
+    @CurrentUser() user: { id: string },
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.transactionsService.getTransferHistory(user.id, {
+      limit: limit ? parseInt(limit, 10) : undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
+      from,
+      to,
+    });
+  }
 }

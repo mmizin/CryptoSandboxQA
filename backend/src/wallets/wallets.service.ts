@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 const FIAT_CURRENCIES = ['USD', 'EUR'] as const;
@@ -24,6 +26,28 @@ export interface DebitResult {
     refType: string | null;
     refId: string | null;
     createdAt: Date;
+  };
+}
+
+function maskEmailForTransfer(email: string): string {
+  const lower = email.trim().toLowerCase();
+  const at = lower.indexOf('@');
+  if (at <= 0) return '***';
+  const local = lower.slice(0, at);
+  const domain = lower.slice(at + 1);
+  const maskedLocal = local.length <= 1 ? '*' : `${local[0]}***`;
+  return `${maskedLocal}@${domain}`;
+}
+
+export interface TransferCryptoResult {
+  userId: string;
+  balance: DebitResult['balance'];
+  transaction: DebitResult['transaction'];
+  transfer: {
+    id: string;
+    toUserId: string;
+    asset: string;
+    amount: string;
   };
 }
 
@@ -63,6 +87,7 @@ export class WalletsService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
+    private usersService: UsersService,
   ) {}
 
   private async getAssetBySymbol(asset: string) {
@@ -452,6 +477,136 @@ export class WalletsService {
       );
     }
     return this.debit(userId, asset, amount, options);
+  }
+
+  /**
+   * Internal transfer: move available crypto from one user to another (same DB transaction).
+   */
+  async transferCrypto(
+    fromUserId: string,
+    dto: { asset: string; amount: number; toEmail: string },
+    options?: { auditMetadata?: Record<string, unknown> },
+  ): Promise<TransferCryptoResult> {
+    const toEmail = dto.toEmail.trim().toLowerCase();
+    const recipient = await this.usersService.findByEmail(toEmail);
+    if (!recipient || recipient.id === fromUserId) {
+      throw new BadRequestException('Recipient not found');
+    }
+
+    const assetRow = await this.getAssetBySymbol(dto.asset);
+    if (assetRow.assetType !== 'crypto') {
+      throw new BadRequestException('Only cryptocurrency transfers are allowed.');
+    }
+
+    const amt = new Decimal(dto.amount);
+    if (amt.lte(0)) throw new BadRequestException('Amount must be positive');
+
+    const senderRow = await this.prisma.user.findUnique({
+      where: { id: fromUserId },
+      select: { email: true },
+    });
+    const senderEmail = senderRow?.email ?? '';
+    const maskedPeerForSender = maskEmailForTransfer(recipient.email);
+    const maskedPeerForRecipient = maskEmailForTransfer(senderEmail);
+
+    const transferRefId = randomUUID();
+    const audit = (options?.auditMetadata ?? {}) as Record<string, unknown>;
+
+    return this.prisma.$transaction(async (tx) => {
+      const senderBal = await tx.userBalance.findUnique({
+        where: { userId_assetId: { userId: fromUserId, assetId: assetRow.id } },
+        include: { asset: true },
+      });
+      if (!senderBal) throw new BadRequestException('Insufficient balance');
+
+      const available = new Decimal(senderBal.balanceAvailable);
+      if (available.lt(amt)) throw new BadRequestException('Insufficient balance');
+
+      const senderBalanceBefore = available.add(senderBal.balanceLocked);
+
+      let receiverBal = await tx.userBalance.findUnique({
+        where: { userId_assetId: { userId: recipient.id, assetId: assetRow.id } },
+      });
+      if (!receiverBal) {
+        receiverBal = await tx.userBalance.create({
+          data: { userId: recipient.id, assetId: assetRow.id, balanceAvailable: 0, balanceLocked: 0 },
+        });
+      }
+
+      const senderUpdated = await tx.userBalance.update({
+        where: { id: senderBal.id },
+        data: { balanceAvailable: { decrement: amt } },
+        include: { asset: true },
+      });
+      const senderTotalAfter = new Decimal(senderUpdated.balanceAvailable).add(senderUpdated.balanceLocked);
+      const negAmt = new Decimal(0).minus(amt);
+
+      const btOut = await tx.balanceTransaction.create({
+        data: {
+          userId: fromUserId,
+          balanceId: senderBal.id,
+          assetId: assetRow.id,
+          type: 'transfer',
+          amount: negAmt,
+          balanceBefore: senderBalanceBefore,
+          balanceAfter: senderTotalAfter,
+          refType: 'internal_transfer',
+          refId: transferRefId,
+          metadata: { ...audit, direction: 'out', peerUserId: recipient.id, peerEmail: maskedPeerForSender } as object,
+        },
+      });
+
+      const receiverBalanceBefore = new Decimal(receiverBal.balanceAvailable).add(receiverBal.balanceLocked);
+      const receiverUpdated = await tx.userBalance.update({
+        where: { id: receiverBal.id },
+        data: { balanceAvailable: { increment: amt } },
+        include: { asset: true },
+      });
+      const receiverTotalAfter = new Decimal(receiverUpdated.balanceAvailable).add(receiverUpdated.balanceLocked);
+
+      await tx.balanceTransaction.create({
+        data: {
+          userId: recipient.id,
+          balanceId: receiverBal.id,
+          assetId: assetRow.id,
+          type: 'transfer',
+          amount: amt,
+          balanceBefore: receiverBalanceBefore,
+          balanceAfter: receiverTotalAfter,
+          refType: 'internal_transfer',
+          refId: transferRefId,
+          metadata: { ...audit, direction: 'in', peerUserId: fromUserId, peerEmail: maskedPeerForRecipient } as object,
+        },
+      });
+
+      const total = new Decimal(senderUpdated.balanceAvailable).add(senderUpdated.balanceLocked);
+      return {
+        userId: fromUserId,
+        balance: {
+          id: senderUpdated.id,
+          asset: senderUpdated.asset.symbol,
+          balance: total.toString(),
+          balanceAvailable: senderUpdated.balanceAvailable.toString(),
+          balanceLocked: senderUpdated.balanceLocked.toString(),
+        },
+        transaction: {
+          id: btOut.id,
+          type: btOut.type,
+          amount: btOut.amount.toString(),
+          balanceBefore: btOut.balanceBefore.toString(),
+          balanceAfter: btOut.balanceAfter.toString(),
+          refType: btOut.refType,
+          refId: btOut.refId,
+          createdAt: btOut.createdAt,
+        },
+        transfer: {
+          id: transferRefId,
+          toUserId: recipient.id,
+          asset: senderUpdated.asset.symbol,
+          amount: amt.toString(),
+        },
+      };
+    });
   }
 
   async getBalance(userId: string, asset: string): Promise<Decimal> {

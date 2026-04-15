@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WalletsService } from './wallets.service';
+import { TransferDto } from './dto/transfer.dto';
 import { WithdrawDto } from './dto/withdraw.dto';
 
 @ApiTags('wallets')
@@ -28,6 +29,23 @@ export class WalletsController {
   @ApiJsonExample(200, 'Returns wallet', OA.wallets.row)
   async get(@CurrentUser() user: { id: string }, @Param('asset') asset: string) {
     return this.walletsService.getOrCreate(user.id, asset);
+  }
+
+  @Post('transfer')
+  @ApiOperation({ summary: 'Transfer crypto to another user' })
+  @ApiBody({ type: TransferDto })
+  @ApiJsonExample(201, 'Updated sender balance and internal transfer', OA.wallets.transfer)
+  async transfer(
+    @CurrentUser() user: { id: string; impersonatedBy?: string },
+    @Body() dto: TransferDto,
+  ) {
+    const auditMetadata =
+      user.impersonatedBy ?
+        { performedByAdmin: true, adminId: user.impersonatedBy }
+      : undefined;
+    return this.walletsService.transferCrypto(user.id, dto, {
+      auditMetadata,
+    });
   }
 
   @Post('withdraw')

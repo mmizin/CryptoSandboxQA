@@ -77,14 +77,14 @@ flowchart TB
 | **MailModule** | Shared **nodemailer** delivery (`MailService`): password reset, **welcome** on `POST /auth/register` / `POST /auth/register-with-profile`, **order** status (open / filled / canceled + maker filled from matching), **fiat/crypto deposit** confirmations — same SMTP/Mailpit rules as reset |
 | **AuthModule** | Register, register-with-profile, login, logout; **password reset** (`POST /auth/forgot-password` → email/logs **8-digit code**, `POST /auth/reset-password` with code); optional SMTP (`MailModule` / nodemailer; **Mailpit** in Compose); JWT + **session** records (`user_sessions`); **2FA** (TOTP setup, enable/disable, verify, backup codes); **admin** bootstrap via `ADMIN_API_KEY` (`POST /auth/admin/register`); **admin-only** `POST /auth/admin/create-user` and **multipart** `POST /auth/admin/bulk-import-users` (CSV/JSON, same columns as single create); **impersonation** (`POST /auth/impersonate`, `POST /auth/end-impersonation`) |
 | **UsersModule** | Authenticated user profile CRUD, extended `UserProfile` fields; **admin** `GET /users/bulk/export` (presets: first 100 / last 100 by `createdAt`, or date range up to 500 rows; `format=json|csv`; no password hashes) |
-| **WalletsModule** | Balances per asset (`user_balances`); **`POST /wallets/withdraw`** (cryptocurrency only — fiat symbols rejected via `assets.asset_type`) and shared credit/debit logic with `balance_transactions` audit; [`DepositsModule`](backend/src/deposits/deposits.module.ts) calls [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) for fiat/crypto deposits and sends **deposit receipt** emails (via `MailService`) |
+| **WalletsModule** | Balances per asset (`user_balances`); **`POST /wallets/withdraw`** and **`POST /wallets/transfer`** (cryptocurrency only — fiat symbols rejected via `assets.asset_type`); internal transfers debit the sender and credit the recipient in one transaction with paired `balance_transactions` rows (`type: transfer`, `refType: internal_transfer`); [`DepositsModule`](backend/src/deposits/deposits.module.ts) calls [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) for fiat/crypto deposits and sends **deposit receipt** emails (via `MailService`) |
 | **OrdersModule** | Limit/market orders (**spot** and **futures** `marketType` in schema), cancel/list; **MatchingService** (FIFO-style matching, trades). Open orders **lock** funds in `user_balances.balance_locked` (sell: base qty; buy: quote ≈ qty × limit price, or **market buy**: qty × last price at submit, stored on `orders.price` for reservation math); **order_lock** / **order_unlock** in `balance_transactions`. Fills settle via locked funds (`WalletsService.settle*InTx`). |
 | **TickersModule** | Last price + 24h volume per trading pair; initial seed on boot |
 | **CryptosModule** | Read API for `cryptos` table (market listings / markets UI) |
 | **DepositsModule** | **Fiat** and **crypto** deposit flows persisted to `deposits_fiat` / `deposits_crypto`, balance + `balance_transactions`; **deposit receipt** email via `MailService` after success; **`POST /deposits/fiat`** persists `payment_method_type` (optional body field, default `card`) and optional `payment_method_id` when a saved method is selected; list/detail responses include both fields |
 | **PaymentMethodsModule** | User payment methods (`user_payment_methods`); **`POST /deposits/fiat`** resolves `payment_method_type` from the saved row when `paymentMethodId` is sent |
 | **PortfolioModule** | Authenticated portfolio: balances, summary, allocation |
-| **TransactionsModule** | User-facing transaction history (aggregates deposits, trades, withdrawals as exposed by API) |
+| **TransactionsModule** | User-facing transaction history: unified `GET /transactions` (optional `metadata` on balance rows), `GET /transactions/deposits`, **`GET /transactions/transfers`** (internal crypto transfers), `GET /transactions/withdrawals`, trades |
 | **WebSocketModule** | **TickerGateway** — Socket.IO namespace `/ticker` |
 | **MetricsModule** | `GET /metrics` for Prometheus |
 
@@ -165,14 +165,14 @@ Orders support `market_type` (`spot` | `futures`) and rich statuses (`open`, `pa
 | **TwoFactorService** | Auth | 2FA lifecycle |
 | **SessionsService** | Auth | Session persistence and revocation |
 | **UsersService** | Users | User + profile persistence |
-| **WalletsService** | Wallets | Balances, locks, training credits/debits, transaction log; **deposit receipt** email when training credit creates a deposit row |
+| **WalletsService** | Wallets | Balances, locks, training credits/debits, **internal crypto transfer** (`transferCrypto`), transaction log; **deposit receipt** email when training credit creates a deposit row |
 | **OrdersService** | Orders | Order lifecycle, validation; triggers **order status** emails (to order owner) |
 | **MatchingService** | Orders | Matching, trades, wallet updates; **maker filled** email when resting order fully fills |
 | **TickersService** | Tickers | Ticker reads/updates, seed |
 | **DepositsService** | Deposits | Fiat/crypto deposit records + balance updates; **deposit receipt** email |
 | **PaymentMethodsService** | Payment methods | CRUD for saved methods |
 | **PortfolioService** | Portfolio | Aggregated holder views |
-| **TransactionsService** | Transactions | History endpoints |
+| **TransactionsService** | Transactions | History endpoints (including transfer rows with `metadata` for peer hints) |
 | **TickerGateway** | WebSocket | Socket.IO subscribe/broadcast |
 
 ---
@@ -215,7 +215,7 @@ sequenceDiagram
 | `/market` | Order book, place orders |
 | `/history` | Order / activity history |
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
-| `/assets`, `/assets/deposit`, `/assets/withdraw` | **Assets** header menu: portfolio-style overview (`GET /portfolio/summary` holdings table + `GET /cryptos` for display names), **Deposit** / **Withdraw** CTAs; **`/assets/deposit`** shows fiat and crypto deposit flows side by side (same components as `/deposit-cash` / `/deposit-crypto`) with one active pane and the other inactive; dedicated **`/deposit-cash`** / **`/deposit-crypto`** routes remain; **Withdraw** (`/assets/withdraw`) uses a three-step flow (select **crypto** only → simulated destination → amount), FAQ aside, and **All withdrawals** table fed by `GET /transactions/withdrawals` plus `POST /wallets/withdraw` (API rejects fiat withdrawals) |
+| `/assets`, `/assets/deposit`, `/assets/withdraw`, `/assets/transfer` | **Assets** header menu: portfolio-style overview (`GET /portfolio/summary` holdings table + `GET /cryptos` for display names), **Deposit** / **Withdraw** / **Transfer** links; **`/assets/deposit`** shows fiat and crypto deposit flows side by side (same components as `/deposit-cash` / `/deposit-crypto`) with one active pane and the other inactive; dedicated **`/deposit-cash`** / **`/deposit-crypto`** routes remain; **Withdraw** (`/assets/withdraw`) uses a three-step flow (select **crypto** only → simulated destination → amount), FAQ aside, and **All withdrawals** table fed by `GET /transactions/withdrawals` plus `POST /wallets/withdraw` (API rejects fiat withdrawals); **Transfer** (`/assets/transfer`) sends crypto to another user by **email** via `POST /wallets/transfer` with **Transfer history** from `GET /transactions/transfers` |
 | `/buy-crypto` | Buy UI |
 | `/calculate` | Calculator-style training UI |
 | `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
