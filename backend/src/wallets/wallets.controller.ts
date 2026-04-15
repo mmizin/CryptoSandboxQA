@@ -42,7 +42,7 @@ export class WalletsController {
       user.impersonatedBy ?
         { performedByAdmin: true, adminId: user.impersonatedBy }
       : undefined;
-    return this.walletsService.debit(user.id, dto.asset, dto.amount, {
+    return this.walletsService.withdrawForUser(user.id, dto.asset, dto.amount, {
       auditMetadata,
     });
   }
