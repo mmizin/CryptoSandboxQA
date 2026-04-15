@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import {
   validateDepositForm,
   type DepositFormState,
@@ -41,7 +41,23 @@ const initialState: DepositFormState = {
   cvv: '',
 };
 
-export function DepositCashForm() {
+interface DepositCashFormProps {
+  /** When true, all controls are disabled (e.g. inactive pane on split deposit page). */
+  disabled?: boolean;
+}
+
+export function DepositCashForm({ disabled = false }: DepositCashFormProps) {
+  const id = useId();
+  const ids = {
+    currency: `${id}-currency`,
+    amount: `${id}-amount`,
+    cardNumber: `${id}-cardNumber`,
+    expiry: `${id}-expiry`,
+    cvv: `${id}-cvv`,
+    iban: `${id}-iban`,
+    sepaName: `${id}-sepaName`,
+  };
+
   const [state, setState] = useState<DepositFormState>(initialState);
   const [errors, setErrors] = useState<DepositFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof DepositFormState, boolean>>>({});
@@ -146,10 +162,11 @@ export function DepositCashForm() {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl shadow-black/20 p-6 sm:p-8 transition-colors duration-200 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white group-data-[theme=light]:shadow-slate-200/50">
       <form onSubmit={handleSubmit} className="space-y-6">
+        <fieldset disabled={disabled} className="border-0 p-0 m-0 min-w-0 space-y-6">
         {/* Currency */}
         <div>
           <label
-            htmlFor="currency"
+            htmlFor={ids.currency}
             className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
           >
             Currency
@@ -158,7 +175,7 @@ export function DepositCashForm() {
             </span>
           </label>
           <select
-            id="currency"
+            id={ids.currency}
             value={state.currency}
             onChange={(e) => updateField('currency', e.target.value)}
             onBlur={() => markTouched('currency')}
@@ -178,7 +195,7 @@ export function DepositCashForm() {
         {/* Amount */}
         <div>
           <label
-            htmlFor="amount"
+            htmlFor={ids.amount}
             className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
           >
             Amount
@@ -190,7 +207,7 @@ export function DepositCashForm() {
             </span>
           </label>
           <input
-            id="amount"
+            id={ids.amount}
             type="number"
             placeholder="e.g. 100"
             value={state.amount}
@@ -232,13 +249,13 @@ export function DepositCashForm() {
             <div className="space-y-4 p-4 rounded-xl bg-slate-800/50 group-data-[theme=light]:bg-slate-100/50">
               <div>
                 <label
-                  htmlFor="cardNumber"
+                  htmlFor={ids.cardNumber}
                   className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
                 >
                   Card number
                 </label>
                 <input
-                  id="cardNumber"
+                  id={ids.cardNumber}
                   type="text"
                   placeholder="4111 1111 1111 1111"
                   value={state.cardNumber}
@@ -256,13 +273,13 @@ export function DepositCashForm() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="expiry"
+                    htmlFor={ids.expiry}
                     className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
                   >
                     Expiry (MM/YY)
                   </label>
                   <input
-                    id="expiry"
+                    id={ids.expiry}
                     type="text"
                     placeholder="12/28"
                     value={state.expiry}
@@ -281,7 +298,7 @@ export function DepositCashForm() {
                 </div>
                 <div>
                   <label
-                    htmlFor="cvv"
+                    htmlFor={ids.cvv}
                     className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
                   >
                     CVV
@@ -293,7 +310,7 @@ export function DepositCashForm() {
                     </span>
                   </label>
                   <input
-                    id="cvv"
+                    id={ids.cvv}
                     type="password"
                     placeholder="123"
                     value={state.cvv}
@@ -315,7 +332,7 @@ export function DepositCashForm() {
             <div className="space-y-4 p-4 rounded-xl bg-slate-800/50 group-data-[theme=light]:bg-slate-100/50">
               <div>
                 <label
-                  htmlFor="iban"
+                  htmlFor={ids.iban}
                   className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
                 >
                   IBAN
@@ -327,7 +344,7 @@ export function DepositCashForm() {
                   </span>
                 </label>
                 <input
-                  id="iban"
+                  id={ids.iban}
                   type="text"
                   placeholder="DE89370400440532013000"
                   value={state.iban}
@@ -347,13 +364,13 @@ export function DepositCashForm() {
               </div>
               <div>
                 <label
-                  htmlFor="sepaName"
+                  htmlFor={ids.sepaName}
                   className="block text-sm font-medium text-slate-300 mb-2 group-data-[theme=light]:text-slate-700"
                 >
                   Account holder name
                 </label>
                 <input
-                  id="sepaName"
+                  id={ids.sepaName}
                   type="text"
                   placeholder="John Doe"
                   value={state.sepaName}
@@ -455,6 +472,7 @@ export function DepositCashForm() {
             Reset
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
   );

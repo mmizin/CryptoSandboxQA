@@ -260,6 +260,26 @@ export const transactionsApi = {
     const sp = new URLSearchParams(params as Record<string, string>);
     return api<{ data: unknown[]; total: number }>(`/transactions/trades${sp.toString() ? `?${sp}` : ''}`);
   },
+  getWithdrawals: (params?: { limit?: number; offset?: number }) => {
+    const sp = new URLSearchParams(params as Record<string, string>);
+    return api<{ data: BalanceTransactionItem[]; total: number }>(
+      `/transactions/withdrawals${sp.toString() ? `?${sp}` : ''}`,
+    );
+  },
+};
+
+/** Row from `GET /transactions`, `GET /transactions/withdrawals`, etc. */
+export type BalanceTransactionItem = {
+  id: string;
+  userId: string;
+  type: string;
+  asset: string;
+  amount: string;
+  balanceBefore: string;
+  balanceAfter: string;
+  refType: string | null;
+  refId: string | null;
+  createdAt: string;
 };
 
 export interface CryptoItem {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import { cryptosApi, type CryptoItem } from '@/lib/api';
 import { FALLBACK_CRYPTOS } from '@/lib/buySellMockData';
 import { SEARCH_MAX_LENGTH, clampSearchInput } from '@/lib/searchFieldConstraints';
@@ -15,6 +15,8 @@ interface CryptoSearchSelectProps {
   onChange: (symbol: string, price: number) => void;
   error?: boolean;
   disabled?: boolean;
+  /** Stable id for the search input (for htmlFor). If omitted, a unique id is generated. */
+  inputId?: string;
 }
 
 /** Map API CryptoItem to { symbol, name, price } for fallback compatibility */
@@ -31,7 +33,17 @@ function toCryptoItem(c: { symbol: string; name: string; price: string | number 
   };
 }
 
-export function CryptoSearchSelect({ value, onChange, error = false, disabled = false }: CryptoSearchSelectProps) {
+export function CryptoSearchSelect({
+  value,
+  onChange,
+  error = false,
+  disabled = false,
+  inputId: inputIdProp,
+}: CryptoSearchSelectProps) {
+  const genId = useId();
+  const inputId = inputIdProp ?? `${genId}-crypto-search`;
+  const listboxId = `${genId}-listbox`;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [options, setOptions] = useState<(CryptoItem & { priceNum: number })[]>([]);
   const [loading, setLoading] = useState(false);
@@ -115,9 +127,10 @@ export function CryptoSearchSelect({ value, onChange, error = false, disabled = 
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        aria-controls="crypto-listbox"
+        aria-controls={listboxId}
       >
         <input
+          id={inputId}
           type="text"
           placeholder="Search cryptocurrency (e.g. Bitcoin, ETH, SOL)"
           value={isOpen ? searchQuery : displayText}
@@ -135,7 +148,7 @@ export function CryptoSearchSelect({ value, onChange, error = false, disabled = 
 
       {isOpen && (
         <ul
-          id="crypto-listbox"
+          id={listboxId}
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-slate-700 group-data-[theme=light]:border-slate-200 bg-slate-900 group-data-[theme=light]:bg-white shadow-xl"
         >

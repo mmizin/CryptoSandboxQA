@@ -215,7 +215,7 @@ sequenceDiagram
 | `/market` | Order book, place orders |
 | `/history` | Order / activity history |
 | `/deposit-cash`, `/deposit-crypto` | Deposit flows (API-backed where applicable) |
-| `/assets`, `/assets/deposit`, `/assets/withdraw` | **Assets** header menu: funding overview (`/portfolio/balances` + summary), deposit hub linking to `/deposit-cash` / `/deposit-crypto`, withdraw form (`POST /wallets/withdraw`) |
+| `/assets`, `/assets/deposit`, `/assets/withdraw` | **Assets** header menu: portfolio-style overview (`GET /portfolio/summary` holdings table + `GET /cryptos` for display names), **Deposit** / **Withdraw** CTAs; **`/assets/deposit`** shows fiat and crypto deposit flows side by side (same components as `/deposit-cash` / `/deposit-crypto`) with one active pane and the other inactive; dedicated **`/deposit-cash`** / **`/deposit-crypto`** routes remain; **Withdraw** (`/assets/withdraw`) uses a three-step flow (select asset → simulated destination → amount), FAQ aside, and **All withdrawals** table fed by `GET /transactions/withdrawals` plus `POST /wallets/withdraw` |
 | `/buy-crypto` | Buy UI |
 | `/calculate` | Calculator-style training UI |
 | `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
