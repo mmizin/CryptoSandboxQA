@@ -74,7 +74,7 @@ export class WalletsService {
       });
       const list = allowed.map((x) => x.symbol).join(', ') || 'none configured';
       throw new BadRequestException(
-        `Asset "${asset}" not found. Allowed: ${list}. Run "npm run db:seed" to populate the database.`,
+        `Asset "${asset}" not found. Allowed: ${list}. Run "npm run setup" (or "npm run db:seed" for demo accounts) to populate the database.`,
       );
     }
     return a;

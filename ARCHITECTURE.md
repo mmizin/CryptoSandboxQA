@@ -6,7 +6,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 
 | Path | Role |
 |------|------|
-| `backend/` | NestJS API, Prisma schema & migrations, seeds; [`src/openapi/`](backend/src/openapi/) helpers and sample payloads for Swagger / `docs/openapi.json` |
+| `backend/` | NestJS API, Prisma schema & migrations; baseline market data from [`prisma/seed-market.js`](backend/prisma/seed-market.js) (invoked by `npm run setup`); optional demo users via [`prisma/seed-demo.js`](backend/prisma/seed-demo.js) (`npm run db:seed`); [`src/openapi/`](backend/src/openapi/) helpers and sample payloads for Swagger / `docs/openapi.json` |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
 | `docs/` | Design notes ([API plan](docs/API_DESIGN_PLAN.md), [DB proposal](docs/DATABASE_DESIGN_PROPOSAL.md)), static `openapi.json`, [QA testing features](docs/QA_TESTING_FEATURES.md); see [README.md § Documentation](README.md#documentation) for the full doc index |

@@ -1,7 +1,6 @@
-#!/usr/bin/env node
 /**
- * Prisma seed: creates assets, trading pairs, tickers, demo users, user_balances, and cryptos.
- * Run: npx prisma db seed (from backend/) or npm run db:seed (from root)
+ * Shared seed logic: baseline market data (`seedMarket`) and optional demo accounts (`seedDemo`).
+ * Runners: `seed-market.js` (setup), `seed-demo.js` (`npm run db:seed`).
  */
 const path = require('path');
 const fs = require('fs');
@@ -210,9 +209,11 @@ const CRYPTOS = [
   { name: 'EigenLayer', symbol: 'EIGEN', price: 3.25, change24h: -0.8, volume24h: 85000000, popular: false },
 ];
 
-async function main() {
-  console.log('Seeding database...');
-
+/**
+ * Required for a working app: assets, trading pairs, tickers, cryptos (`GET /cryptos`, Markets, etc.).
+ * Idempotent (upserts). Invoked by `npm run setup` after schema is ready.
+ */
+async function seedMarket() {
   // 1. Create assets (USD, BTC, ETH)
   const assetMap = {};
   for (const a of ASSET_DEFS) {
@@ -249,7 +250,30 @@ async function main() {
   }
   console.log(`  → ${TRADING_PAIRS_CONFIG.length} tickers`);
 
-  // 4. Create users and user_balances
+  // 4. Seed cryptos for Markets pages
+  for (const c of CRYPTOS) {
+    await prisma.crypto.upsert({
+      where: { symbol: c.symbol },
+      create: c,
+      update: { price: c.price, change24h: c.change24h, volume24h: c.volume24h },
+    });
+  }
+  console.log(`  → ${CRYPTOS.length} cryptos`);
+}
+
+/**
+ * Optional demo users with balances. Safe to run multiple times (skips existing users).
+ */
+async function seedDemo() {
+  const assetMap = {};
+  for (const a of ASSET_DEFS) {
+    const asset = await prisma.asset.findUnique({ where: { symbol: a.symbol } });
+    if (!asset) {
+      throw new Error('Assets missing; run baseline market seed first (npm run setup).');
+    }
+    assetMap[a.symbol] = asset.id;
+  }
+
   for (const u of DEMO_USERS) {
     const existing = await prisma.user.findUnique({
       where: { email: u.email.toLowerCase() },
@@ -283,23 +307,6 @@ async function main() {
     }
     console.log(`  → User ${u.email} + balances`);
   }
-
-  // 5. Seed cryptos for Markets pages
-  for (const c of CRYPTOS) {
-    await prisma.crypto.upsert({
-      where: { symbol: c.symbol },
-      create: c,
-      update: { price: c.price, change24h: c.change24h, volume24h: c.volume24h },
-    });
-  }
-  console.log(`  → ${CRYPTOS.length} cryptos`);
-
-  console.log('Seed complete.');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+module.exports = { prisma, seedMarket, seedDemo };

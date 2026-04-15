@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * One-time setup: ensures .env exists and runs DB migrations.
+ * One-time setup: ensures .env exists, applies schema, restores dump if present,
+ * then baseline market data (assets, pairs, tickers, cryptos).
  * Run after: git clone, npm install, docker compose up -d
  */
 const fs = require('fs');
@@ -66,6 +67,9 @@ if (fs.existsSync(dumpPath)) {
   const restoreScript = path.join(root, 'scripts', 'restore.js');
   execSync(`node "${restoreScript}"`, { stdio: 'inherit', cwd: root, env: envVars });
 }
+
+console.log('\nApplying baseline market data (assets, pairs, tickers, cryptos)...');
+execSync('node prisma/seed-market.js', { cwd: backendDir, stdio: 'inherit', env: envVars });
 
 console.log('\nSetup complete! Run: npm run dev');
 }

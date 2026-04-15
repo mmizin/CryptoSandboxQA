@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed-demo.js"
   },
   "scripts": {
     "build": "nest build",
