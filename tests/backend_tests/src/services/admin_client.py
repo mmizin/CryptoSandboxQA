@@ -1,5 +1,7 @@
 """
 HTTP client for admin-only routes (aligned with tests/ui-tests/src/services/admin.api.ts).
+
+``AdminRegisteredTestUser.api`` is a lazy alias: same client as ``admin_client_from_registered(user)``.
 """
 
 from __future__ import annotations
