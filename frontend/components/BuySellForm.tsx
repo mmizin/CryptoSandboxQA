@@ -26,7 +26,11 @@ const tabBase =
 const tabInactive =
   'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800';
 const tabActive =
-  'bg-emerald-500/20 text-emerald-300 group-data-[theme=light]:bg-emerald-100 group-data-[theme=light]:text-emerald-800';
+  'bg-emerald-500/40 text-emerald-200 ring-2 ring-emerald-400/50 shadow-sm shadow-emerald-500/20 group-data-[theme=light]:bg-emerald-200 group-data-[theme=light]:text-emerald-950 group-data-[theme=light]:ring-emerald-500/40';
+const tabSellInactive =
+  'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 group-data-[theme=light]:bg-red-50 group-data-[theme=light]:text-red-700 group-data-[theme=light]:hover:bg-red-100 group-data-[theme=light]:hover:text-red-800';
+const tabSellActive =
+  'bg-red-500/40 text-red-200 ring-2 ring-red-400/50 shadow-sm shadow-red-500/20 group-data-[theme=light]:bg-red-200 group-data-[theme=light]:text-red-950 group-data-[theme=light]:ring-red-500/40';
 
 const initialState: FormState = {
   amount: '',
@@ -155,7 +159,7 @@ export function BuySellForm() {
         <button
           type="button"
           onClick={() => setMode('sell')}
-          className={`${tabBase} ${mode === 'sell' ? tabActive : tabInactive}`}
+          className={`${tabBase} ${mode === 'sell' ? tabSellActive : tabSellInactive}`}
         >
           Sell
         </button>
@@ -409,7 +413,11 @@ export function BuySellForm() {
           <button
             type="submit"
             disabled={!formValid || submitLoading}
-            className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium hover:from-emerald-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            className={`flex-1 py-3.5 rounded-xl text-white font-medium focus:outline-none focus:ring-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
+              mode === 'buy'
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500/50'
+                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-red-500/50'
+            }`}
           >
             {submitLoading ? 'Processing...' : mode === 'buy' ? 'Buy' : 'Sell'}
           </button>
