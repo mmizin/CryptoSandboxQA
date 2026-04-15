@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsNumber, IsPositive, Max } from 'class-validator';
-import { WALLET_DEPOSIT_AMOUNT_MAX } from '../../common/validation.constants';
+import { WALLET_WITHDRAW_AMOUNT_MAX } from '../../common/validation.constants';
 
-export class DepositDto {
+export class WithdrawDto {
   @ApiProperty({ enum: ['USD', 'EUR', 'BTC', 'ETH'], example: 'USD' })
   @IsIn(['USD', 'EUR', 'BTC', 'ETH'])
   asset: string;
@@ -10,11 +10,11 @@ export class DepositDto {
   @ApiProperty({
     example: 100,
     minimum: 0,
-    maximum: WALLET_DEPOSIT_AMOUNT_MAX,
-    description: `Positive amount; max ${WALLET_DEPOSIT_AMOUNT_MAX.toLocaleString()} (aligned with dashboard client validation).`,
+    maximum: WALLET_WITHDRAW_AMOUNT_MAX,
+    description: `Positive amount; max ${WALLET_WITHDRAW_AMOUNT_MAX.toLocaleString()}.`,
   })
   @IsNumber()
   @IsPositive()
-  @Max(WALLET_DEPOSIT_AMOUNT_MAX)
+  @Max(WALLET_WITHDRAW_AMOUNT_MAX)
   amount: number;
 }

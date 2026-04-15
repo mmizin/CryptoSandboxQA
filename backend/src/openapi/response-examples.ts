@@ -151,35 +151,6 @@ export const wallets = {
       balanceLocked: '0.01',
     },
   ],
-  /** Training deposit/withdraw via `POST /wallets/deposit` | `withdraw` (fiat/crypto training paths). */
-  creditDebit: {
-    userId: '550e8400-e29b-41d4-a716-446655440000',
-    deposit: {
-      id: 'dd0e8400-e29b-41d4-a716-446655440030',
-      depositType: 'fiat' as const,
-      fiatCurrency: 'USD',
-      amount: '100.00',
-      status: 'completed',
-      completedAt: ISO,
-    },
-    balance: {
-      id: 'aa0e8400-e29b-41d4-a716-446655440010',
-      asset: 'USD',
-      balance: '10100.50',
-      balanceAvailable: '10100.50',
-      balanceLocked: '0',
-    },
-    transaction: {
-      id: 'bt-1',
-      type: 'deposit',
-      amount: '100',
-      balanceBefore: '10000.5',
-      balanceAfter: '10100.5',
-      refType: 'deposit_fiat',
-      refId: 'dd0e8400-e29b-41d4-a716-446655440030',
-      createdAt: ISO,
-    },
-  },
   /** `POST /wallets/withdraw` — balance + ledger row (no synthetic deposit). */
   debit: {
     userId: '550e8400-e29b-41d4-a716-446655440000',

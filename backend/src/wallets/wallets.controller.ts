@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WalletsService } from './wallets.service';
-import { DepositDto } from './dto/deposit.dto';
+import { WithdrawDto } from './dto/withdraw.dto';
 
 @ApiTags('wallets')
 @ApiBearerAuth()
@@ -30,30 +30,13 @@ export class WalletsController {
     return this.walletsService.getOrCreate(user.id, asset);
   }
 
-  @Post('deposit')
-  @ApiOperation({ summary: 'Deposit (training mode)' })
-  @ApiBody({ type: DepositDto })
-  @ApiJsonExample(201, 'Training credit: deposit row + updated balance + ledger entry', OA.wallets.creditDebit)
-  async deposit(
-    @CurrentUser() user: { id: string; impersonatedBy?: string },
-    @Body() dto: DepositDto,
-  ) {
-    const auditMetadata =
-      user.impersonatedBy ?
-        { performedByAdmin: true, adminId: user.impersonatedBy }
-      : undefined;
-    return this.walletsService.credit(user.id, dto.asset, dto.amount, {
-      auditMetadata,
-    });
-  }
-
   @Post('withdraw')
   @ApiOperation({ summary: 'Withdraw' })
-  @ApiBody({ type: DepositDto })
+  @ApiBody({ type: WithdrawDto })
   @ApiJsonExample(201, 'Updated balance and withdraw ledger entry', OA.wallets.debit)
   async withdraw(
     @CurrentUser() user: { id: string; impersonatedBy?: string },
-    @Body() dto: DepositDto,
+    @Body() dto: WithdrawDto,
   ) {
     const auditMetadata =
       user.impersonatedBy ?
