@@ -87,9 +87,18 @@ If requirements are incomplete, **ask concise clarifications** (environment URL,
 - **Theme-aware UI** — If asserting classes or styles, respect [.cursor/rules/ui-styles.mdc](../../.cursor/rules/ui-styles.mdc) for **frontend** code; in tests prefer **user-visible** assertions (roles, labels, text) over brittle CSS.
 - **Env** — `playwright.config.ts` loads repo **root `.env`** then **`tests/ui-tests/.env`**; document required vars (`PLAYWRIGHT_BASE_URL`, seeds, etc.); never commit secrets.
 
+**Unique test data (layer hints)**
+
+Specs under **`tests/ui-tests/`** must create **distinct, traceable** users and resources (seed via API or UI) so parallel workers and environments do not collide:
+
+- **Layer prefix** — Encode **UI** in human-readable strings: e.g. display name `UI User 1`, and local-part fragments like `ui.user1` so data is identifiable in logs and DB vs **API** (`api.…`) and **integration** (`int.…` / `integration.…`) runs.
+- **Uniqueness suffix** — Append **`Date.now()`**, `performance.now()`-based id, or `crypto.randomUUID()` (or a short slice) to emails, usernames, and any field the app treats as unique—**not** static placeholders alone.
+- **Emails** — e.g. `ui.user1.<ms>@<domain>` or `ui.user1.<uuid-slice>@<domain>` per project/domain convention.
+- **Apply broadly** — Use the pattern for **display names, emails, usernames**, and other user-visible or persisted identifiers whenever the scenario allows.
+
 **Parallel execution (Playwright workers)**
 
-- **Independent data per test** — Unique emails/usernames where the app rejects duplicates; avoid two tests fighting over the same saved session file unless the project already uses a safe pattern.
+- **Independent data per test** — Unique emails/usernames where the app rejects duplicates; avoid two tests fighting over the same saved session file unless the project already uses a safe pattern. Follow **Unique test data (layer hints)** above (UI-prefixed strings + timestamp or random suffix).
 - **No hidden coupling** between test functions—do not assume execution order or shared DB state from another spec.
 - **Storage / auth state** — Use project patterns (`storage/`, fixtures) so parallel workers do not clobber each other.
 

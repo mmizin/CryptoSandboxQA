@@ -68,11 +68,20 @@ If requirements are incomplete, **ask concise clarifications** (preconditions, i
 - Structure each integration test **readably**: clear step boundaries (comments or small helpers) so failures point to the failing phase.
 - Keep journeys **deterministic**; use **polling or retries** only when the product already implies async behavior and the codebase has a precedent for waiting—avoid arbitrary sleeps.
 
+**Unique test data (layer hints)**
+
+Work under **`tests/backend_tests/tests/integration/`** must generate **distinct, traceable** entities across steps and workers:
+
+- **Layer prefix** — Encode **integration** in human-readable strings: e.g. display name `Integration User 1` or `INT User 1`, and local-part fragments like `int.user1` or `integration.user1` so logs differ from **API** and **UI** suites.
+- **Uniqueness suffix** — Append a **per-creation** value to every field that must be unique (emails, usernames, labels). Prefer millisecond timestamps (`int(time.time() * 1000)`), `time.time_ns()`, or a short random token (`secrets.token_hex(4)` / UUID fragment).
+- **Emails** — e.g. `int.user1.<ms>@<domain>` or `integration.user1.<ms>@<domain>`.
+- **Apply broadly** — Names, display names, and any persisted identifiers in the journey should carry the **INT/Integration** hint plus a suffix where duplicates are possible.
+
 **Parallel execution (`pytest-xdist`) — test-level independence**
 
 Same contract as the API-tests agent: **different tests** must not depend on execution order or shared mutable global state. **Within a single test**, **sequential steps are expected** (that is what an integration journey is).
 
-- **Independent data per test** — Unique emails/usernames/identifiers where duplicates are rejected; each test prepares what it needs or uses fixtures scoped so workers do not collide.
+- **Independent data per test** — Unique emails/usernames/identifiers where duplicates are rejected; each test prepares what it needs or uses fixtures scoped so workers do not collide. Follow **Unique test data (layer hints)** above (integration-prefixed strings + timestamp or random suffix).
 - **No hidden coupling** between test functions; do not assume a “clean” DB left by another test—only what this test’s setup guarantees.
 - **Session-scoped fixtures** — Use sparingly; shared values must be **read-only** and safe across workers when in doubt.
 
