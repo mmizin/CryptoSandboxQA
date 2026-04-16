@@ -85,6 +85,56 @@ class OrdersClient(BaseClient):
         assert isinstance(result, dict)
         return OrdersListResponse.from_api_dict(result)
 
+    def list_by_date(
+        self,
+        *,
+        from_date: str,
+        to_date: str,
+        limit: int | None = None,
+        offset: int | None = None,
+        expected_failure: bool = False,
+    ) -> OrdersListResponse | dict[str, Any] | httpx.Response:
+        """GET /orders/by-date — ``from`` and ``to`` are required query params on the API."""
+        raw: dict[str, str | int] = {
+            "from": from_date,
+            "to": to_date,
+        }
+        if limit is not None:
+            raw["limit"] = limit
+        if offset is not None:
+            raw["offset"] = offset
+        params = {k: str(v) for k, v in raw.items()}
+        q = urlencode(params)
+        path = f"/orders/by-date?{q}"
+        result = super().get(path, expected_failure=expected_failure)
+        if expected_failure or isinstance(result, httpx.Response):
+            return result
+        assert isinstance(result, dict)
+        return OrdersListResponse.from_api_dict(result)
+
+    def list_by_coin(
+        self,
+        symbol: str,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        expected_failure: bool = False,
+    ) -> OrdersListResponse | dict[str, Any] | httpx.Response:
+        """GET /orders/by-coin — ``symbol`` is required."""
+        raw: dict[str, str | int] = {"symbol": symbol}
+        if limit is not None:
+            raw["limit"] = limit
+        if offset is not None:
+            raw["offset"] = offset
+        params = {k: str(v) for k, v in raw.items()}
+        q = urlencode(params)
+        path = f"/orders/by-coin?{q}"
+        result = super().get(path, expected_failure=expected_failure)
+        if expected_failure or isinstance(result, httpx.Response):
+            return result
+        assert isinstance(result, dict)
+        return OrdersListResponse.from_api_dict(result)
+
     def create(
         self,
         body: CreateOrderRequest | dict[str, Any],
