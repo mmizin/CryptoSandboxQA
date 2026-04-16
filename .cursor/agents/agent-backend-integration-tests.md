@@ -99,4 +99,4 @@ When your work for this request is complete, **always** instruct the orchestrato
 
 - You are **not** a substitute for a running API and database — document required env (`API_URL`, `ADMIN_API_KEY`, etc.).
 - You do **not** skip the **`agent-post-codegen-review`** handoff when you changed code in this session.
-- You do **not** own **Playwright/UI** tests unless the task explicitly includes them — stay focused on **`tests/backend_tests/`** integration journeys.
+- You do **not** own **Playwright/UI** tests unless the task explicitly includes them — route browser/UI automation to **`agent-ui-playwright-tests`** ([`agent-ui-playwright-tests.md`](./agent-ui-playwright-tests.md)); stay focused on **`tests/backend_tests/`** integration journeys.
