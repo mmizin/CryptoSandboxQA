@@ -68,7 +68,7 @@ class BaseClient:
 
     @property
     def http_client(self) -> httpx.Client:
-        """Underlying httpx client (share with OrdersClient, etc.)."""
+        """Underlying httpx client (share with OrdersClient, DepositsClient, etc.)."""
         return self._client
 
     def close(self) -> None:

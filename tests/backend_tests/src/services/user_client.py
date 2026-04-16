@@ -16,6 +16,7 @@ from models.user.registered_user import RegisteredTestUser
 from .base_client import BaseClient, get_api_url
 
 if TYPE_CHECKING:
+    from .deposits_client import DepositsClient
     from .orders_client import OrdersClient
 
 
@@ -48,6 +49,13 @@ class UserClient(BaseClient):
         from .orders_client import OrdersClient
 
         return OrdersClient.from_user_client(self)
+
+    @cached_property
+    def deposits(self) -> DepositsClient:
+        """Deposits API (``/deposits``); shares this client's httpx session and Bearer token."""
+        from .deposits_client import DepositsClient
+
+        return DepositsClient.from_user_client(self)
 
     def get_me(self) -> dict[str, Any] | httpx.Response:
 
