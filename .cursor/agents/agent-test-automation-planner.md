@@ -95,7 +95,7 @@ Each chunk file **must** contain these sections (use these headings):
 6. **Steps** — Numbered checklist for the **test automation agent** (describe cases, files to add/change, patterns to follow—**no** full test code unless a tiny snippet is unavoidable).
 7. **Acceptance criteria** — Testable bullets (how to verify pytest/Playwright scope, tags, parallelism expectations).
 8. **Out of scope for this chunk** — Prevents scope creep.
-9. **Notes for the implementer** — Pointers to [ARCHITECTURE.md](../../ARCHITECTURE.md), `.cursor/rules/playwright-ui-tests.mdc`, `.cursor/rules/test-scenario-conventions.mdc`, `no-unrequested-tests` policy (tests only when in Jira/user scope), and the matching **test agent** doc under `.cursor/agents/`.
+9. **Notes for the implementer** — Pointers to [ARCHITECTURE.md](../../ARCHITECTURE.md), `.cursor/rules/playwright-ui-tests.mdc`, `.cursor/rules/test-scenario-conventions.mdc`, `no-unrequested-tests` policy (tests only when in Jira/user scope), the matching **test agent** doc under `.cursor/agents/`, and **layer-hinted unique test data** (API vs integration vs UI prefixes plus timestamp or random suffix on emails/names/identifiers—see **Unique test data (layer hints)** in those agent files).
 
 **Sizing (chunk files):** Prefer **several small chunks** over one huge file. If a chunk would exceed **~200–300 lines** of instructions, **split it** into additional numbered chunks. If the **overall** plan is **large** (see **Large plans** above), **always** use **multiple chunks**—never one oversized file that mixes unrelated suites or agents.
 

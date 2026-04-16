@@ -59,12 +59,21 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 - Prefer **clear test names** and explicit assertions; keep tests **deterministic** (avoid flaky timing; use appropriate waits only if the stack already does for similar cases).
 - Place new test modules under the existing pytest layout the project uses (follow current `tests/backend_tests` structure and `pyproject.toml` / `pytest` config).
 
+**Unique test data (layer hints)**
+
+Work under **`tests/backend_tests/tests/api/`** must generate **distinct, traceable** entities so parallel runs and log forensics stay safe:
+
+- **Layer prefix** — Encode **API** in human-readable strings (logs, DB, support): e.g. display name `API User 1`, slug or label fragments containing `api`.
+- **Uniqueness suffix** — Append a **per-creation** value to every field that must be unique (emails, usernames, display names when the product dedupes, external refs). Prefer millisecond timestamps (e.g. `int(time.time() * 1000)`), `time.time_ns()`, or a short random token (e.g. `secrets.token_hex(4)` / UUID fragment)—**not** bare static strings like `user1@…` without a suffix.
+- **Emails** — Combine layer + role + suffix in the local part, e.g. `api.user1.<ms>@<domain>` (domain from env or project convention).
+- **Apply broadly** — Use the same idea for **any** user-supplied identifier the API stores (names, nicknames, optional metadata) when uniqueness or grep-ability matters.
+
 **Parallel execution (`pytest-xdist`) — no cross-test dependencies**
 
 The suite is intended to run **in parallel** (e.g. `pytest -n auto` with **pytest-xdist**). Every test must remain **valid when run in any order** and **alongside other tests in other workers**:
 
 - **No ordering dependency** — Do not rely on Test A running before Test B; no shared mutable **module-level** or **global** state that one test writes and another reads.
-- **Independent data** — Prefer **function-scoped** fixtures that register users, sessions, or resources **inside** the test’s worker. Use **unique** emails/usernames/identifiers when the API rejects duplicates, so parallel workers do not collide.
+- **Independent data** — Prefer **function-scoped** fixtures that register users, sessions, or resources **inside** the test’s worker. Use **unique** emails/usernames/identifiers when the API rejects duplicates, so parallel workers do not collide; follow **Unique test data (layer hints)** above (API-prefixed strings + timestamp or random suffix).
 - **No hidden coupling** — Avoid tests that assume a “clean” DB from a previous test in the same file; each test should set up what it needs or use fixtures scoped appropriately.
 - **Session-scoped fixtures** — Use sparingly; if you must share something across tests, ensure it is **read-only** and safe for concurrent workers (no worker-local mutation). When in doubt, narrower scope wins.
 - **Parametrize / matrix** — Safe for parallel runs as long as each case does not depend on another case’s side effects.
