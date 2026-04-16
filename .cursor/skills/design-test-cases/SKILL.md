@@ -1,10 +1,10 @@
 ---
-name: test-design-techniques
+name: design-test-cases
 description: >-
-  Applies structured test design techniques (equivalence partitioning, boundary
+  Design test cases using structured techniques (equivalence partitioning, boundary
   value analysis, state transitions, pairwise combinations, decision tables,
-  CRUD/process cycles, exploratory charters, error guessing) to produce test
-  cases, scenarios, and coverage mapping with risk awareness. Matrices must use
+  CRUD/process cycles, exploratory charters, error guessing) to document scenarios,
+  matrices, and coverage mapping with risk awareness. Matrices must use
   explicit parameter values per row (no umbrella placeholders), include planned
   Playwright run tags where relevant, and use the Jira handoff shape when work
   feeds Jira. For features implemented in this repo, ground scenarios in
@@ -16,7 +16,7 @@ description: >-
   changes.
 ---
 
-# Test design techniques
+# Design test cases
 
 ## Purpose
 
@@ -144,7 +144,7 @@ Structure the answer for reviewability:
 
 ## Jira handoff (when creating tickets)
 
-Use this when the user will create issues with [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) (or has asked for test design **before** that skill runs). **Repository and Story research** split: **test-design-techniques** produces grounded cases and **Evidence**; the Jira skill loads the **Story** in Jira and creates **`Test`** / **`Subtask`** issues—see that skill’s [Workflow](../jira-test-tickets-from-cases/SKILL.md#workflow-command-order).
+Use this when the user will create issues with [.cursor/skills/jira-test-tickets-from-cases/SKILL.md](../jira-test-tickets-from-cases/SKILL.md) (or has asked for test design **before** that skill runs). **Repository and Story research** split: **design-test-cases** produces grounded cases and **Evidence**; the Jira skill loads the **Story** in Jira and creates **`Test`** / **`Subtask`** issues—see that skill’s [Workflow](../jira-test-tickets-from-cases/SKILL.md#workflow-command-order).
 
 Deliver a variant of the test design that is easy to **copy into Jira**:
 

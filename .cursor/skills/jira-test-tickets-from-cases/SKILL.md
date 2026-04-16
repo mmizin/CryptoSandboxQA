@@ -7,7 +7,7 @@ description: >-
   provided, and row counts—no abbreviated or umbrella placeholder rows unless
   the user scoped smoke-only. The Story is never created here: the user supplies
   an existing Story (issue key or browse URL). If test cases are not provided
-  yet, run test-design-techniques first, then materialize issues. One Test issue
+  yet, run design-test-cases first, then materialize issues. One Test issue
   per non-empty layer, link to Story. Use when pushing test design to Jira via
   MCP.
 ---
@@ -28,13 +28,13 @@ Do **not** create the Story; the user identifies it by **issue key** (e.g. `KAN-
 ## Workflow (command order)
 
 1. **Collect:** Story (**key** or **browse URL**), **`projectKey`**, optional **`cloudId`**, and—if present—**categorized test cases** (API / UI / Integration).
-2. **Test cases:** If the user did **not** provide a usable categorized case set, **run** [.cursor/skills/test-design-techniques/SKILL.md](../test-design-techniques/SKILL.md) **first** (repo and spec research live there, including the **Jira handoff** shape). **Then** return to this skill and **materialize** Jira issues. Do **not** skip test-design when cases are missing.
+2. **Test cases:** If the user did **not** provide a usable categorized case set, **run** [.cursor/skills/design-test-cases/SKILL.md](../design-test-cases/SKILL.md) **first** (repo and spec research live there, including the **Jira handoff** shape). **Then** return to this skill and **materialize** Jira issues. Do **not** skip test-design when cases are missing.
 3. **Create in Jira:** Satisfy [Prerequisites](#prerequisites-before-jira-issue-creation), then follow [MCP workflow](#mcp-workflow-order-matters).
 
 ## When to use
 
 - The user asks to **create Jira tickets from test cases**, **push test design to Jira**, or **structure API/UI/integration tests in Jira** using MCP.
-- They provide a **Story** as **key or browse link**, **`projectKey`** when needed, and either **test cases** (or output from **test-design-techniques**) or an explicit ask to derive cases first.
+- They provide a **Story** as **key or browse link**, **`projectKey`** when needed, and either **test cases** (or output from **design-test-cases**) or an explicit ask to derive cases first.
 
 ## Prerequisites: before Jira issue creation
 
@@ -42,13 +42,13 @@ Do **not** author **`Test`** / **`Subtask`** issues from generic templates until
 
 ### 1. Test cases (required)
 
-- **From test-design:** You already followed [Workflow](#workflow-command-order) and have output that includes the [Jira handoff](../test-design-techniques/SKILL.md#jira-handoff-when-creating-tickets) shape—**API** / **UI** / **Integration** groupings, subtask-level or matrix-level cases, evidence pointers, **explicit inputs per matrix row**, **planned tags** when UI automation is in scope, and **Total rows: N** for each matrix.
-- **From the user:** Cases are grouped into **API** / **UI** / **Integration** with enough detail to write **Subtask** steps and oracles. If cases are **thin**, **contain umbrella placeholders** (e.g. “invalid email (various)”), or **lack row-level parameters**, run or extend **test-design-techniques** before creating issues—**do not** copy placeholder wording into Jira.
+- **From test-design:** You already followed [Workflow](#workflow-command-order) and have output that includes the [Jira handoff](../design-test-cases/SKILL.md#jira-handoff-when-creating-tickets) shape—**API** / **UI** / **Integration** groupings, subtask-level or matrix-level cases, evidence pointers, **explicit inputs per matrix row**, **planned tags** when UI automation is in scope, and **Total rows: N** for each matrix.
+- **From the user:** Cases are grouped into **API** / **UI** / **Integration** with enough detail to write **Subtask** steps and oracles. If cases are **thin**, **contain umbrella placeholders** (e.g. “invalid email (various)”), or **lack row-level parameters**, run or extend **design-test-cases** before creating issues—**do not** copy placeholder wording into Jira.
 - **Quality bar:** Jira **`Test`** / **`Subtask`** descriptions must match the **test-design handoff** the user or agent just produced: same **row count**, same **explicit** input cells, same **oracles** and **tags**. Do **not** treat any static path inside this skill as the source of truth; **the handoff document or conversation output** is authoritative unless the user explicitly asks for a smaller **smoke** scope (then label **Scope** on the `Test` issue).
 
 ### 2. Evidence and oracles (in-repo features)
 
-**Repository and spec research** for test design belongs in [.cursor/skills/test-design-techniques/SKILL.md](../test-design-techniques/SKILL.md)—do not duplicate that workflow here.
+**Repository and spec research** for test design belongs in [.cursor/skills/design-test-cases/SKILL.md](../design-test-cases/SKILL.md)—do not duplicate that workflow here.
 
 When **test-design** already ran, **reuse its Evidence** in **`Test`** descriptions and **Subtask** bodies. When the user supplied cases **without** that pass, still ground **Subtask** text in concrete sources before **`createJiraIssue`**:
 
