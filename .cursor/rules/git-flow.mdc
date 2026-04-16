@@ -8,6 +8,11 @@ alwaysApply: true
 
 Follow this when using `git`, `gh`, or GitHub for this repository.
 
+## Commits
+
+- **Do not** run `git commit` automatically when finishing implementation work unless the user **explicitly** asks (e.g. “commit this”, “create a commit”).
+- The user typically **commits** as part of the **`git-pr`** workflow ([.cursor/commands/git-pr.md](../commands/git-pr.md)) or another explicit step—leave changes uncommitted unless they asked for a commit.
+
 ## Pull requests
 
 - When the user asks to **create** or **open a PR**, push the branch if needed and open a PR targeting **`master`** unless they name a different base branch.
