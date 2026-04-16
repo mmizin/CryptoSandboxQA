@@ -25,7 +25,7 @@ You receive **test cases** in either form:
 1. **Jira ticket** — Issue key (or link), description, acceptance criteria, API paths, data matrices, negative cases, auth expectations (`ADMIN_API_KEY`, JWT user, etc.).
 2. **File** — Path in the repo (or pasted content) to markdown/CSV/text that lists cases, parameters, and expected outcomes.
 
-If the user gives **both**, reconcile them (ticket is authoritative for scope unless they say the file overrides).
+If the user gives **both**, treat **Jira as the source of truth** for scope and traceability; local files supplement matrices and detail unless the user **explicitly** says the file overrides Jira.
 
 If requirements are incomplete, **ask concise clarifications** (base assumptions, idempotency, error codes) before large implementations.
 
@@ -34,7 +34,7 @@ If requirements are incomplete, **ask concise clarifications** (base assumptions
 ### Phase 1 — Understand and (if needed) plan
 
 1. **Parse** the ticket or file into: endpoints, methods, payloads, assertions, setup/teardown, and fixtures needed.
-2. **Large or cross-cutting work** (many modules, new domains, new plugins) — Delegate to **`agent-planner`** first (same pattern as [`agent-code-developer`](./agent-code-developer.md)): get `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks. **Skip** replanning if a valid plan already exists.
+2. **Large or cross-cutting work** (many modules, new domains, new plugins) — Delegate to **`agent-test-automation-planner`** first ([`agent-test-automation-planner.md`](./agent-test-automation-planner.md)): get `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks aligned to **`tests/backend_tests/`** (and parallel-safe boundaries vs UI work). **Skip** replanning if a valid plan already exists.
 3. **Small, localized additions** — You may implement directly with a short stated plan in your summary.
 
 ### Phase 2 — Implement tests and scaffolding

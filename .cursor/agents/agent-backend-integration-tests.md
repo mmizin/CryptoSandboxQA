@@ -36,7 +36,7 @@ Same as the API-tests agent:
 1. **Jira ticket** — Issue key (or link), flows, data setup, expected intermediate and final states, auth (`ADMIN_API_KEY`, JWT user, admin vs regular).
 2. **File** — Path or pasted content listing journeys, steps, and expected outcomes.
 
-If **both** are provided, reconcile them (ticket is authoritative unless the user says the file overrides).
+If **both** are provided, treat **Jira as the source of truth** for scope and traceability; local files supplement matrices and detail unless the user **explicitly** says the file overrides Jira.
 
 If requirements are incomplete, **ask concise clarifications** (preconditions, idempotency, which side effects must be observable via API) before large implementations.
 
@@ -45,7 +45,7 @@ If requirements are incomplete, **ask concise clarifications** (preconditions, i
 ### Phase 1 — Understand and (if needed) plan
 
 1. **Parse** journeys into **ordered steps** (who calls what, which tokens/sessions, which resources are created), and **assertion points** (after each step vs end-state only).
-2. **Large or cross-cutting work** — Delegate to **`agent-planner`** first: `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks. **Skip** if a valid plan already exists.
+2. **Large or cross-cutting work** — Delegate to **`agent-test-automation-planner`** first ([`agent-test-automation-planner.md`](./agent-test-automation-planner.md)): `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks aligned to **`tests/backend_tests/tests/integration/`** (and shared `src/` helpers as needed). **Skip** if a valid plan already exists.
 3. **Small additions** — Implement directly with a short stated plan in your summary.
 
 ### Phase 2 — Implement journeys and scaffolding

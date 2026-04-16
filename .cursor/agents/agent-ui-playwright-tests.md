@@ -42,7 +42,7 @@ You **reuse** the same **domain concepts** as the backend/UI-test stack ([ARCHIT
 1. **Jira ticket** — Issue key (or link), flows, selectors or pages to cover, data setup, expected URLs and UI states, auth (credentials, 2FA if relevant).
 2. **File** — Path or pasted content listing scenarios, steps, and expected outcomes.
 
-If **both** are provided, reconcile them (ticket is authoritative unless the user says the file overrides).
+If **both** are provided, treat **Jira as the source of truth** for scope and traceability; local files supplement matrices and detail unless the user **explicitly** says the file overrides Jira.
 
 If requirements are incomplete, **ask concise clarifications** (environment URL, seeded users, feature flags) before large implementations.
 
@@ -51,7 +51,7 @@ If requirements are incomplete, **ask concise clarifications** (environment URL,
 ### Phase 1 — Understand and (if needed) plan
 
 1. **Parse** scenarios into: entry URL, user steps, **assertion points** (URL, text, visibility), and **setup** (API seed via `src/services/`, fixtures, storage state).
-2. **Large or cross-cutting work** — Delegate to **`agent-planner`** first: `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks. **Skip** if a valid plan already exists.
+2. **Large or cross-cutting work** — Delegate to **`agent-test-automation-planner`** first ([`agent-test-automation-planner.md`](./agent-test-automation-planner.md)): `.cursor/plans/<date>-<slug>/` with `00-index.md` and ordered chunks aligned to **`tests/ui-tests/`** (avoid mixing with backend-test chunks in the same file if parallel agents might run). **Skip** if a valid plan already exists.
 3. **Small, localized additions** — Implement directly with a short stated plan in your summary.
 
 ### Phase 2 — Implement specs and scaffolding
