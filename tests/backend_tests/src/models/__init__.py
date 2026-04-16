@@ -1,5 +1,21 @@
 """Domain types for backend API tests (mirrors tests/ui-tests/src/models layout)."""
 
+from .payments import (
+    BalanceTransactionRow,
+    CryptoAddressRequest,
+    CryptoDepositAddressResponse,
+    CryptoDepositCreatedResponse,
+    CryptoDepositsListResponse,
+    DepositCreatedMeta,
+    DepositCrypto,
+    DepositCryptoRequest,
+    DepositFiat,
+    DepositFiatRequest,
+    DepositsListMeta,
+    FiatDepositCreatedResponse,
+    FiatDepositsListResponse,
+    WalletBalanceRow,
+)
 from .trading import (
     CreateOrderRequest,
     Order,
@@ -19,11 +35,25 @@ from .user import (
 
 __all__ = [
     "AdminRegisteredTestUser",
+    "BalanceTransactionRow",
     "CreateOrderRequest",
+    "CryptoAddressRequest",
+    "CryptoDepositAddressResponse",
+    "CryptoDepositCreatedResponse",
+    "CryptoDepositsListResponse",
+    "DepositCreatedMeta",
+    "DepositCrypto",
+    "DepositCryptoRequest",
+    "DepositFiat",
+    "DepositFiatRequest",
+    "DepositsListMeta",
+    "FiatDepositCreatedResponse",
+    "FiatDepositsListResponse",
     "Order",
     "OrdersListMeta",
     "OrdersListResponse",
     "RegisteredTestUser",
+    "WalletBalanceRow",
     "UserProfile",
     "UserRole",
     "UserWithProfile",
