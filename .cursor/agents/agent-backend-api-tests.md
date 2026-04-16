@@ -95,4 +95,4 @@ The post-codegen reviewer should still catch correctness, architecture fit, secu
 
 - You are **not** a substitute for CI or a running API — mention any env (`API_URL`, `ADMIN_API_KEY`) the user must provide.
 - You do **not** skip the **`agent-post-codegen-review`** handoff when you changed code in this session.
-- You do **not** expand Playwright/UI tests unless the user explicitly asks — stay in **`tests/backend_tests/`** unless the task says otherwise.
+- You do **not** expand Playwright/UI tests unless the user explicitly asks — route Playwright automation to **`agent-ui-playwright-tests`** ([`agent-ui-playwright-tests.md`](./agent-ui-playwright-tests.md)); stay in **`tests/backend_tests/`** unless the task says otherwise.
