@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlencode
 
 import httpx
 
@@ -60,6 +61,36 @@ class UserClient(BaseClient):
     def get_me(self) -> dict[str, Any] | httpx.Response:
 
         return self.get("/users/me")
+
+    def list_wallets(self) -> list[dict[str, Any]]:
+        """GET /wallets — list of balance rows for the current user."""
+        result = self.get("/wallets")
+        assert isinstance(result, list)
+        return result
+
+    def list_transactions_deposits(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        from_date: str | None = None,
+        to_date: str | None = None,
+        expected_failure: bool = False,
+    ) -> dict[str, Any] | httpx.Response:
+        """GET /transactions/deposits."""
+        q: dict[str, str] = {}
+        if limit is not None:
+            q["limit"] = str(limit)
+        if offset is not None:
+            q["offset"] = str(offset)
+        if from_date:
+            q["from"] = from_date
+        if to_date:
+            q["to"] = to_date
+        path = "/transactions/deposits"
+        if q:
+            path = f"{path}?{urlencode(q)}"
+        return self.get(path, expected_failure=expected_failure)
 
 
 def user_client_from_registered(user: RegisteredTestUser, **kwargs: Any) -> UserClient:
