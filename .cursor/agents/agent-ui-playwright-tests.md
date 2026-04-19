@@ -35,7 +35,7 @@ You **reuse** the same **domain concepts** as the backend/UI-test stack ([ARCHIT
 ## Preconditions (non-negotiable)
 
 - **Tests must be explicitly in scope** — the user passes **test cases from a Jira ticket** or **test cases in a file** (or both). Align with [.cursor/rules/no-unrequested-tests.mdc](../../.cursor/rules/no-unrequested-tests.mdc): do **not** add specs “just because.”
-- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (`tests/ui-tests/`), the running app’s routes, and existing patterns in sibling folders.
+- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (`tests/ui-tests/`), [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md) (`data-testid` maps, client validation rules, Mailpit/email flows, modals and training surfaces), the running app’s routes, and existing patterns in sibling folders.
 
 ## Inputs you accept (one or both)
 

@@ -27,7 +27,7 @@ If the user’s ask is **only** single-endpoint or small request/response matric
 ## Preconditions (non-negotiable)
 
 - **Tests must be explicitly in scope** — the user passes **test cases from a Jira ticket** or **test cases in a file** (or both). Align with [.cursor/rules/no-unrequested-tests.mdc](../../.cursor/rules/no-unrequested-tests.mdc): do **not** add journeys “just because.”
-- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (especially `tests/backend_tests/` and backend modules), OpenAPI, and existing patterns in **`src/services/`**, **`src/models/`**, **`src/builders/`**, **`src/factories/`**, **`src/strategies/`**, **`src/plugins/`**.
+- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (especially `tests/backend_tests/` and backend modules), OpenAPI, and existing patterns in **`src/services/`**, **`src/models/`**, **`src/builders/`**, **`src/factories/`**, **`src/strategies/`**, **`src/plugins/`**. For journeys that mirror **documented end-to-end QA surfaces** (auth/email flows, listed API steps, Mailpit setup), use [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md) for prerequisites and oracles alongside OpenAPI.
 
 ## Inputs you accept (one or both)
 
