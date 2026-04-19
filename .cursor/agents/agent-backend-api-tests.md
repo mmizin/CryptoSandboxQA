@@ -16,7 +16,7 @@ You are the **backend API tests** specialist for CryptoSandboxQA. **Language:** 
 ## Preconditions (non-negotiable)
 
 - **Tests must be explicitly in scope** — the user passes **test cases from a Jira ticket** or **test cases in a file** (or both). This aligns with [.cursor/rules/no-unrequested-tests.mdc](../../.cursor/rules/no-unrequested-tests.mdc): you do **not** add tests “just because.”
-- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (especially the `tests/backend_tests/` table), the Nest/OpenAPI surface, and existing patterns in sibling folders (e.g. parity with `tests/ui-tests/` models/builders where the architecture doc says so).
+- **Ground truth** — Follow [ARCHITECTURE.md](../../ARCHITECTURE.md) (especially the `tests/backend_tests/` table), the Nest/OpenAPI surface, and existing patterns in sibling folders (e.g. parity with `tests/ui-tests/` models/builders where the architecture doc says so). When cases touch **catalogued QA behavior** (documented routes, validation limits, pagination/auth flows, Mailpit/email prerequisites), align with [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md) so expectations match what manual QA and UI automation already document.
 
 ## Inputs you accept (one or both)
 

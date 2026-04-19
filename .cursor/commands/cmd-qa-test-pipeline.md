@@ -10,6 +10,21 @@
 
 ---
 
+## Knowledge wiki (supplementary navigation)
+
+For **test automation**, use the LLM wiki **together with** [`ARCHITECTURE.md`](../../ARCHITECTURE.md) and the code. **[`ARCHITECTURE.md`](../../ARCHITECTURE.md)** and contracts remain **canonical**; **[`knowledge/llm-wiki/wiki/00-START-HERE.md`](../../knowledge/llm-wiki/wiki/00-START-HERE.md)** and the maps below are **navigation** (where to look, harness layout), not a second source of truth.
+
+| Need | Map |
+| ---- | ----- |
+| Playwright harness, UI test layout | [`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) |
+| Python API tests & clients | [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) |
+| Features under test (app code) | [`map-frontend.md`](../../knowledge/llm-wiki/wiki/map-frontend.md), [`map-backend.md`](../../knowledge/llm-wiki/wiki/map-backend.md) |
+| Find a path quickly | [`index-by-repo-path.md`](../../knowledge/llm-wiki/wiki/index-by-repo-path.md) |
+
+If the **harness or major paths** change during this work, align the wiki afterward via **[`cmd-update-knowledge.md`](cmd-update-knowledge.md)**.
+
+---
+
 ## Inputs (parse from the same message as this command)
 
 | Input | Required | Notes |
@@ -35,7 +50,7 @@ After each major phase, **leave durable traces**:
 ## Phase 1 — Design test cases
 
 1. Follow [.cursor/skills/design-test-cases/SKILL.md](../skills/design-test-cases/SKILL.md).
-2. Ground scenarios in [ARCHITECTURE.md](../../ARCHITECTURE.md), [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md), [docs/openapi.json](../../docs/openapi.json), and implementation as the skill describes.
+2. Ground scenarios in [ARCHITECTURE.md](../../ARCHITECTURE.md), [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md), [docs/openapi.json](../../docs/openapi.json), and implementation as the skill describes. **When useful for path / harness orientation**, skim the **Knowledge wiki** maps (section above) for the layers in scope (e.g. [`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) / [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) when designing UI or API test coverage).
 3. Produce categorized output suitable for Jira: **API** / **UI** / **Integration** (Jira-handoff shape: explicit matrix rows, oracles, planned Playwright tags when UI is in scope).
 4. If **layers** were specified in the invocation, **omit** or clearly mark out-of-scope layers.
 
@@ -55,7 +70,7 @@ After each major phase, **leave durable traces**:
 ## Phase 3 — Test automation planner
 
 1. Follow [.cursor/agents/agent-test-automation-planner.md](../agents/agent-test-automation-planner.md).
-2. **Source of truth:** **Jira** for scope and traceability; phase 1 output is **supporting** detail ([planner doc](../agents/agent-test-automation-planner.md)).
+2. **Source of truth:** **Jira** for scope and traceability; phase 1 output is **supporting** detail ([planner doc](../agents/agent-test-automation-planner.md)). **Optional:** use **Knowledge wiki** maps (section above) so chunk boundaries match real repo paths (harness vs app modules).
 3. Create **`.cursor/plans/<YYYY-MM-DD>-test-automation-<slug>/`** with **`00-index.md`** and **`chunk-NN-<topic>.md`** files. Slug may include the Story key (e.g. `2026-04-16-test-automation-csq-123`).
 4. **If this phase fails** or no plan folder is produced: **stop**. Do **not** run test agents.
 
@@ -71,8 +86,9 @@ After each major phase, **leave durable traces**:
    - **`agent-ui-playwright-tests`** — [.cursor/agents/agent-ui-playwright-tests.md](../agents/agent-ui-playwright-tests.md)
    Each Task must receive the **relevant `chunk-NN-….md` path**, **`00-index.md`**, Story key, and Jira references.
 4. **Sequential:** Run dependent chunks **after** prerequisites complete; do not parallelize chunks that share paths or that the index orders strictly.
-5. Test scope must stay within **Jira** / **chunk** instructions ([.cursor/rules/no-unrequested-tests.mdc](../rules/no-unrequested-tests.mdc)).
-6. If an executor agent’s workflow ends with **post-codegen review**, follow that agent’s own instructions (e.g. **`agent-post-codegen-review`**) before the user merges.
+5. If harness or module locations are unclear for an executor, use the **Knowledge wiki** maps ([`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) / [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) as appropriate; see section above) before guessing paths.
+6. Test scope must stay within **Jira** / **chunk** instructions ([.cursor/rules/no-unrequested-tests.mdc](../rules/no-unrequested-tests.mdc)).
+7. If an executor agent’s workflow ends with **post-codegen review**, follow that agent’s own instructions (e.g. **`agent-post-codegen-review`**) before the user merges.
 
 ---
 
