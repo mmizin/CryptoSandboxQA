@@ -13,6 +13,7 @@ This file is the **map of content (MOC)** — use it to choose a thin overview p
 | Frontend app structure | [`map-frontend.md`](map-frontend.md) |
 | Playwright harness & tags | [`map-tests-ui.md`](map-tests-ui.md) |
 | Python API tests & clients | [`map-tests-backend.md`](map-tests-backend.md) |
+| Same feature across API + UI tests | [`map-testing-by-capability.md`](map-testing-by-capability.md) |
 
 ## Optional Obsidian wikilinks
 
