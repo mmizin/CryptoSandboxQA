@@ -1,6 +1,6 @@
 # update-knowledge
 
-**Logical name:** **update-knowledge** (filename **`cmd_update-knowledge.md`** uses the repo’s **`cmd_`** prefix for pipeline-style commands).
+**Logical name:** **update-knowledge** (filename **`cmd-update-knowledge.md`** uses the repo’s **`cmd-`** prefix for pipeline-style commands).
 
 **Authorization:** The user wants to **refresh the LLM wiki** under [`knowledge/llm-wiki/`](../../knowledge/llm-wiki/README.md) so it stays aligned with the codebase after ongoing development. **Discover what changed**, update **`wiki/`** (and optionally **`raw/`**) when navigation or summaries are stale. **[`ARCHITECTURE.md`](../../ARCHITECTURE.md)** is **usually already updated in the same PR as the feature** ([.cursor/rules/project-conventions.mdc](../rules/project-conventions.mdc)); touch it from this playbook **only when** it is **out of date** vs the code, was **missed** in an earlier change set, or the user **asks** to align it. If nothing material changed, **say so** and do not touch files for the sake of activity.
 

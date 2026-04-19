@@ -1,6 +1,6 @@
 # qa-test-pipeline
 
-**Logical name:** **qa-test-pipeline** (filename **`cmd_qa-test-pipeline.md`** uses the repo’s **`cmd_`** prefix for pipeline commands).
+**Logical name:** **qa-test-pipeline** (filename **`cmd-qa-test-pipeline.md`** uses the repo’s **`cmd-`** prefix for pipeline commands).
 
 **Authorization:** The user invoked the **full QA test pipeline** for an existing **Jira Story**. Run **phases 1 → 4 in a single session**, **in order**, without pausing for a separate “run the next step” confirmation—unless you are **blocked** (missing required inputs, MCP/Jira failure, ambiguous scope). Do **not** invent Jira issues or skip phases.
 

@@ -16,7 +16,7 @@ This folder is a **small, repo-local knowledge base** for humans and coding agen
 
 1. Add or update material under `raw/` when you ingest new facts (optional; many teams only use `wiki/`).
 2. Run an LLM pass to fold new facts into `wiki/` pages: update maps, fix links, add contradictions to a small `wiki/TODO-contradictions.md` if needed.
-3. **In Cursor**, run the **`update-knowledge`** command playbook: [.cursor/commands/cmd_update-knowledge.md](../../.cursor/commands/cmd_update-knowledge.md) (diff vs `master` or a base you name; primarily refreshes `wiki/` maps — [`ARCHITECTURE.md`](../../ARCHITECTURE.md) should normally be updated in the **same PR as the feature**; use the playbook to fix that file only for **drift** or a **missed** update).
+3. **In Cursor**, run the **`update-knowledge`** command playbook: [.cursor/commands/cmd-update-knowledge.md](../../.cursor/commands/cmd-update-knowledge.md) (diff vs `master` or a base you name; primarily refreshes `wiki/` maps — [`ARCHITECTURE.md`](../../ARCHITECTURE.md) should normally be updated in the **same PR as the feature**; use the playbook to fix that file only for **drift** or a **missed** update).
 4. Keep pages **short**; deep truth stays in code and [`ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 ## Obsidian
