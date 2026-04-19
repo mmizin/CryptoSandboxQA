@@ -165,3 +165,7 @@ blob-report/
 
 # Python egg info
 *.egg-info/
+
+
+# Obsidian
+.obsidian/

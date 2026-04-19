@@ -5,11 +5,11 @@ This folder is a **small, repo-local knowledge base** for humans and coding agen
 ## Layout
 
 
-| Path | Role |
-|------|------|
-| [`raw/`](raw/README.md) | Source drops: meeting notes, spec excerpts, investigation logs, pasted API deltas. Prefer pointers to real paths over duplicating `ARCHITECTURE.md`. |
-| [`wiki/`](wiki/00-START-HERE.md) | Compiled pages: short maps, glossaries, “how we test X”, cross-links. Updated when behavior or layout changes. |
-| [`wiki/00-START-HERE.md`](wiki/00-START-HERE.md) | **Start here** — map-of-content and links to path index + topic maps. |
+| Path                                             | Role                                                                                                                                                 |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`raw/`](raw/README.md)                          | Source drops: meeting notes, spec excerpts, investigation logs, pasted API deltas. Prefer pointers to real paths over duplicating `ARCHITECTURE.md`. |
+| [`wiki/`](wiki/00-START-HERE.md)                 | Compiled pages: short maps, glossaries, “how we test X”, cross-links. Updated when behavior or layout changes.                                       |
+| [`wiki/00-START-HERE.md`](wiki/00-START-HERE.md) | **Start here** — map-of-content and links to path index + topic maps.                                                                                |
 
 
 ## Workflow (suggested)
