@@ -1,6 +1,6 @@
 # Map — Playwright UI tests (`tests/ui-tests/`)
 
-**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/ui-tests/`, [`.cursor/rules/playwright-ui-tests.mdc`](../../../.cursor/rules/playwright-ui-tests.mdc).
+**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/ui-tests/`, [playwright-ui-tests.mdc](../../../.cursor/rules/playwright-ui-tests.mdc).
 
 ## Where to look first
 
