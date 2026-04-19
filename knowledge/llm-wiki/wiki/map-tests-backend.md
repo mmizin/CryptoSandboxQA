@@ -16,4 +16,5 @@
 ## Related wiki
 
 - [`map-backend.md`](map-backend.md)
+- [`map-testing-by-capability.md`](map-testing-by-capability.md)
 - [`index-by-repo-path.md`](index-by-repo-path.md)
