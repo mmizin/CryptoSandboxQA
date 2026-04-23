@@ -9,6 +9,7 @@ alwaysApply: true
 When implementing features or making changes:
 
 - **Assistant language:** [.cursor/rules/communication-language.mdc](.cursor/rules/communication-language.mdc) — reply in the same language the user writes; offer clearer English when they ask.
+- **Code readability (naming, request-body locals, test assertion messages):** [.cursor/rules/code-readability.mdc](.cursor/rules/code-readability.mdc) — human doc [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) and [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md).
 - Follow [ARCHITECTURE.md](ARCHITECTURE.md) for tech stack and module layout.
 - **Architecture doc maintenance:** After meaningful changes, update [ARCHITECTURE.md](ARCHITECTURE.md) in the same change set when the overview would be wrong or incomplete — e.g. new/removed Nest modules or controllers, Prisma models or major fields, auth or realtime behavior, main frontend routes, observability/OpenAPI workflow, or tech stack. Skip edits for trivial fixes that do not alter the documented system shape.
 - **Backend API:** [.cursor/rules/api-database-consistency.mdc](.cursor/rules/api-database-consistency.mdc) — persist to PostgreSQL via Prisma; no mock data for persisted entities.

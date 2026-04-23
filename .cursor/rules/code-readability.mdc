@@ -1,0 +1,41 @@
+---
+description: Naming and locals — request bodies, option bags, tests + app code
+globs: "**/*.{ts,tsx,py}"
+alwaysApply: false
+---
+
+# Code readability — CryptoSandboxQA
+
+For TypeScript and Python: **intentional names** and **named variables** for non-trivial values passed into functions (especially request bodies, query maps, and option objects).
+
+## Names
+
+- Prefer **role-specific names** that describe the data’s job: e.g. `fiat_deposit_request`, `create_order_body`, `list_orders_query` — not generic `payload`, `data`, or `obj` when the value is multi-field or lives beyond a single short line.
+- For a raw **HTTP** `Response` (`httpx.Response`, `fetch` response, etc.), prefer **`response`** over a single letter like **`r`**, especially when the variable is used in more than one line or passed to a helper.
+- For a **typed success** result from a client (parsed DTO / model), a short name is fine, e.g. **`raw`**, or use the model name (`created`, `listed`) if it reads better.
+
+## Named locals before calls
+
+- For **multi-field** request bodies, JSON dicts, or option objects passed to clients, services, or test helpers, build the value in a **named local**, then pass it:
+
+  - Good: `const body = { ... }; await api.deposits.depositFiat(body);`
+  - Good: `request = { "fiatCurrency": "USD", "amount": 100 }; client.deposit_fiat(request)`
+  - Acceptable: a **one-line** call with a tiny literal when a longer name would only repeat the test title and the fields are obvious (smoke checks).
+
+- If the repo already has a **builder** or factory for the shape (e.g. `DepositBuilder`, `UserBuilder`, UI test builders), use it, then still assign the result to a **named variable** before the API call when that improves diffs and debugging.
+
+## Assertions in tests (and similar checks)
+
+- **Prefer a custom failure message** on `assert` (second argument) or an explicit `if not cond: raise AssertionError(...)` so CI logs state **what** was expected, **what** was found, and enough **HTTP/response** context to debug without re-running.
+- For **HTTP** responses: include **status code** and a **body snippet** (e.g. `response.text` capped, plus parsed `message` if the project has a small helper) in the message when status or content assertions fail.
+- For **Playwright** / Vitest, use the `expect` **message** option or trailing description where the runner supports it, with the same idea (expected vs actual, URL, key locator).
+
+## Scope
+
+- Applies to `backend/`, `frontend/`, and `tests/`; do not rewrite large untouched files for style alone — use this for **new and edited** code.
+- Complements [test-scenario-conventions.mdc](test-scenario-conventions.mdc) (matrix row naming), which does not cover local variable structure.
+
+## Human doc and templates
+
+- [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) — full prose and exceptions.
+- [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md) — copy-paste before/after examples.

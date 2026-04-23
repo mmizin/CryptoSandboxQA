@@ -48,26 +48,40 @@ class TestFiatDepositIntegration:
         user = _make_user("fiat")
         before = _usd_available(user.api.list_wallets())
 
-        created = user.api.deposits.deposit_fiat(
-            {"fiatCurrency": "USD", "amount": 100, "paymentMethodType": "card"},
+        fiat_deposit_request = {
+            "fiatCurrency": "USD",
+            "amount": 100,
+            "paymentMethodType": "card",
+        }
+        created = user.api.deposits.deposit_fiat(fiat_deposit_request)
+        assert isinstance(created, FiatDepositCreatedResponse), (
+            f"expected FiatDepositCreatedResponse, got {type(created).__name__!r}"
         )
-        assert isinstance(created, FiatDepositCreatedResponse)
         dep_id = created.deposit.id
-        assert created.transaction.ref_type == "deposit_fiat"
+        assert created.transaction.ref_type == "deposit_fiat", (
+            f"expected ref_type deposit_fiat, got {created.transaction.ref_type!r}"
+        )
 
         listed = user.api.deposits.list_fiat()
-        assert any(d.id == dep_id for d in listed.data)
+        assert any(d.id == dep_id for d in listed.data), (
+            f"list_fiat: expected deposit {dep_id!r} in listed data ids={[d.id for d in listed.data]!r}"
+        )
         detail = user.api.deposits.get_fiat(dep_id)
-        assert detail.id == dep_id
+        assert detail.id == dep_id, f"get_fiat: expected id {dep_id!r}, got {detail.id!r}"
 
         after = _usd_available(user.api.list_wallets())
-        assert after == before + Decimal("100")
+        assert after == before + Decimal("100"), (
+            f"wallet USD: expected before+100 = {before + Decimal('100')!r}, got {after!r} (before was {before!r})"
+        )
 
         tx_payload = user.api.list_transactions_deposits()
-        assert isinstance(tx_payload, dict)
+        assert isinstance(tx_payload, dict), f"expected dict tx list, got {type(tx_payload).__name__!r}"
         rows = tx_payload.get("data") or []
         assert any(
-            isinstance(r, dict) and r.get("refType") == "deposit_fiat" and r.get("refId") == dep_id for r in rows
+            isinstance(r, dict) and r.get("refType") == "deposit_fiat" and r.get("refId") == dep_id
+            for r in rows
+        ), (
+            f"transactions: expected deposit_fiat ref for {dep_id!r}; sample rows refTypes={[r.get('refType') for r in rows if isinstance(r, dict)]!r}"
         )
 
 
@@ -78,27 +92,45 @@ class TestCryptoDepositIntegration:
         user = _make_user("btc")
         before = _btc_available(user.api.list_wallets())
 
-        addr = user.api.deposits.crypto_address({"symbol": "BTC"})
-        assert isinstance(addr, CryptoDepositAddressResponse)
-
-        created = user.api.deposits.deposit_crypto(
-            {"symbol": "BTC", "amount": 0.02, "walletAddress": addr.wallet_address},
+        crypto_address_request = {"symbol": "BTC"}
+        addr = user.api.deposits.crypto_address(crypto_address_request)
+        assert isinstance(addr, CryptoDepositAddressResponse), (
+            f"expected CryptoDepositAddressResponse, got {type(addr).__name__!r}"
         )
-        assert isinstance(created, CryptoDepositCreatedResponse)
+
+        crypto_deposit_request = {
+            "symbol": "BTC",
+            "amount": 0.02,
+            "walletAddress": addr.wallet_address,
+        }
+        created = user.api.deposits.deposit_crypto(crypto_deposit_request)
+        assert isinstance(created, CryptoDepositCreatedResponse), (
+            f"expected CryptoDepositCreatedResponse, got {type(created).__name__!r}"
+        )
         dep_id = created.deposit.id
-        assert created.transaction.ref_type == "deposit_crypto"
+        assert created.transaction.ref_type == "deposit_crypto", (
+            f"expected ref_type deposit_crypto, got {created.transaction.ref_type!r}"
+        )
 
         listed = user.api.deposits.list_crypto()
-        assert any(d.id == dep_id for d in listed.data)
+        assert any(d.id == dep_id for d in listed.data), (
+            f"list_crypto: expected {dep_id!r} in listed ids {[d.id for d in listed.data]!r}"
+        )
         detail = user.api.deposits.get_crypto(dep_id)
-        assert detail.id == dep_id
+        assert detail.id == dep_id, f"get_crypto: expected id {dep_id!r}, got {detail.id!r}"
 
         after = _btc_available(user.api.list_wallets())
-        assert after == before + Decimal("0.02")
+        assert after == before + Decimal("0.02"), (
+            f"wallet BTC: expected +0.02 from {before!r}, got {after!r}"
+        )
 
         tx_payload = user.api.list_transactions_deposits()
-        assert isinstance(tx_payload, dict)
+        assert isinstance(tx_payload, dict), f"expected dict tx list, got {type(tx_payload).__name__!r}"
         rows = tx_payload.get("data") or []
         assert any(
-            isinstance(r, dict) and r.get("refType") == "deposit_crypto" and r.get("refId") == dep_id for r in rows
+            isinstance(r, dict) and r.get("refType") == "deposit_crypto" and r.get("refId") == dep_id
+            for r in rows
+        ), (
+            f"transactions: expected deposit_crypto ref for {dep_id!r}; sample refTypes="
+            f"{[r.get('refType') for r in rows if isinstance(r, dict)]!r}"
         )

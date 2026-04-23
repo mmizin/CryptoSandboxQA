@@ -1,6 +1,6 @@
 # Map — Playwright UI tests (`tests/ui-tests/`)
 
-**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/ui-tests/`, [playwright-ui-tests.mdc](../../../.cursor/rules/playwright-ui-tests.mdc).
+**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/ui-tests/`, [playwright-ui-tests.mdc](../../../.cursor/rules/playwright-ui-tests.mdc). For service calls and request objects in tests, use [`docs/CODE_STYLE_READABILITY.md`](../../../docs/CODE_STYLE_READABILITY.md).
 
 ## Where to look first
 

@@ -61,6 +61,7 @@ After `setup`, add **SMTP** lines to the **repository root** `.env` if you want 
 |-----|------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Repository layout, Nest modules, auth, realtime, env loading, and how pieces fit together. |
 | [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) | Purpose-built QA surfaces: `data-testid` maps, client/API validation, Mailpit flows, iframe practice, Portfolio Analytics, simulated delays, Markets modals. |
+| [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) | Naming and extracting locals for request bodies and similar call arguments; templates in [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md). |
 | [docs/openapi.json](docs/openapi.json) | Static OpenAPI spec (import into Postman, Insomnia, etc.) without running the backend. |
 | [docs/API_DESIGN_PLAN.md](docs/API_DESIGN_PLAN.md) | Design-time API notes and history (see banner in file; current behavior is in ARCHITECTURE and Swagger). |
 | [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) | Schema rationale and history; **source of truth** for tables is `backend/prisma/schema.prisma`. |
