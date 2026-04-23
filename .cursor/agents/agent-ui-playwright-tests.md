@@ -117,6 +117,8 @@ Specs under **`tests/ui-tests/`** must create **distinct, traceable** users and 
 
 For failing or flaky tests after implementation, the [**playwright-trace-cli-analysis**](../../.cursor/skills/playwright-trace-cli-analysis/SKILL.md) skill describes trace-based triage from the CLI.
 
+For **Allure** report structure (epic/feature/story, steps, attachments), use [**allure-reporting**](../../.cursor/skills/allure-reporting/SKILL.md) alongside the existing `allure-playwright` reporter in `playwright.config.ts`.
+
 ### Phase 3 — Post-codegen review (mandatory handoff)
 
 When your work for this request is complete, **always** instruct the orchestrator to run **`agent-post-codegen-review`**. Include:

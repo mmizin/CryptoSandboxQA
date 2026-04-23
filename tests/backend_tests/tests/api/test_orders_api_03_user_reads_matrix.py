@@ -5,6 +5,7 @@ KAN-58 — TC-API-03: user GET flows (7 rows) — ``GET /orders``, filters, ``/b
 
 from __future__ import annotations
 
+import allure
 import pytest
 
 from factories.order_factory import OrderRequestFactory
@@ -19,6 +20,9 @@ def _iso_wide_range() -> tuple[str, str]:
     return ("2020-01-01T00:00:00.000Z", "2035-12-31T23:59:59.999Z")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_list_orders_includes_created_order(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 list"))
     fund_user_for_trading(user.api)
@@ -30,6 +34,9 @@ def test_tc_api_03_list_orders_includes_created_order(fxt_regular_user) -> None:
     assert listed.meta.total >= 1, f"list_orders: expected total>=1, got {listed.meta.total!r}"
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_list_filters_market_type_spot(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 mtype"))
     fund_user_for_trading(user.api)
@@ -43,6 +50,9 @@ def test_tc_api_03_list_filters_market_type_spot(fxt_regular_user) -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_orders_by_date_returns_created(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 by-date"))
     fund_user_for_trading(user.api)
@@ -53,6 +63,9 @@ def test_tc_api_03_orders_by_date_returns_created(fxt_regular_user) -> None:
     assert created.id in ids, f"by_date: expected {created.id!r} in {ids!r}"
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_orders_by_coin_filters_symbol(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 by-coin"))
     fund_user_for_trading(user.api)
@@ -65,6 +78,9 @@ def test_tc_api_03_orders_by_coin_filters_symbol(fxt_regular_user) -> None:
     assert created.id in ids, f"by_coin: expected {created.id!r} in {ids!r}"
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_get_order_by_id(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 get"))
     fund_user_for_trading(user.api)
@@ -76,6 +92,9 @@ def test_tc_api_03_get_order_by_id(fxt_regular_user) -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_cancel_open_order(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 cancel"))
     fund_user_for_trading(user.api)
@@ -84,6 +103,9 @@ def test_tc_api_03_cancel_open_order(fxt_regular_user) -> None:
     assert cancelled.status == "cancelled", f"cancel: expected status cancelled, got {cancelled.status!r}"
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-03 user reads")
 def test_tc_api_03_patch_status_to_filled(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-03 patch"))
     fund_user_for_trading(user.api)

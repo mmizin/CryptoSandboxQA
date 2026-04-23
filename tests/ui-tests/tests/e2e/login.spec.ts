@@ -1,8 +1,14 @@
+import * as allure from "allure-js-commons";
 import { expect, test } from "../../src/fixtures";
 import { registerTestUserViaApi } from "../../src/utils/users";
 import { LoginPage } from "../../src/pages/login.page";
 
 test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Authentication");
+        await allure.feature("Login UI");
+    });
+
     test("redirects /login to home and shows sign-in form", async ({ page }) => {
         const login = new LoginPage(page);
         await login.gotoViaLoginRoute();

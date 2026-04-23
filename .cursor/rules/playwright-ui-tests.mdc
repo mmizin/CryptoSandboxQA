@@ -37,6 +37,8 @@ Apply **one or more** tags where it helps. Prefer `@merge-gate` on tests that ar
 
 When adding or editing specs under `tests/ui-tests/`, **add tags** when the test fits the vocabulary above or when CI needs a new filter name (document new tags in this table).
 
+**Allure (optional reporting layers):** **`tag`** remains the filter for `npx playwright test --grep`. For epic/feature/story and steps in HTML reports, follow [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) (Playwright / `allure-js-commons` sections). The reporter is configured in `tests/ui-tests/playwright.config.ts` (`allure-results`).
+
 **Same vocabulary for HTTP API tests** (pytest markers under `tests/backend_tests/`): [.cursor/rules/pytest-backend-api-tests.mdc](.cursor/rules/pytest-backend-api-tests.mdc).
 
 ## `expect(page).toHaveURL(...)`

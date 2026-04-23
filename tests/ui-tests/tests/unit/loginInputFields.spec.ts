@@ -17,6 +17,7 @@ import {
     PASSWORD_MIN_LENGTH,
 } from '../../../../frontend/lib/authFieldConstraints';
 
+import * as allure from "allure-js-commons";
 import { test, expect } from '../../src/fixtures';
 
 /** Messages intended for the email field (React `login-email-error` when native validation does not run first). */
@@ -165,6 +166,11 @@ export const testLoginInputFieldsScenarios = [
 ]
 
 test.describe("Login field validation (client)", { tag: ["@client-validation", "@merge-gate"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Authentication");
+        await allure.feature("Login client validation");
+    });
+
     testLoginInputFieldsScenarios.forEach(({ name, email, password, expected }) => {
         test(name, async ({ pages }) => {
             const [message] = expected;

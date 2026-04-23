@@ -60,6 +60,7 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via existing env loading ([`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py)); never commit secrets.
 - Prefer **clear test names** and explicit assertions; keep tests **deterministic** (avoid flaky timing; use appropriate waits only if the stack already does for similar cases).
 - Place new test modules under the existing pytest layout the project uses (follow current `tests/backend_tests` structure, `conftest.py`, and `pytest.ini`).
+- **Allure** — When the user wants richer HTML reports or the project standard includes Allure metadata, follow [.cursor/skills/allure-reporting/SKILL.md](../../.cursor/skills/allure-reporting/SKILL.md) (`allure-pytest`: epic/feature/story, `allure.step`, fixture titles). Markers stay primary for `pytest -m`.
 
 **Unique test data (layer hints)**
 

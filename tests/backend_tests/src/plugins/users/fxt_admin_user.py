@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Optional
 
+import allure
 import pytest
 
 from builders.user_builder import UserBuilder
@@ -19,6 +20,7 @@ AdminUserFactory = Callable[..., AdminRegisteredTestUser]
 
 
 @pytest.fixture
+@allure.title("Factory: admin-bootstrapped user (API admin register)")
 def fxt_admin_user() -> AdminUserFactory:
     """Return a callable that creates an admin-bootstrapped user (``POST /auth/admin/register``)."""
 

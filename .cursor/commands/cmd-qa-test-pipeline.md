@@ -20,6 +20,7 @@ For **test automation**, use the LLM wiki **together with** [`ARCHITECTURE.md`](
 | Python API tests & clients | [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) |
 | Features under test (app code) | [`map-frontend.md`](../../knowledge/llm-wiki/wiki/map-frontend.md), [`map-backend.md`](../../knowledge/llm-wiki/wiki/map-backend.md) |
 | Find a path quickly | [`index-by-repo-path.md`](../../knowledge/llm-wiki/wiki/index-by-repo-path.md) |
+| Allure reporting (pytest + Playwright) | [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) |
 
 If the **harness or major paths** change during this work, align the wiki afterward via **[`cmd-update-knowledge.md`](cmd-update-knowledge.md)**.
 
@@ -88,7 +89,8 @@ After each major phase, **leave durable traces**:
 4. **Sequential:** Run dependent chunks **after** prerequisites complete; do not parallelize chunks that share paths or that the index orders strictly.
 5. If harness or module locations are unclear for an executor, use the **Knowledge wiki** maps ([`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) / [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) as appropriate; see section above) before guessing paths.
 6. Test scope must stay within **Jira** / **chunk** instructions ([.cursor/rules/no-unrequested-tests.mdc](../rules/no-unrequested-tests.mdc)).
-7. If an executor agent’s workflow ends with **post-codegen review**, follow that agent’s own instructions (e.g. **`agent-post-codegen-review`**) before the user merges.
+7. When implementing tests, use [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) if **Allure** metadata or steps are in scope or already standard in the repo.
+8. If an executor agent’s workflow ends with **post-codegen review**, follow that agent’s own instructions (e.g. **`agent-post-codegen-review`**) before the user merges.
 
 ---
 

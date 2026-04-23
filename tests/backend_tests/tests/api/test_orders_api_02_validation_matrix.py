@@ -4,6 +4,7 @@ KAN-57 — TC-API-02: POST/GET orders negative matrix (14 rows): 401 + validatio
 
 from __future__ import annotations
 
+import allure
 import httpx
 import pytest
 
@@ -21,6 +22,9 @@ def _client_no_auth() -> httpx.Client:
     return httpx.Client(base_url=get_api_url(), timeout=30.0)
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_post_orders_without_bearer_returns_401() -> None:
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
     with _client_no_auth() as c:
@@ -36,6 +40,9 @@ def test_tc_api_02_post_orders_without_bearer_returns_401() -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_insufficient_balance_buy_market(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 ib buy"))
     payload = OrderRequestFactory.spot_market_buy(quantity=1000.0).to_api_dict()
@@ -47,6 +54,9 @@ def test_tc_api_02_insufficient_balance_buy_market(fxt_regular_user) -> None:
         response, "Insufficient balance")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_insufficient_balance_sell_market(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 ib sell"))
     payload = OrderRequestFactory.spot_market_sell(quantity=500.0).to_api_dict()
@@ -58,6 +68,9 @@ def test_tc_api_02_insufficient_balance_sell_market(fxt_regular_user) -> None:
         response, "Insufficient balance")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_invalid_trading_pair_not_in_seed(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 bad pair"))
     payload = CreateOrderRequest(
@@ -75,6 +88,9 @@ def test_tc_api_02_invalid_trading_pair_not_in_seed(fxt_regular_user) -> None:
         response, "Invalid symbol")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_side_must_be_buy_or_sell(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 side"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -87,6 +103,9 @@ def test_tc_api_02_side_must_be_buy_or_sell(fxt_regular_user) -> None:
         response, "side must be one of the following values")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_type_must_be_limit_or_market(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 type"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -99,6 +118,9 @@ def test_tc_api_02_type_must_be_limit_or_market(fxt_regular_user) -> None:
         response, "type must be one of the following values")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_quantity_must_be_positive(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 qty"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -111,6 +133,9 @@ def test_tc_api_02_quantity_must_be_positive(fxt_regular_user) -> None:
         response, "positive")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_limit_requires_positive_price(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 limit no px"))
     body = OrderRequestFactory.spot_limit_buy(price=65_000.0).to_api_dict()
@@ -123,6 +148,9 @@ def test_tc_api_02_limit_requires_positive_price(fxt_regular_user) -> None:
         response, "price", "Limit")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_limit_price_must_be_positive(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 px 0"))
     payload = OrderRequestFactory.spot_limit_buy(price=65_000.0).to_api_dict()
@@ -135,6 +163,9 @@ def test_tc_api_02_limit_price_must_be_positive(fxt_regular_user) -> None:
         response, "price", "positive")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_symbol_base_quote_format(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 sym fmt"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -147,6 +178,9 @@ def test_tc_api_02_symbol_base_quote_format(fxt_regular_user) -> None:
         response, "Symbol", "BASE_QUOTE")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_market_type_enumeration(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 mkt"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -159,6 +193,9 @@ def test_tc_api_02_market_type_enumeration(fxt_regular_user) -> None:
         response, "marketType")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_initial_status_enumeration(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-02 init"))
     payload = OrderRequestFactory.spot_market_buy().to_api_dict()
@@ -171,6 +208,9 @@ def test_tc_api_02_initial_status_enumeration(fxt_regular_user) -> None:
         response, "initialStatus")
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_get_orders_without_bearer_returns_401() -> None:
     with _client_no_auth() as c:
         response = c.get("/orders")
@@ -182,6 +222,9 @@ def test_tc_api_02_get_orders_without_bearer_returns_401() -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-02 validation matrix")
 def test_tc_api_02_get_order_by_id_without_bearer_returns_401() -> None:
     with _client_no_auth() as c:
         response = c.get("/orders/00000000-0000-4000-8000-000000000001")

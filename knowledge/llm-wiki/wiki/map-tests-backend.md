@@ -4,6 +4,8 @@
 
 **Markers / run profiles (pytest):** the repo uses the same logical **`@…` tags** as Playwright (e.g. `@smoke`, `@merge-gate`, `@e2e` for integration journeys) via **`pytest.mark.*`**; hyphens in doc names map to **underscores** in Python (e.g. `merge_gate`). See [`.cursor/rules/pytest-backend-api-tests.mdc`](../../../.cursor/rules/pytest-backend-api-tests.mdc) and `tests/backend_tests/pytest.ini` **`[pytest] markers`**. Run examples: from `tests/backend_tests/`, `pytest -m smoke` or `pytest -m "e2e and merge_gate"`.
 
+**Allure:** `allure-pytest` is a dependency; `pytest.ini` sets `--alluredir=allure-results`. Metadata and steps: [`.cursor/skills/allure-reporting/SKILL.md`](../../../.cursor/skills/allure-reporting/SKILL.md).
+
 ## Where to look first
 
 | Topic | Location |

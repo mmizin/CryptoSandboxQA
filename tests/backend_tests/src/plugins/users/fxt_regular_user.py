@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Optional
 
+import allure
 import pytest
 
 from builders.user_builder import UserBuilder
@@ -19,6 +20,7 @@ RegularUserFactory = Callable[..., RegisteredTestUser]
 
 
 @pytest.fixture
+@allure.title("Factory: registered user (API register-with-profile)")
 def fxt_regular_user() -> RegularUserFactory:
     """Return a callable that creates a user via ``POST /auth/register-with-profile``."""
 

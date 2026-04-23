@@ -38,3 +38,5 @@ cd tests/backend_tests && pytest -m e2e
 **Folder layout vs markers:** `tests/backend_tests/tests/api/` holds **contract / matrix** HTTP tests; `tests/backend_tests/tests/integration/` holds **journey** specs. That split is **where** the file lives. Markers like `smoke` or `merge_gate` describe **how often / which job** runs the test. Prefer **`e2e`** on integration modules (or their classes) to mirror Playwright’s “real flow” idea at the HTTP layer.
 
 When adding or editing tests under `tests/backend_tests/`, **apply markers** when the test fits the vocabulary or when CI needs a new filter name (document new markers in the table here and in `pytest.ini`).
+
+**Allure (optional reporting layers):** Keep **markers** as the source of truth for `pytest -m`. For epic/feature/story, steps, attachments, and fixture titles in HTML reports, follow [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) (pytest / `allure-pytest` sections). Results default to `tests/backend_tests/allure-results` via `pytest.ini` `addopts`.

@@ -1,6 +1,7 @@
 /**
  * KAN-74 / TC-UI-01 — Deposit cash client validation (`DepositCashForm`).
  */
+import * as allure from "allure-js-commons";
 import { test, expect } from "../../src/fixtures";
 import type { TestUser } from "../../src/models/user/TestUser";
 import { registerTestUserViaApi } from "../../src/utils/users";
@@ -31,6 +32,8 @@ test.describe("Deposit cash validation", { tag: ["@client-validation", "@merge-g
     let user: TestUser;
 
     test.beforeEach(async ({ request, authApi, userFactory }) => {
+        await allure.epic("Payments");
+        await allure.feature("Deposit cash client validation");
         user = await registerTestUserViaApi(request, authApi, userFactory, `KAN-74 cash ${Date.now()}`);
     });
 
