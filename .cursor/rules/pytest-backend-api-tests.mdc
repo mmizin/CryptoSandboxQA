@@ -1,0 +1,40 @@
+---
+description: Pytest backend API tests — markers, tests/backend_tests
+globs: tests/backend_tests/**/*.py
+alwaysApply: false
+---
+
+# Pytest backend API tests — CryptoSandboxQA
+
+Applies to Python tests under `tests/backend_tests/`.
+
+**Shared scenario naming** (data-driven matrices, optional `[Boundary]` / `[Stress]` in row labels): [.cursor/rules/test-scenario-conventions.mdc](.cursor/rules/test-scenario-conventions.mdc).
+
+**Shared filter vocabulary** with Playwright: use the **same logical `@…` names** in docs, Jira, and test design; in Python, register and apply **`pytest.mark.<name>`** (hyphens become **underscores** in marker identifiers).
+
+## Test markers (aligned with UI `@…` tags)
+
+Use **`@pytest.mark.<name>`** on test **functions** or **classes**, or set **`pytestmark`** on a module for a default. Registered markers are defined in `tests/backend_tests/pytest.ini` under **`[pytest] markers`**.
+
+**Run from** `tests/backend_tests/` (or pass `tests/backend_tests` as a path from the repo root):
+
+```bash
+cd tests/backend_tests && pytest -m smoke
+cd tests/backend_tests && pytest -m "smoke and merge_gate"
+cd tests/backend_tests && pytest -m e2e
+```
+
+**Marker expressions** use pytest’s **`-m`**; combine with `and` / `or` / `not` (see [Pytest — mark](https://docs.pytest.org/en/stable/how-to/mark.html)). With **xdist**: `pytest -n auto -m merge_gate` (install `pytest-xdist` if you use parallel workers).
+
+**Vocabulary (this repo)** — same semantics as [.cursor/rules/playwright-ui-tests.mdc](.cursor/rules/playwright-ui-tests.mdc); Python marker id is the second column.
+
+| Doc / Jira (`@…`) | `pytest` marker | Use |
+| ----------------- | --------------- | --- |
+| `@e2e` | `e2e` | **Integration**-style **multi-step HTTP** journeys (typical: `tests/backend_tests/tests/integration/`). |
+| `@smoke` | `smoke` | Small, fast checks for frequent runs. |
+| `@merge-gate` | `merge_gate` | Must pass before merge (subset you wire in CI). |
+| `@client-validation` | `client_validation` | **Request/field** validation and negative matrices (4xx, DTO rules)—API analogue of UI “client” validation. |
+
+**Folder layout vs markers:** `tests/backend_tests/tests/api/` holds **contract / matrix** HTTP tests; `tests/backend_tests/tests/integration/` holds **journey** specs. That split is **where** the file lives. Markers like `smoke` or `merge_gate` describe **how often / which job** runs the test. Prefer **`e2e`** on integration modules (or their classes) to mirror Playwright’s “real flow” idea at the HTTP layer.
+
+When adding or editing tests under `tests/backend_tests/`, **apply markers** when the test fits the vocabulary or when CI needs a new filter name (document new markers in the table here and in `pytest.ini`).

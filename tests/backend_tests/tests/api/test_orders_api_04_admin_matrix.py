@@ -6,10 +6,14 @@ from __future__ import annotations
 
 import uuid
 
+import pytest
+
 from factories.order_factory import OrderRequestFactory
 
 from utils.http_assertions import response_assert_detail
 from utils.order_api_helpers import configure_api_order_user, fund_user_for_trading
+
+pytestmark = [pytest.mark.merge_gate]
 
 
 def _uid(user) -> str:

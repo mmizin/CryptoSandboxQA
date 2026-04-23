@@ -14,6 +14,8 @@ from utils.order_api_helpers import assert_create_order_201_and_shape, configure
 
 _PX = 65_000.0
 
+pytestmark = [pytest.mark.merge_gate, pytest.mark.smoke]
+
 _TC_API_01_CASES: list[tuple[str, CreateOrderRequest]] = [
     ("spot_market_buy", OrderRequestFactory.spot_market_buy()),
     ("spot_market_sell", OrderRequestFactory.spot_market_sell()),

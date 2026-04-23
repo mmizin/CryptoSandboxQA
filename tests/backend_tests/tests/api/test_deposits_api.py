@@ -9,6 +9,7 @@ from __future__ import annotations
 import time
 
 import httpx
+import pytest
 
 from models.payments.deposit_models import (
     CryptoDepositAddressResponse,
@@ -36,6 +37,8 @@ def _make_user(display_suffix: str):
     )
 
 
+@pytest.mark.merge_gate
+@pytest.mark.smoke
 class TestDepositsFiatSuccess:
     """KAN-70 TC-API-01"""
 
@@ -99,6 +102,8 @@ class TestDepositsFiatSuccess:
         )
 
 
+@pytest.mark.merge_gate
+@pytest.mark.client_validation
 class TestDepositsFiatValidation:
     """KAN-71 TC-API-02"""
 
@@ -195,6 +200,8 @@ class TestDepositsFiatValidation:
         )
 
 
+@pytest.mark.merge_gate
+@pytest.mark.client_validation
 class TestDepositsCryptoMatrix:
     """KAN-72 TC-API-03"""
 
@@ -244,6 +251,7 @@ class TestDepositsCryptoMatrix:
             f"deposit_amount_below_min: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
+    @pytest.mark.smoke
     def test_happy_path_address_then_deposit(self) -> None:
         user = _make_user("happy")
         addr = user.api.deposits.crypto_address({"symbol": "BTC"})
@@ -266,6 +274,8 @@ class TestDepositsCryptoMatrix:
         )
 
 
+@pytest.mark.merge_gate
+@pytest.mark.smoke
 class TestDepositsAuthAndList:
     """KAN-73 TC-API-04"""
 

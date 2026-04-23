@@ -5,6 +5,7 @@ KAN-57 — TC-API-02: POST/GET orders negative matrix (14 rows): 401 + validatio
 from __future__ import annotations
 
 import httpx
+import pytest
 
 from factories.order_factory import OrderRequestFactory
 from models.trading.order_models import CreateOrderRequest
@@ -12,6 +13,8 @@ from models.trading.order_models import CreateOrderRequest
 from services.base_client import get_api_url
 from utils.http_assertions import response_assert_detail
 from utils.order_api_helpers import assert_response_contains, configure_api_order_user
+
+pytestmark = [pytest.mark.merge_gate, pytest.mark.client_validation]
 
 
 def _client_no_auth() -> httpx.Client:

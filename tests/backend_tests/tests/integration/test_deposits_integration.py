@@ -5,6 +5,8 @@ Deposits integration chains — KAN-69 / KAN-76, KAN-77.
 from __future__ import annotations
 
 import time
+
+import pytest
 from decimal import Decimal
 
 from factories.user_factory import UserFactory
@@ -15,6 +17,8 @@ from models.payments.deposit_models import (
 )
 from services.auth_client import AuthClient
 from strategies.user.api_strategy import ApiUserCreationStrategy
+
+pytestmark = [pytest.mark.e2e, pytest.mark.merge_gate, pytest.mark.smoke]
 
 
 def _make_user(display_suffix: str):
