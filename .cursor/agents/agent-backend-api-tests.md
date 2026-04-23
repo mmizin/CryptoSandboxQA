@@ -55,6 +55,7 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 **Conventions**
 
 - Match **naming, typing, and imports** of neighboring files; no drive-by refactors outside the request.
+- For authenticated API calls after creating users, prefer **`user.api`** / **`admin.api`** (for example, `user.api.deposits.*`, `user.api.orders.*`) over direct `user_client_from_registered` / `admin_client_from_registered` imports unless non-default client kwargs are required (align with [ARCHITECTURE.md](../../ARCHITECTURE.md)).
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via existing env loading ([`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py)); never commit secrets.
 - Prefer **clear test names** and explicit assertions; keep tests **deterministic** (avoid flaky timing; use appropriate waits only if the stack already does for similar cases).
 - Place new test modules under the existing pytest layout the project uses (follow current `tests/backend_tests` structure and `pyproject.toml` / `pytest` config).
