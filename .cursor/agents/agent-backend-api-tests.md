@@ -57,6 +57,7 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 - Match **naming, typing, and imports** of neighboring files; no drive-by refactors outside the request.
 - **Helper placement** — Keep small support helpers local to the test module when used by one file; promote to `tests/backend_tests/src/utils/` only for clear cross-module reuse with a stable contract (avoid one-off utils wrappers).
 - **Markers (same vocabulary as Playwright `tag`)** — use **`@pytest.mark.<name>`** or module **`pytestmark`** so CI can filter, e.g. `cd tests/backend_tests && pytest -m smoke`. Vocabulary and **`@…` → Python id** mapping: [.cursor/rules/pytest-backend-api-tests.mdc](../../.cursor/rules/pytest-backend-api-tests.mdc) (e.g. `@merge-gate` → `merge_gate`, `@e2e` is mainly for `tests/integration/` journeys; **`client_validation`** for request/negative matrices). New markers: add to `tests/backend_tests/pytest.ini` and document in the rule table.
+- **API module layout & naming** — Prefer **domain subfolders** under **`tests/api/<domain>/`** when adding several contract modules for one capability (see **`tests/api/orders/`**). Use **one class per file** with **Allure** on the class; **`test_<behavior>`** method names **without** redundant **`tc_api_XX_`** prefixes. Full table: [.cursor/rules/pytest-backend-api-tests.mdc](../../.cursor/rules/pytest-backend-api-tests.mdc).
 - For authenticated API calls after creating users, use **chained** **`user.api`** / **`admin.api`** at the call site (for example, `user.api.deposits.deposit_fiat(...)`, `user.api.orders.create(...)`) instead of `user_client_from_registered` / `admin_client_from_registered`, unless non-default client kwargs are required. **Do not** introduce a local alias such as `api = user.api`—keep the full chain on each call (align with [ARCHITECTURE.md](../../ARCHITECTURE.md)).
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via existing env loading ([`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py)); never commit secrets.
 - Prefer **clear test names** and explicit assertions; keep tests **deterministic** (avoid flaky timing; use appropriate waits only if the stack already does for similar cases).
@@ -65,7 +66,7 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 
 **Unique test data (layer hints)**
 
-Work under **`tests/backend_tests/tests/api/`** must generate **distinct, traceable** entities so parallel runs and log forensics stay safe:
+Work under **`tests/backend_tests/tests/api/`** (including domain packages such as **`tests/api/orders/`**) must generate **distinct, traceable** entities so parallel runs and log forensics stay safe:
 
 - **Layer prefix** — Encode **API** in human-readable strings (logs, DB, support): e.g. display name `API User 1`, slug or label fragments containing `api`.
 - **Uniqueness suffix** — Append a **per-creation** value to every field that must be unique (emails, usernames, display names when the product dedupes, external refs). Prefer millisecond timestamps (e.g. `int(time.time() * 1000)`), `time.time_ns()`, or a short random token (e.g. `secrets.token_hex(4)` / UUID fragment)—**not** bare static strings like `user1@…` without a suffix.

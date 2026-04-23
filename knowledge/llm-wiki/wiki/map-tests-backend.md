@@ -15,7 +15,7 @@
 | User strategies | `tests/backend_tests/src/strategies/user/` |
 | Authenticated actor pattern | `RegisteredTestUser.api` / `AdminRegisteredTestUser.api` — chain calls at the site (e.g. `user.api.deposits.deposit_fiat(...)`); do not use `api = user.api` |
 | Builders & factories | `tests/backend_tests/src/builders/`, `tests/backend_tests/src/factories/` |
-| API test matrices | `tests/backend_tests/tests/api/` |
+| API test matrices | `tests/backend_tests/tests/api/` — domain groups under subfolders when a capability has several modules (e.g. **`api/orders/`** for order matrices); single-file suites may live at **`api/`** root (e.g. `test_deposits_api.py`) |
 | Env loading | root `.env` + optional `tests/backend_tests/.env` via `src/utils/env_loader.py` |
 
 ## Related wiki

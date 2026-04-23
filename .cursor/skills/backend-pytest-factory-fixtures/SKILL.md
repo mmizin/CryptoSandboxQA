@@ -20,7 +20,7 @@ Use this skill when backend API/integration tests need authenticated users in `t
 
 - Local helper example: a per-file user naming callback like `_configure_deposits_api_user(...)` inside one deposits spec.
 - Local helper example: a small one-file assertion adapter used only by one test module.
-- `utils` helper example: `configure_api_order_user(...)` shared across several Orders API modules.
+- `utils` helper example: `configure_api_order_user(...)` shared across several Orders API modules under `tests/api/orders/`.
 - `utils` helper example: shared response diagnostics helpers consumed by multiple suites.
 
 ## Decision checklist

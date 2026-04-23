@@ -26,6 +26,12 @@ Optional **section comments** above groups, e.g. `// --- emailInvalid ---`, and 
 
 Prefer scenarios that are **understandable in isolation** where practical (clear intent for reviewers and future maintainers).
 
+## Pytest backend API (`tests/backend_tests/tests/api/`)
+
+Matrix **row** `name` / id strings (parametrize `ids=`, table-driven cases) follow the **Data-driven `name` fields** guidance above.
+
+For **Python test methods**: names must start with **`test_`**. Prefer **`test_<behavior>`** without repeating ticket-style prefixes such as **`tc_api_03_`** on every method when the **module docstring**, **Allure story**, and **file path** already carry TC / KAN traceability. **Class** grouping and **Allure** on the class: [.cursor/rules/pytest-backend-api-tests.mdc](.cursor/rules/pytest-backend-api-tests.mdc) (contract test structure table).
+
 ## Do not add tests unless asked
 
 Follow [.cursor/rules/no-unrequested-tests.mdc](.cursor/rules/no-unrequested-tests.mdc): do not create or extend automated tests unless the user explicitly asks.

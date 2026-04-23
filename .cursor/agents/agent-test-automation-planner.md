@@ -52,7 +52,7 @@ Design chunks so **parallel execution by different test agents** (or parallel PR
   - **`tests/backend_tests/`** — Python pytest + httpx stack (`src/models`, `src/services`, `tests/api/`, `tests/integration/`, etc.).
   - **`tests/ui-tests/`** — Playwright + TypeScript (`src/pages`, `src/services`, `tests/e2e`, `tests/unit`, etc.).
 - **Prefer additional splits within `tests/backend_tests/`** when both apply:
-  - **API / contract** work → align to **`tests/backend_tests/tests/api/`** (and shared **`src/`** helpers only as needed) — typical owner: **`agent-backend-api-tests`**.
+  - **API / contract** work → align to **`tests/backend_tests/tests/api/`** (and shared **`src/`** helpers only as needed) — typical owner: **`agent-backend-api-tests`**. Use **domain subfolders** (e.g. **`tests/api/orders/`**) when a feature has **multiple** pytest modules; a **single** cohesive file can stay at **`tests/api/`** root—see [.cursor/rules/pytest-backend-api-tests.mdc](../rules/pytest-backend-api-tests.mdc).
   - **Multi-step journeys** → align to **`tests/backend_tests/tests/integration/`** — typical owner: **`agent-backend-integration-tests`**.
 - **Do not** put **`tests/backend_tests/`** and **`tests/ui-tests/`** automation in the **same** chunk if two agents might implement them **concurrently** — use **separate chunk files** with explicit order if one must land first (e.g. shared API helpers before UI that assumes a behavior).
 
