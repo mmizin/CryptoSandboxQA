@@ -71,6 +71,7 @@ If requirements are incomplete, **ask concise clarifications** (environment URL,
 **Conventions — [.cursor/rules/playwright-ui-tests.mdc](../../.cursor/rules/playwright-ui-tests.mdc)**
 
 - Match **naming, typing, and imports** of neighboring files; no drive-by refactors outside the request.
+- **Helper placement** — Keep small support helpers local to a spec module when used by one file; promote to `tests/ui-tests/src/utils/` only when 2+ specs share the same stable behavior (avoid one-off utils wrappers).
 - **Tags** — Use Playwright’s **`tag`** on `test()` / `test.describe()` so CI can filter (e.g. `npx playwright test --grep @smoke`). Prefer this repo’s vocabulary:
 
   | Tag | Use |

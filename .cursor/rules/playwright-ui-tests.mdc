@@ -41,6 +41,28 @@ When adding or editing specs under `tests/ui-tests/`, **add tags** when the test
 
 **Same vocabulary for HTTP API tests** (pytest markers under `tests/backend_tests/`): [.cursor/rules/pytest-backend-api-tests.mdc](.cursor/rules/pytest-backend-api-tests.mdc).
 
+**Fixture-first user setup:** before adding per-spec user creation logic, check reusable UI fixtures in `tests/ui-tests/src/fixtures/` (for example, `user.fixture.ts`) and extend that layer when possible.
+
+## UI helper placement (local vs `src/utils`)
+
+- Keep small support functions in the spec module when they are used only there (for example, tiny arrange helpers or one-file expectation adapters).
+- Move helper code to `tests/ui-tests/src/utils/` only when it is genuinely reusable across multiple spec modules and the shared contract is stable.
+- Avoid creating a `src/utils` helper for one-off convenience wrappers; keep those close to the spec that uses them.
+- When promoting a helper to `src/utils`, keep the function focused and named by domain intent (not by a single test case title).
+
+### Examples
+
+- Keep local in spec file: a one-file callback that builds row-specific test data for one matrix spec.
+- Keep local in spec file: a helper that asserts a single page-only UI detail used in one spec.
+- Move to `src/utils`: shared deterministic/randomized data helpers (for example, `src/utils/seeded-random.ts`) used by multiple specs.
+- Move to `src/utils`: shared chart/data transforms used across multiple portfolio analytics specs (for example, `src/utils/portfolio-analytics-charts.ts`).
+
+### Decision checklist
+
+- Is this helper used by only one spec module right now? Keep it local.
+- Is it already used (or clearly needed) in 2+ modules with the same behavior? Move it to `tests/ui-tests/src/utils/`.
+- Will extracting to `src/utils` reduce duplication without creating vague/generic API? If no, keep it local.
+
 ## `expect(page).toHaveURL(...)`
 
 - **Prefer path strings** (e.g. `"/dashboard"`, `"/forgot-password"`) when the app navigates to a known route and `baseURL` is set in `playwright.config.ts` (`use.baseURL`). Playwright resolves relative paths with `new URL(path, baseURL)` and matches the full page URL — no regex escapes, clearer intent.
