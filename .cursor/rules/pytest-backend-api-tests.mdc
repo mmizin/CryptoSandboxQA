@@ -37,6 +37,23 @@ cd tests/backend_tests && pytest -m e2e
 
 **Folder layout vs markers:** `tests/backend_tests/tests/api/` holds **contract / matrix** HTTP tests; `tests/backend_tests/tests/integration/` holds **journey** specs. That split is **where** the file lives. Markers like `smoke` or `merge_gate` describe **how often / which job** runs the test. Prefer **`e2e`** on integration modules (or their classes) to mirror Playwright’s “real flow” idea at the HTTP layer.
 
+**Domain grouping under `tests/api/`:** When a capability has **several** pytest modules (matrices, stories, TC files), group them in **`tests/backend_tests/tests/api/<domain>/`** (e.g. **`orders/`** — `test_orders_api_*.py`). Keep an **`__init__.py`** in that folder. A **single** cohesive suite may remain **one module** at the `tests/api/` root (e.g. **`test_deposits_api.py`**).
+
+## Contract test structure, naming, and Allure (preferred style)
+
+Use this for **new or refactored** API matrices so reports and code stay consistent:
+
+| Topic | Convention |
+| ----- | ---------- |
+| **Class** | Prefer **one** `Test*` class per module. Put **`@allure.epic`**, **`@allure.feature`**, and **`@allure.story`** on the **class** once (not on every test method). |
+| **Module markers** | Use **`pytestmark = [...]`** at **module** level for defaults (`merge_gate`, `smoke`, `client_validation`, …). |
+| **Parametrize** | Apply **`@pytest.mark.parametrize`** on the **test method** inside the class when the matrix is data-driven. |
+| **Class name** | **Semantic** and stable: e.g. `TestOrdersUserReads`, `TestOrdersValidationMatrix`. Do **not** embed numeric TC indices in the class name (`TestOrdersApi03…`). |
+| **Test function name** | Must start with **`test_`**. Use **`test_<behavior>`** (e.g. `test_list_orders_includes_created_order`). Do **not** repeat **`tc_api_XX_`** in the method name—traceability comes from the **module docstring** (KAN / TC-API), **Allure story**, and optionally the **filename**. |
+| **Filename** | May keep **`test_<area>_api_<NN>_*.py`** (or similar) when aligning to test-design or Jira TC ids; optional but useful for navigation. |
+
+**Reference layout:** [`tests/backend_tests/tests/api/orders/`](../../tests/backend_tests/tests/api/orders/) (Orders matrices) vs [`test_deposits_api.py`](../../tests/backend_tests/tests/api/test_deposits_api.py) (single-file Deposits suite).
+
 When adding or editing tests under `tests/backend_tests/`, **apply markers** when the test fits the vocabulary or when CI needs a new filter name (document new markers in the table here and in `pytest.ini`).
 
 **Allure (optional reporting layers):** Keep **markers** as the source of truth for `pytest -m`. For epic/feature/story, steps, attachments, and fixture titles in HTML reports, follow [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) (pytest / `allure-pytest` sections). Results default to `tests/backend_tests/allure-results` via `pytest.ini` `addopts`.
@@ -59,7 +76,7 @@ When adding or editing tests under `tests/backend_tests/`, **apply markers** whe
 
 - Keep local in test file: `_configure_deposits_api_user(...)` used only by `tests/backend_tests/tests/api/test_deposits_api.py`.
 - Keep local in test file: `_configure_deposits_integration_user(...)` used only by `tests/backend_tests/tests/integration/test_deposits_integration.py`.
-- Move to `utils`: `configure_api_order_user(...)` reused by multiple Orders API modules.
+- Move to `utils`: `configure_api_order_user(...)` reused by multiple Orders API modules under `tests/api/orders/`.
 - Move to `utils`: shared HTTP assertion/parsing helpers used by several suites (for example, `utils/http_assertions.py`).
 
 ### Decision checklist

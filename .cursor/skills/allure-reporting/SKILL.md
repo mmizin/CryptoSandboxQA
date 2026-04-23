@@ -34,7 +34,7 @@ Use this skill when **implementing or editing** automated tests and the goal is 
 
 **Setup:** dependency `allure-pytest`; run with `--alluredir` (this repo defaults via [`tests/backend_tests/pytest.ini`](../../../tests/backend_tests/pytest.ini)). **Allure CLI** (`allure generate` / `allure serve`) needs a **Java** runtime per upstream docs.
 
-**Metadata:** decorators (`@allure.epic`, …) or **`allure.dynamic.*`** inside the test when values are built at runtime.
+**Metadata:** decorators (`@allure.epic`, …) or **`allure.dynamic.*`** inside the test when values are built at runtime. For **pytest** API matrices, prefer **`@allure.epic` / `@allure.feature` / `@allure.story` on the test class once** (one class per module) instead of repeating the same decorators on every method—see [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc).
 
 **Steps:** `@allure.step` on helpers, or `with allure.step("…"):` in the test.
 

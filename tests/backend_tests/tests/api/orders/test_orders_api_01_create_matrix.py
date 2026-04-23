@@ -32,12 +32,13 @@ _TC_API_01_CASES: list[tuple[str, CreateOrderRequest]] = [
 @allure.epic("Trading")
 @allure.feature("Orders API")
 @allure.story("TC-API-01 create order matrix")
-@pytest.mark.parametrize(
-    "preset_name,body",
-    _TC_API_01_CASES,
-    ids=[x[0] for x in _TC_API_01_CASES],
-)
-def test_tc_api_01_create_order_success(fxt_regular_user, preset_name, body) -> None:
-    user = fxt_regular_user(configure_api_order_user("API TC-API-01"))
-    fund_user_for_trading(user.api)
-    assert_create_order_201_and_shape(user.api, body)
+class TestOrdersCreateMatrix:
+    @pytest.mark.parametrize(
+        "preset_name,body",
+        _TC_API_01_CASES,
+        ids=[x[0] for x in _TC_API_01_CASES],
+    )
+    def test_create_order_success(self, fxt_regular_user, preset_name, body) -> None:
+        user = fxt_regular_user(configure_api_order_user("API TC-API-01"))
+        fund_user_for_trading(user.api)
+        assert_create_order_201_and_shape(user.api, body)

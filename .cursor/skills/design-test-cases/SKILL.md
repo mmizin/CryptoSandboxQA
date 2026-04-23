@@ -124,7 +124,7 @@ Do **not** use `@unit` on Playwright tests—reserved for non-browser unit test 
 
 | Planned level | Typical content | Folder |
 | ------------- | --------------- | ------ |
-| **API / contract** | Endpoint matrices, auth and negative cases | `api/` |
+| **API / contract** | Endpoint matrices, auth and negative cases | `api/` — optional **`api/<domain>/`** (e.g. `api/orders/`) when multiple modules belong to one capability; see [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc) |
 | **Integration (HTTP e2e)** | Multi-step journeys over the running API | `integration/` |
 
 Record **planned tags** (same `@…` vocabulary and **pytest** mapping as in the table above) per matrix or journey so CI and Jira handoff stay consistent with [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc).

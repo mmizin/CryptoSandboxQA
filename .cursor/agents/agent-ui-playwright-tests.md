@@ -27,7 +27,7 @@ The sections below restate what you must apply; if anything conflicts, the two r
 |--------|--------------------------------------------------------------|-----------------------------------|
 | Surface | **HTTP** to the API (`tests/backend_tests/`, pytest, httpx) | **Browser** + **Next.js** UI (`tests/ui-tests/`, Playwright) |
 | Primary assertions | Status codes, JSON bodies, multi-step **API** journeys | Visible UI, navigation, `page` / locators, accessibility-oriented selectors where possible |
-| Typical layout | `tests/backend_tests/tests/api/` or `…/integration/` | **`tests/ui-tests/tests/e2e/`** (flows) vs **`tests/ui-tests/tests/unit/`** (narrow checks, e.g. validation matrices)—see [.cursor/rules/playwright-ui-tests.mdc](../../.cursor/rules/playwright-ui-tests.mdc) |
+| Typical layout | `tests/backend_tests/tests/api/` (optional **`api/<domain>/`** e.g. `orders/`) or `…/integration/` | **`tests/ui-tests/tests/e2e/`** (flows) vs **`tests/ui-tests/tests/unit/`** (narrow checks, e.g. validation matrices)—see [.cursor/rules/playwright-ui-tests.mdc](../../.cursor/rules/playwright-ui-tests.mdc) |
 | Parallelism | **pytest-xdist** — tests must not share mutable global state | **Playwright workers** — independent **test** data and storage state; avoid coupling across tests |
 
 You **reuse** the same **domain concepts** as the backend/UI-test stack ([ARCHITECTURE.md](../../ARCHITECTURE.md) `tests/ui-tests/` table): **`src/services/*.api.ts`** for REST from tests, **`src/pages/`** for page objects, **`src/fixtures/`**, **`src/strategies/user/`**, **`src/factories/`**, **`src/models/`** — extend these rather than inlining large flows inside spec files.

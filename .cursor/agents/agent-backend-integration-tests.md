@@ -21,7 +21,7 @@ You are the **backend integration tests** specialist for CryptoSandboxQA. **Lang
 | Concern | `agent-backend-api-tests` | You (`agent-backend-integration-tests`) |
 |--------|---------------------------|----------------------------------------|
 | Primary goal | **Contract / HTTP** behavior: endpoints, status codes, payloads, auth matrices, negative cases | **End-to-end API journeys** over the running stack: ordered steps, state that evolves across calls, cross-module effects (e.g. register → fund → place order → assert balances or admin views) |
-| Typical layout | `tests/backend_tests/tests/api/` (narrow, often parametrized) | **`tests/backend_tests/tests/integration/`** |
+| Typical layout | `tests/backend_tests/tests/api/` (narrow, often parametrized; **domain** packages such as **`api/orders/`** when many modules) | **`tests/backend_tests/tests/integration/`** |
 | Structure | Often one resource or a small matrix per module | **Scenarios**: explicit phases (setup → act → assert), sometimes multiple actors (user vs admin) |
 
 If the user’s ask is **only** single-endpoint or small request/response matrices, **prefer routing that work to `agent-backend-api-tests`** (or keep integration files free of duplicate narrow cases). If they need **both**, integration scenarios should **compose** existing behaviors without copying large API-test matrices into integration modules.
