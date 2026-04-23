@@ -37,6 +37,8 @@ Apply **one or more** tags where it helps. Prefer `@merge-gate` on tests that ar
 
 When adding or editing specs under `tests/ui-tests/`, **add tags** when the test fits the vocabulary above or when CI needs a new filter name (document new tags in this table).
 
+**Same vocabulary for HTTP API tests** (pytest markers under `tests/backend_tests/`): [.cursor/rules/pytest-backend-api-tests.mdc](.cursor/rules/pytest-backend-api-tests.mdc).
+
 ## `expect(page).toHaveURL(...)`
 
 - **Prefer path strings** (e.g. `"/dashboard"`, `"/forgot-password"`) when the app navigates to a known route and `baseURL` is set in `playwright.config.ts` (`use.baseURL`). Playwright resolves relative paths with `new URL(path, baseURL)` and matches the full page URL — no regex escapes, clearer intent.

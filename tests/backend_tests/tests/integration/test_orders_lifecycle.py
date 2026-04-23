@@ -18,6 +18,8 @@ from models.payments.deposit_models import DepositFiatRequest
 from models.trading.order_models import Order
 from models.user.registered_user import RegisteredTestUser
 
+pytestmark = [pytest.mark.e2e, pytest.mark.merge_gate, pytest.mark.smoke]
+
 
 def _int_user_configure(label: str) -> Callable[[UserBuilder], UserBuilder]:
     """Unique integration-layer user (email, display name, username)."""

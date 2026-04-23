@@ -30,7 +30,7 @@ If the user’s ask mixes **product code** and **tests**, split planning accordi
 ## When invoked
 
 1. **Clarify scope** — If ambiguous, state assumptions briefly in the index; prefer one clear interpretation over blocking.
-2. **Ground in the repo** — Read or skim [ARCHITECTURE.md](../../ARCHITECTURE.md) and relevant `.cursor/rules/` for **`tests/backend_tests/`**, **`tests/ui-tests/`**, Playwright tags, pytest layout, and parallelism expectations.
+2. **Ground in the repo** — Read or skim [ARCHITECTURE.md](../../ARCHITECTURE.md) and relevant `.cursor/rules/` for **`tests/backend_tests/`**, **`tests/ui-tests/`**, Playwright tags ([`playwright-ui-tests.mdc`](../rules/playwright-ui-tests.mdc)), **pytest markers** ([`pytest-backend-api-tests.mdc`](../rules/pytest-backend-api-tests.mdc)), layout, and parallelism expectations.
 3. **Split into chunks** — Each chunk must be **small enough** for one automation pass and **owned** by a single class of test agent (see handoff table below).
 
 ## Large plans: chunk when scope is big (mandatory judgment)

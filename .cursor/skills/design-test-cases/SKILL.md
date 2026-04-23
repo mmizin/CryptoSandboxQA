@@ -86,7 +86,7 @@ A **parametrized matrix still means every row is explicit**: the subtask or scen
 ## Logical vs physical
 
 - **Logical** (default): scenarios, coverage, techniques used, risks addressed.
-- **Physical**: concrete automation scripts, tool commands, or data setup scripts—**out of scope** unless the user asks. Naming a **planned** target folder or tags in a test-design table is still **logical** (traceability to future automation). If they ask for automation, follow [.cursor/rules/no-unrequested-tests.mdc](../../rules/no-unrequested-tests.mdc) and, for UI tests, [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
+- **Physical**: concrete automation scripts, tool commands, or data setup scripts—**out of scope** unless the user asks. Naming a **planned** target folder or tags in a test-design table is still **logical** (traceability to future automation). If they ask for automation, follow [.cursor/rules/no-unrequested-tests.mdc](../../rules/no-unrequested-tests.mdc); for UI tests, [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc); for **pytest** API tests, [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc).
 
 ## Automation placement (planned UI)
 
@@ -103,20 +103,31 @@ The `unit/` name means **isolated UI checks** here, not Jest/Vitest unit tests�
 
 **Run profile (tags)** — orthogonal to folder. Record **planned tags** on each matrix row (or once per matrix if every row shares the same profile) so CI/smoke/regression strategy stays explicit and [Jira handoff](#jira-handoff-when-creating-tickets) can copy the same values into **`Test`** / **`Subtask`** descriptions.
 
-**Playwright tag vocabulary (this repo)** — use these names when planning UI automation; extend only if the team documents new tags:
+**Run vocabulary (this repo, UI + backend)** — use these **`@…` names** when planning automation; extend only if the team documents new tags. **UI (Playwright):** `tag: ['@smoke', …]`. **Backend (pytest):** the same names map to `pytest.mark.<id>` (hyphens → **underscores**, e.g. `@merge-gate` → `merge_gate`); see [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc).
 
-| Tag | Use |
-| --- | --- |
-| `@e2e` | Real browser flows (often default on a `describe` or file). |
-| `@smoke` | Small, fast checks for frequent runs. |
-| `@merge-gate` | Expected to pass before merge (wire in CI as needed). |
-| `@client-validation` | Client-side field/form validation matrices. |
+| Tag | Use (UI) | Use (API / pytest) |
+| --- | --- | --- |
+| `@e2e` | Real browser flows (often default on a `describe` or file). | **Integration**-style **multi-step HTTP** journeys (typical: `tests/backend_tests/tests/integration/`). |
+| `@smoke` | Small, fast checks for frequent runs. | Same: fast HTTP checks. |
+| `@merge-gate` | Expected to pass before merge (wire in CI as needed). | Same: pre-merge subset (`-m merge_gate`). |
+| `@client-validation` | Client-side field/form validation matrices. | **Request/body** validation and negative API matrices. |
 
 **Regression** is usually a **CI job** or **grep/path profile** (e.g. full suite nightly), not necessarily a single `@regression` tag—unless the project standardizes that tag in [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc).
 
 Do **not** use `@unit` on Playwright tests—reserved for non-browser unit test runners. **Folder** (`e2e/` vs narrow UI checks under `tests/ui-tests/tests/unit/`) is **where** the file lives; **tags** describe **how / which job** runs the test. **Regression** coverage is usually a **suite or CI job** (path/grep), not a duplicate folder tree.
 
 **Separation from QA technique tags:** `[Boundary]`, `[Stress]`, etc. describe **test-design intent** on a row or scenario name. **Automation target** and **planned tags** are separate columns or fields so reviewers can see both without conflating them.
+
+### Automation placement (planned API / pytest)
+
+**Target folders** under `tests/backend_tests/tests/` (this repo):
+
+| Planned level | Typical content | Folder |
+| ------------- | --------------- | ------ |
+| **API / contract** | Endpoint matrices, auth and negative cases | `api/` |
+| **Integration (HTTP e2e)** | Multi-step journeys over the running API | `integration/` |
+
+Record **planned tags** (same `@…` vocabulary and **pytest** mapping as in the table above) per matrix or journey so CI and Jira handoff stay consistent with [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc).
 
 ## Technique selection workflow
 

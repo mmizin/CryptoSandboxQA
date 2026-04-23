@@ -1,12 +1,12 @@
 ---
 description: Shared test scenario naming — data-driven rows, optional QA tags, tests/
-globs: tests/**/*.ts
+globs: tests/**/*.{ts,py}
 alwaysApply: false
 ---
 
 # Test scenario conventions — CryptoSandboxQA
 
-Applies to automated tests under `tests/` (UI, API, performance, etc.). Tool-specific rules (e.g. Playwright tags, `toHaveURL`) live in their own Cursor rules; this file covers **how scenarios are named and grouped** in code.
+Applies to automated tests under `tests/` (UI, API, performance, etc.). Tool-specific rules (e.g. Playwright tags, pytest markers, `toHaveURL`) live in their own Cursor rules; this file covers **how scenarios are named and grouped** in code.
 
 This is **not** a requirement to document formal test-design methods (equivalence partitioning, pairwise, etc.) when authoring plans. It applies to **parameterized and data-driven** cases in source: matrix `name` fields, `test.each` / table-driven rows, `it.each`, and similar.
 

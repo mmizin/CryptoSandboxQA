@@ -2,6 +2,8 @@
 
 **Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/backend_tests/`. When writing or editing API test calls, follow [`docs/CODE_STYLE_READABILITY.md`](../../../docs/CODE_STYLE_READABILITY.md) (named request locals, clear identifiers).
 
+**Markers / run profiles (pytest):** the repo uses the same logical **`@…` tags** as Playwright (e.g. `@smoke`, `@merge-gate`, `@e2e` for integration journeys) via **`pytest.mark.*`**; hyphens in doc names map to **underscores** in Python (e.g. `merge_gate`). See [`.cursor/rules/pytest-backend-api-tests.mdc`](../../../.cursor/rules/pytest-backend-api-tests.mdc) and `tests/backend_tests/pytest.ini` **`[pytest] markers`**. Run examples: from `tests/backend_tests/`, `pytest -m smoke` or `pytest -m "e2e and merge_gate"`.
+
 ## Where to look first
 
 | Topic | Location |

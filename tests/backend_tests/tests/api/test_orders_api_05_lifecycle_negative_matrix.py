@@ -6,11 +6,15 @@ from __future__ import annotations
 
 import uuid
 
+import pytest
+
 from builders.order_builder import OrderBuilder
 from factories.order_factory import OrderRequestFactory
 
 from utils.http_assertions import response_assert_detail
 from utils.order_api_helpers import assert_response_contains, configure_api_order_user, fund_user_for_trading
+
+pytestmark = [pytest.mark.merge_gate, pytest.mark.client_validation]
 
 
 def test_tc_api_05_cancel_unknown_order_returns_400(fxt_regular_user) -> None:

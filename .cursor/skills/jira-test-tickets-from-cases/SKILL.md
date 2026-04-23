@@ -175,7 +175,7 @@ Align naming with [.cursor/rules/test-scenario-conventions.mdc](../../rules/test
 | “Negative cases” as one row | One row per concrete invalid value with explicit oracle |
 | Four representative rows when handoff had twenty | All **N** rows from test-design, or **Scope: smoke (4 of 20)** stated on `Test` issue |
 
-Tag vocabulary for planned Playwright runs aligns with [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc) (e.g. `@smoke`, `@merge-gate`, `@client-validation`, `@e2e`).
+Tag vocabulary for planned **Playwright** runs aligns with [.cursor/rules/playwright-ui-tests.mdc](../../rules/playwright-ui-tests.mdc) (e.g. `@smoke`, `@merge-gate`, `@client-validation`, `@e2e`). For **API** layers, the **same** `@…` names apply to **pytest** markers—see [.cursor/rules/pytest-backend-api-tests.mdc](../../rules/pytest-backend-api-tests.mdc); in Jira, you may add a one-line run hint, e.g. *Planned pytest: `-m "merge_gate and client_validation"`* when useful.
 
 ## Templates
 
@@ -226,7 +226,7 @@ Example: `TC-UI-01: Valid credentials redirect to dashboard`. Use **one** subtas
 - Writing **`Test`** or **`Subtask`** bodies from **generic product templates** without completing [Prerequisites](#prerequisites-before-jira-issue-creation) (test cases, Evidence, Jira Story/links).
 - **Abbreviated matrices** in a parametrized **`Subtask`**—a few “representative” rows when the handoff listed **many**—without labeling **smoke-only** on the **`Test`** issue **Scope**.
 - **Umbrella input cells** without explicit values: e.g. “invalid email (various)”, “negative cases”, “pass invalid parameters”.
-- **Dropping planned tags** from the handoff when the user or test-design included them for UI work.
+- **Dropping planned tags** from the handoff when the user or test-design included them for **UI** or **API** / **pytest** work.
 - Creating **one `Test` issue per single test case** when the plan is **one `Test` per layer** (API/UI/Integration).
 - Setting subtask **`parent`** to the **Story** (default is **`Test`**).
 - Omitting the **Story link** on the **`Test`** issues.

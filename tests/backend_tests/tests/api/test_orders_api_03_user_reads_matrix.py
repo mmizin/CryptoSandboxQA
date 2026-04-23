@@ -5,10 +5,14 @@ KAN-58 — TC-API-03: user GET flows (7 rows) — ``GET /orders``, filters, ``/b
 
 from __future__ import annotations
 
+import pytest
+
 from factories.order_factory import OrderRequestFactory
 from models.trading.order_models import Order
 
 from utils.order_api_helpers import configure_api_order_user, fund_user_for_trading
+
+pytestmark = [pytest.mark.merge_gate, pytest.mark.smoke]
 
 
 def _iso_wide_range() -> tuple[str, str]:

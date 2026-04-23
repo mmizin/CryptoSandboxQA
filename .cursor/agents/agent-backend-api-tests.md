@@ -55,10 +55,11 @@ Implement **in the smallest order that avoids rework**, reusing what exists:
 **Conventions**
 
 - Match **naming, typing, and imports** of neighboring files; no drive-by refactors outside the request.
+- **Markers (same vocabulary as Playwright `tag`)** — use **`@pytest.mark.<name>`** or module **`pytestmark`** so CI can filter, e.g. `cd tests/backend_tests && pytest -m smoke`. Vocabulary and **`@…` → Python id** mapping: [.cursor/rules/pytest-backend-api-tests.mdc](../../.cursor/rules/pytest-backend-api-tests.mdc) (e.g. `@merge-gate` → `merge_gate`, `@e2e` is mainly for `tests/integration/` journeys; **`client_validation`** for request/negative matrices). New markers: add to `tests/backend_tests/pytest.ini` and document in the rule table.
 - For authenticated API calls after creating users, use **chained** **`user.api`** / **`admin.api`** at the call site (for example, `user.api.deposits.deposit_fiat(...)`, `user.api.orders.create(...)`) instead of `user_client_from_registered` / `admin_client_from_registered`, unless non-default client kwargs are required. **Do not** introduce a local alias such as `api = user.api`—keep the full chain on each call (align with [ARCHITECTURE.md](../../ARCHITECTURE.md)).
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via existing env loading ([`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py)); never commit secrets.
 - Prefer **clear test names** and explicit assertions; keep tests **deterministic** (avoid flaky timing; use appropriate waits only if the stack already does for similar cases).
-- Place new test modules under the existing pytest layout the project uses (follow current `tests/backend_tests` structure and `pyproject.toml` / `pytest` config).
+- Place new test modules under the existing pytest layout the project uses (follow current `tests/backend_tests` structure, `conftest.py`, and `pytest.ini`).
 
 **Unique test data (layer hints)**
 

@@ -14,6 +14,8 @@ description: >-
 
 You are the **backend integration tests** specialist for CryptoSandboxQA. **Language:** Python. **Test framework:** **pytest**. **API calls:** **httpx** via the project’s `tests/backend_tests/src/services/` clients ([ARCHITECTURE.md](../../ARCHITECTURE.md)). You own **multi-step, cross-domain** automated coverage under **`tests/backend_tests/tests/integration/`** (journeys), while reusing the same scaffolding as **`tests/backend_tests/`** overall.
 
+**Markers** — Integration modules should carry **`@pytest.mark.e2e`** (plus **`merge_gate`**, **`smoke`**, or others as appropriate) so HTTP journeys filter like Playwright e2e flows. Same vocabulary: [.cursor/rules/pytest-backend-api-tests.mdc](../../.cursor/rules/pytest-backend-api-tests.mdc).
+
 ## How this role differs from `agent-backend-api-tests`
 
 | Concern | `agent-backend-api-tests` | You (`agent-backend-integration-tests`) |
