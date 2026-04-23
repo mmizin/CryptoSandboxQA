@@ -46,25 +46,24 @@ class TestFiatDepositIntegration:
 
     def test_fiat_deposit_balance_list_transactions(self) -> None:
         user = _make_user("fiat")
-        api = user.api
-        before = _usd_available(api.list_wallets())
+        before = _usd_available(user.api.list_wallets())
 
-        created = api.deposits.deposit_fiat(
+        created = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "USD", "amount": 100, "paymentMethodType": "card"},
         )
         assert isinstance(created, FiatDepositCreatedResponse)
         dep_id = created.deposit.id
         assert created.transaction.ref_type == "deposit_fiat"
 
-        listed = api.deposits.list_fiat()
+        listed = user.api.deposits.list_fiat()
         assert any(d.id == dep_id for d in listed.data)
-        detail = api.deposits.get_fiat(dep_id)
+        detail = user.api.deposits.get_fiat(dep_id)
         assert detail.id == dep_id
 
-        after = _usd_available(api.list_wallets())
+        after = _usd_available(user.api.list_wallets())
         assert after == before + Decimal("100")
 
-        tx_payload = api.list_transactions_deposits()
+        tx_payload = user.api.list_transactions_deposits()
         assert isinstance(tx_payload, dict)
         rows = tx_payload.get("data") or []
         assert any(
@@ -77,28 +76,27 @@ class TestCryptoDepositIntegration:
 
     def test_crypto_deposit_chain(self) -> None:
         user = _make_user("btc")
-        api = user.api
-        before = _btc_available(api.list_wallets())
+        before = _btc_available(user.api.list_wallets())
 
-        addr = api.deposits.crypto_address({"symbol": "BTC"})
+        addr = user.api.deposits.crypto_address({"symbol": "BTC"})
         assert isinstance(addr, CryptoDepositAddressResponse)
 
-        created = api.deposits.deposit_crypto(
+        created = user.api.deposits.deposit_crypto(
             {"symbol": "BTC", "amount": 0.02, "walletAddress": addr.wallet_address},
         )
         assert isinstance(created, CryptoDepositCreatedResponse)
         dep_id = created.deposit.id
         assert created.transaction.ref_type == "deposit_crypto"
 
-        listed = api.deposits.list_crypto()
+        listed = user.api.deposits.list_crypto()
         assert any(d.id == dep_id for d in listed.data)
-        detail = api.deposits.get_crypto(dep_id)
+        detail = user.api.deposits.get_crypto(dep_id)
         assert detail.id == dep_id
 
-        after = _btc_available(api.list_wallets())
+        after = _btc_available(user.api.list_wallets())
         assert after == before + Decimal("0.02")
 
-        tx_payload = api.list_transactions_deposits()
+        tx_payload = user.api.list_transactions_deposits()
         assert isinstance(tx_payload, dict)
         rows = tx_payload.get("data") or []
         assert any(
