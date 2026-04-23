@@ -6,6 +6,7 @@ spot/futures × market/limit × buy/sell via ``OrderRequestFactory``; users are 
 
 from __future__ import annotations
 
+import allure
 import pytest
 
 from factories.order_factory import OrderRequestFactory
@@ -28,6 +29,9 @@ _TC_API_01_CASES: list[tuple[str, CreateOrderRequest]] = [
 ]
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-01 create order matrix")
 @pytest.mark.parametrize(
     "preset_name,body",
     _TC_API_01_CASES,

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import uuid
 
+import allure
 import pytest
 
 from builders.order_builder import OrderBuilder
@@ -17,6 +18,9 @@ from utils.order_api_helpers import assert_response_contains, configure_api_orde
 pytestmark = [pytest.mark.merge_gate, pytest.mark.client_validation]
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-05 lifecycle negative")
 def test_tc_api_05_cancel_unknown_order_returns_400(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-05 canc id"))
     response = user.api.http_client.post(f"/orders/{uuid.uuid4()}/cancel")
@@ -28,6 +32,9 @@ def test_tc_api_05_cancel_unknown_order_returns_400(fxt_regular_user) -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-05 lifecycle negative")
 def test_tc_api_05_cancel_filled_order_rejected(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-05 canc fill"))
     fund_user_for_trading(user.api)
@@ -51,6 +58,9 @@ def test_tc_api_05_cancel_filled_order_rejected(fxt_regular_user) -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-05 lifecycle negative")
 def test_tc_api_05_set_status_unknown_order_returns_400(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-05 st id"))
     response = user.api.http_client.patch(
@@ -65,6 +75,9 @@ def test_tc_api_05_set_status_unknown_order_returns_400(fxt_regular_user) -> Non
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-05 lifecycle negative")
 def test_tc_api_05_set_status_invalid_enum_returns_400(fxt_regular_user) -> None:
     user = fxt_regular_user(configure_api_order_user("API TC-API-05 st bad"))
     fund_user_for_trading(user.api)

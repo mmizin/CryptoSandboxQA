@@ -15,6 +15,7 @@ This file is the **map of content (MOC)** — use it to choose a thin overview p
 | Playwright harness & tags | [`map-tests-ui.md`](map-tests-ui.md) |
 | Python API tests & clients | [`map-tests-backend.md`](map-tests-backend.md) |
 | Same feature across API + UI tests | [`map-testing-by-capability.md`](map-testing-by-capability.md) |
+| Allure HTML reports (pytest + Playwright metadata) | [`.cursor/skills/allure-reporting/SKILL.md`](../../../.cursor/skills/allure-reporting/SKILL.md) |
 
 ## Optional Obsidian wikilinks
 

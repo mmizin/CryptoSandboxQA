@@ -5,6 +5,7 @@
  * Rows mirror `validateAmount`, `validatePrice`, balance checks, and stop-limit guard in `TradeOrderEntry`.
  */
 import type { Page } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { expect, test } from "../../src/fixtures";
 import type { TradePage } from "../../src/pages/trade.page";
 import { openTradePageWithApiUser, registerTestUserViaApi } from "../../src/utils/users";
@@ -164,6 +165,11 @@ export const tradeOrderValidationRows: Row[] = [
 ];
 
 test.describe("Trade order entry validation (client)", { tag: ["@client-validation", "@merge-gate"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Trading");
+        await allure.feature("Order entry client validation");
+    });
+
     for (const row of tradeOrderValidationRows) {
         test(row.name, async ({ page, request, authApi, userFactory, pages }) => {
             const testUser = await registerTestUserViaApi(request, authApi, userFactory, `UI KAN-65 TC-UI-01 ${Date.now()}`);

@@ -1,6 +1,7 @@
 /**
  * TC-UI-03 (KAN-62) — `/trade/futures` mirrors spot flows; POST `/orders` must include `marketType: "futures"`.
  */
+import * as allure from "allure-js-commons";
 import { expect, test } from "../../src/fixtures";
 import {
     fundUsdViaDepositApi,
@@ -9,6 +10,11 @@ import {
 } from "../../src/utils/users";
 
 test.describe("Trade futures orders", { tag: ["@e2e"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Trading");
+        await allure.feature("Futures orders UI");
+    });
+
     test(
         "market buy sends futures marketType then limit sell succeeds",
         { tag: ["@smoke", "@merge-gate"] },

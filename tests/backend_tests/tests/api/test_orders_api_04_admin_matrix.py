@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import uuid
 
+import allure
 import pytest
 
 from factories.order_factory import OrderRequestFactory
@@ -20,6 +21,9 @@ def _uid(user) -> str:
     return str(user.data["id"])
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_admin_list_orders_returns_200(fxt_admin_user, fxt_regular_user) -> None:
     target = fxt_regular_user(configure_api_order_user("API TC-API-04 tgt list"))
     admin = fxt_admin_user(configure_api_order_user("API TC-API-04 adm list"))
@@ -32,6 +36,9 @@ def test_tc_api_04_admin_list_orders_returns_200(fxt_admin_user, fxt_regular_use
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_admin_get_order_returns_200(fxt_admin_user, fxt_regular_user) -> None:
     target = fxt_regular_user(configure_api_order_user("API TC-API-04 tgt get"))
     admin = fxt_admin_user(configure_api_order_user("API TC-API-04 adm get"))
@@ -43,6 +50,9 @@ def test_tc_api_04_admin_get_order_returns_200(fxt_admin_user, fxt_regular_user)
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_admin_list_unknown_user_returns_404(fxt_admin_user) -> None:
     admin = fxt_admin_user(configure_api_order_user("API TC-API-04 404 usr"))
     fake = str(uuid.uuid4())
@@ -52,6 +62,9 @@ def test_tc_api_04_admin_list_unknown_user_returns_404(fxt_admin_user) -> None:
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_admin_get_unknown_order_returns_404(fxt_admin_user, fxt_regular_user) -> None:
     target = fxt_regular_user(configure_api_order_user("API TC-API-04 404 ord"))
     admin = fxt_admin_user(configure_api_order_user("API TC-API-04 adm 404"))
@@ -63,6 +76,9 @@ def test_tc_api_04_admin_get_unknown_order_returns_404(fxt_admin_user, fxt_regul
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_regular_user_cannot_list_admin_orders_forbidden(fxt_regular_user) -> None:
     victim = fxt_regular_user(configure_api_order_user("API TC-API-04 vict"))
     caller = fxt_regular_user(configure_api_order_user("API TC-API-04 caller"))
@@ -72,6 +88,9 @@ def test_tc_api_04_regular_user_cannot_list_admin_orders_forbidden(fxt_regular_u
     )
 
 
+@allure.epic("Trading")
+@allure.feature("Orders API")
+@allure.story("TC-API-04 admin orders")
 def test_tc_api_04_regular_user_cannot_get_admin_order_forbidden(fxt_regular_user) -> None:
     victim = fxt_regular_user(configure_api_order_user("API TC-API-04 vict2"))
     caller = fxt_regular_user(configure_api_order_user("API TC-API-04 caller2"))

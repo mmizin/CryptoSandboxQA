@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import time
 
+import allure
 import httpx
 import pytest
 
@@ -37,6 +38,9 @@ def _make_user(display_suffix: str):
     )
 
 
+@allure.epic("Payments")
+@allure.feature("Deposits API")
+@allure.story("Fiat deposit success")
 @pytest.mark.merge_gate
 @pytest.mark.smoke
 class TestDepositsFiatSuccess:
@@ -102,6 +106,9 @@ class TestDepositsFiatSuccess:
         )
 
 
+@allure.epic("Payments")
+@allure.feature("Deposits API")
+@allure.story("Fiat validation matrix")
 @pytest.mark.merge_gate
 @pytest.mark.client_validation
 class TestDepositsFiatValidation:
@@ -200,6 +207,9 @@ class TestDepositsFiatValidation:
         )
 
 
+@allure.epic("Payments")
+@allure.feature("Deposits API")
+@allure.story("Crypto deposit matrix")
 @pytest.mark.merge_gate
 @pytest.mark.client_validation
 class TestDepositsCryptoMatrix:
@@ -274,6 +284,9 @@ class TestDepositsCryptoMatrix:
         )
 
 
+@allure.epic("Payments")
+@allure.feature("Deposits API")
+@allure.story("Auth and list endpoints")
 @pytest.mark.merge_gate
 @pytest.mark.smoke
 class TestDepositsAuthAndList:

@@ -1,6 +1,7 @@
 /**
  * TC-UI-02 (KAN-61) — `/trade/spot` happy path: market buy then limit sell (`KAN-52` / KAN-54).
  */
+import * as allure from "allure-js-commons";
 import { expect, test } from "../../src/fixtures";
 import {
     fundUsdViaDepositApi,
@@ -9,6 +10,11 @@ import {
 } from "../../src/utils/users";
 
 test.describe("Trade spot orders", { tag: ["@e2e"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Trading");
+        await allure.feature("Spot orders UI");
+    });
+
     test(
         "market buy then limit sell succeeds",
         { tag: ["@smoke", "@merge-gate"] },

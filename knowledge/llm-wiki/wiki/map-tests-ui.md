@@ -2,6 +2,8 @@
 
 **Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/ui-tests/`, [playwright-ui-tests.mdc](../../../.cursor/rules/playwright-ui-tests.mdc). For service calls and request objects in tests, use [`docs/CODE_STYLE_READABILITY.md`](../../../docs/CODE_STYLE_READABILITY.md).
 
+**Allure:** `allure-playwright` + `allure-js-commons` — reporter in `playwright.config.ts` (`allure-results`); patterns in [`.cursor/skills/allure-reporting/SKILL.md`](../../../.cursor/skills/allure-reporting/SKILL.md).
+
 ## Where to look first
 
 | Topic | Location |

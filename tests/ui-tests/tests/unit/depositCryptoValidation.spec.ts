@@ -1,6 +1,7 @@
 /**
  * KAN-75 / TC-UI-02 — Deposit crypto client validation (`DepositCryptoForm`).
  */
+import * as allure from "allure-js-commons";
 import { test, expect } from "../../src/fixtures";
 import type { TestUser } from "../../src/models/user/TestUser";
 import { registerTestUserViaApi } from "../../src/utils/users";
@@ -28,6 +29,8 @@ test.describe("Deposit crypto validation", { tag: ["@client-validation", "@merge
     let user: TestUser;
 
     test.beforeEach(async ({ request, authApi, userFactory }) => {
+        await allure.epic("Payments");
+        await allure.feature("Deposit crypto client validation");
         user = await registerTestUserViaApi(request, authApi, userFactory, `KAN-75 crypto ${Date.now()}`);
     });
 

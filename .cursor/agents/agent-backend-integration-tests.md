@@ -70,6 +70,7 @@ If requirements are incomplete, **ask concise clarifications** (preconditions, i
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via [`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py); never commit secrets.
 - Structure each integration test **readably**: clear step boundaries (comments or small helpers) so failures point to the failing phase.
 - Keep journeys **deterministic**; use **polling or retries** only when the product already implies async behavior and the codebase has a precedent for waiting—avoid arbitrary sleeps.
+- **Allure** — For integration journeys, prefer meaningful **`allure.step`** phases per [.cursor/skills/allure-reporting/SKILL.md](../../.cursor/skills/allure-reporting/SKILL.md); keep markers for CI selection.
 
 **Unique test data (layer hints)**
 

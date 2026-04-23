@@ -1,4 +1,5 @@
 import type { Page, TestInfo } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { expect, test } from "../../src/fixtures";
 import { CHART_BLOCK_COUNT, type DashboardPage } from "../../src/pages/dashboard.page";
 import { arrayMove } from "../../src/utils/array-move";
@@ -245,6 +246,11 @@ async function expectSessionStorageOrderStable(
 }
 
 test.describe("Portfolio Analytics layout", { tag: ["@e2e"] }, () => {
+    test.beforeEach(async () => {
+        await allure.epic("Portfolio");
+        await allure.feature("Analytics layout UI");
+    });
+
     test(
         "dragging two random chart cards reorders the grid to match arrayMove",
         { tag: ["@smoke", "@merge-gate"] },

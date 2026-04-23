@@ -2,6 +2,8 @@
 
 **Purpose:** Cross-layer index: **capability → product code → Python API specs → API harness → Playwright specs → UI harness**. Use this when a feature spans **`tests/backend_tests/`** and **`tests/ui-tests/`** and the layout alone does not show the link. **Run profiles:** shared **`@…` tag** vocabulary; Playwright uses `test({ tag: [...] })`, pytest uses `pytest.mark.*` (see [`map-tests-backend.md`](map-tests-backend.md) and [`.cursor/rules/pytest-backend-api-tests.mdc`](../../../.cursor/rules/pytest-backend-api-tests.mdc)).
 
+**Allure (cross-layer reporting):** behavior labels and steps for HTML reports — [`.cursor/skills/allure-reporting/SKILL.md`](../../../.cursor/skills/allure-reporting/SKILL.md).
+
 **Canonical:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) · Layer maps: [`map-tests-backend.md`](map-tests-backend.md), [`map-tests-ui.md`](map-tests-ui.md) · After moves or new suites, refresh via the [**update-knowledge**](../../../.cursor/commands/cmd-update-knowledge.md) playbook.
 
 ## How to extend
