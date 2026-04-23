@@ -10,25 +10,21 @@ import allure
 import pytest
 from decimal import Decimal
 
-from factories.user_factory import UserFactory
 from models.payments.deposit_models import (
     CryptoDepositAddressResponse,
     CryptoDepositCreatedResponse,
     FiatDepositCreatedResponse,
 )
-from services.auth_client import AuthClient
-from strategies.user.api_strategy import ApiUserCreationStrategy
 
 pytestmark = [pytest.mark.e2e, pytest.mark.merge_gate, pytest.mark.smoke]
 
 
-def _make_user(display_suffix: str):
-    strategy = ApiUserCreationStrategy(AuthClient())
-    factory = UserFactory()
+def _configure_deposits_integration_user(display_suffix: str):
     ms = int(time.time() * 1000)
-    return factory.create(
-        strategy,
-        lambda b: b.with_display_name(f"int-dep-{display_suffix}-{ms}").with_username(f"u_intdep_{ms}_{display_suffix}"),
+    return lambda b: (
+        b.with_unique_email()
+        .with_display_name(f"int-dep-{display_suffix}-{ms}")
+        .with_username(f"u_intdep_{ms}_{display_suffix}")
     )
 
 
@@ -52,9 +48,9 @@ def _btc_available(wallets: list[dict]) -> Decimal:
 class TestFiatDepositIntegration:
     """KAN-76"""
 
-    def test_fiat_deposit_balance_list_transactions(self) -> None:
+    def test_fiat_deposit_balance_list_transactions(self, fxt_regular_user) -> None:
         with allure.step("Arrange user and baseline USD balance"):
-            user = _make_user("fiat")
+            user = fxt_regular_user(_configure_deposits_integration_user("fiat"))
             before = _usd_available(user.api.list_wallets())
 
         with allure.step("Create fiat card deposit"):
@@ -103,9 +99,9 @@ class TestFiatDepositIntegration:
 class TestCryptoDepositIntegration:
     """KAN-77"""
 
-    def test_crypto_deposit_chain(self) -> None:
+    def test_crypto_deposit_chain(self, fxt_regular_user) -> None:
         with allure.step("Arrange user and baseline BTC balance"):
-            user = _make_user("btc")
+            user = fxt_regular_user(_configure_deposits_integration_user("btc"))
             before = _btc_available(user.api.list_wallets())
 
         with allure.step("Reserve crypto deposit address"):

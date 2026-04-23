@@ -40,3 +40,30 @@ cd tests/backend_tests && pytest -m e2e
 When adding or editing tests under `tests/backend_tests/`, **apply markers** when the test fits the vocabulary or when CI needs a new filter name (document new markers in the table here and in `pytest.ini`).
 
 **Allure (optional reporting layers):** Keep **markers** as the source of truth for `pytest -m`. For epic/feature/story, steps, attachments, and fixture titles in HTML reports, follow [.cursor/skills/allure-reporting/SKILL.md](../skills/allure-reporting/SKILL.md) (pytest / `allure-pytest` sections). Results default to `tests/backend_tests/allure-results` via `pytest.ini` `addopts`.
+
+## User bootstrapping (factory fixtures)
+
+- First check `tests/backend_tests/conftest.py` for registered `pytest_plugins`, then reuse fixture factories from `tests/backend_tests/src/plugins/` (for example, `fxt_regular_user` and `fxt_admin_user`) before creating any local user-construction helper in a test file.
+- For ordinary API/integration flows, do not recreate `UserFactory` + `ApiUserCreationStrategy` / `AdminApiUserCreationStrategy` directly inside test modules; inject fixture factories instead.
+- When a test needs custom display names, usernames, or uniqueness controls, start with a local callback in the spec module. Promote it to `tests/backend_tests/src/utils/` only when multiple modules need the same behavior (example: `configure_api_order_user`).
+- Only add a new fixture plugin module when existing fixtures cannot represent the required lifecycle; place the module under `tests/backend_tests/src/plugins/` and register it in `tests/backend_tests/conftest.py`.
+
+## Test helper placement (local vs `utils`)
+
+- Keep small support functions in the test module when they are used only there (for example, tiny arrange/configure callbacks or one-file assertion adapters).
+- Move helper code to `tests/backend_tests/src/utils/` only when it is genuinely reusable across multiple test modules and the shared contract is stable.
+- Avoid creating a `utils` module for one-off convenience wrappers; keep those close to the tests that use them.
+- When promoting a helper to `utils`, keep the function focused and name it by domain intent (not by one test case id).
+
+### Examples
+
+- Keep local in test file: `_configure_deposits_api_user(...)` used only by `tests/backend_tests/tests/api/test_deposits_api.py`.
+- Keep local in test file: `_configure_deposits_integration_user(...)` used only by `tests/backend_tests/tests/integration/test_deposits_integration.py`.
+- Move to `utils`: `configure_api_order_user(...)` reused by multiple Orders API modules.
+- Move to `utils`: shared HTTP assertion/parsing helpers used by several suites (for example, `utils/http_assertions.py`).
+
+### Decision checklist
+
+- Is this helper used by only one test module right now? Keep it local.
+- Is it already used (or clearly needed) in 2+ modules with the same behavior? Move it to `tests/backend_tests/src/utils/`.
+- Will extracting to `utils` reduce duplication without creating vague/generic API? If no, keep it local.

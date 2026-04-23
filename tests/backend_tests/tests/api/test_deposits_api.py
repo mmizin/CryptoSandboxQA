@@ -6,6 +6,7 @@ Each test uses an isolated registered user (parallel-safe).
 
 from __future__ import annotations
 
+
 import time
 
 import allure
@@ -17,24 +18,19 @@ from models.payments.deposit_models import (
     CryptoDepositCreatedResponse,
     FiatDepositCreatedResponse,
 )
-from services.auth_client import AuthClient
 from services.base_client import get_api_url
-from strategies.user.api_strategy import ApiUserCreationStrategy
 from utils.http_assertions import (
     error_text_from_response as _error_text,
     response_assert_detail as _response_assert_detail,
 )
 
 
-def _make_user(display_suffix: str):
-    strategy = ApiUserCreationStrategy(AuthClient())
-    from factories.user_factory import UserFactory  # local import avoids circular hints in tooling
-
-    factory = UserFactory()
+def _configure_deposits_api_user(display_suffix: str):
     ms = int(time.time() * 1000)
-    return factory.create(
-        strategy,
-        lambda b: b.with_display_name(f"api-dep-{display_suffix}-{ms}").with_username(f"u_dep_{ms}_{display_suffix}"),
+    return lambda b: (
+        b.with_unique_email()
+        .with_display_name(f"api-dep-{display_suffix}-{ms}")
+        .with_username(f"u_dep_{ms}_{display_suffix}")
     )
 
 
@@ -46,8 +42,8 @@ def _make_user(display_suffix: str):
 class TestDepositsFiatSuccess:
     """KAN-70 TC-API-01"""
 
-    def test_usd_card_omits_payment_method_type_defaults_card(self) -> None:
-        user = _make_user("kan70usd")
+    def test_usd_card_omits_payment_method_type_defaults_card(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("kan70usd"))
         raw = user.api.deposits.deposit_fiat({"fiatCurrency": "USD", "amount": 100})
         assert isinstance(raw, FiatDepositCreatedResponse), (
             f"expected FiatDepositCreatedResponse, got {type(raw).__name__!r}"
@@ -69,8 +65,8 @@ class TestDepositsFiatSuccess:
             f"expected transaction.ref_type 'deposit_fiat', got {raw.transaction.ref_type!r}"
         )
 
-    def test_eur_sepa_fee_zero(self) -> None:
-        user = _make_user("kan70eur")
+    def test_eur_sepa_fee_zero(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("kan70eur"))
         raw = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "EUR", "amount": 50, "paymentMethodType": "sepa"},
         )
@@ -90,8 +86,8 @@ class TestDepositsFiatSuccess:
             f"expected transaction.ref_type 'deposit_fiat', got {raw.transaction.ref_type!r}"
         )
 
-    def test_usd_applepay(self) -> None:
-        user = _make_user("kan70apple")
+    def test_usd_applepay(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("kan70apple"))
         raw = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "USD", "amount": 25, "paymentMethodType": "applepay"},
         )
@@ -114,8 +110,8 @@ class TestDepositsFiatSuccess:
 class TestDepositsFiatValidation:
     """KAN-71 TC-API-02"""
 
-    def test_bad_fiat_currency(self) -> None:
-        user = _make_user("gbp")
+    def test_bad_fiat_currency(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("gbp"))
         response = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "GBP", "amount": 10},
             expected_failure=True,
@@ -127,8 +123,8 @@ class TestDepositsFiatValidation:
             f"bad_fiat_currency: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
-    def test_amount_below_dto_min(self) -> None:
-        user = _make_user("minamt")
+    def test_amount_below_dto_min(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("minamt"))
         response = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "USD", "amount": 0.009},
             expected_failure=True,
@@ -140,8 +136,8 @@ class TestDepositsFiatValidation:
             f"amount_below_dto_min: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
-    def test_zero_amount(self) -> None:
-        user = _make_user("zero")
+    def test_zero_amount(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("zero"))
         response = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "USD", "amount": 0},
             expected_failure=True,
@@ -153,8 +149,8 @@ class TestDepositsFiatValidation:
             f"zero_amount: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
-    def test_invalid_payment_method_type(self) -> None:
-        user = _make_user("wire")
+    def test_invalid_payment_method_type(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("wire"))
         response = user.api.deposits.deposit_fiat(
             {"fiatCurrency": "USD", "amount": 10, "paymentMethodType": "wire"},
             expected_failure=True,
@@ -166,8 +162,8 @@ class TestDepositsFiatValidation:
             f"invalid_payment_method_type: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
-    def test_malformed_payment_method_id(self) -> None:
-        user = _make_user("baduuid")
+    def test_malformed_payment_method_id(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("baduuid"))
         fiat_deposit_request = {
             "fiatCurrency": "USD",
             "amount": 10,
@@ -184,8 +180,8 @@ class TestDepositsFiatValidation:
             f"malformed_payment_method_id: expected HTTP 400; {_response_assert_detail(response)}"
         )
 
-    def test_unknown_payment_method_id(self) -> None:
-        user = _make_user("nopm")
+    def test_unknown_payment_method_id(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("nopm"))
         response = user.api.deposits.deposit_fiat(
             {
                 "fiatCurrency": "USD",
@@ -215,8 +211,8 @@ class TestDepositsFiatValidation:
 class TestDepositsCryptoMatrix:
     """KAN-72 TC-API-03"""
 
-    def test_address_invalid_symbol(self) -> None:
-        user = _make_user("addrbad")
+    def test_address_invalid_symbol(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("addrbad"))
         response = user.api.deposits.crypto_address({"symbol": "NOPE"}, expected_failure=True)
         assert isinstance(response, httpx.Response), (
             f"expected httpx.Response, got {type(response).__name__!r} value={response!r}"
@@ -230,8 +226,8 @@ class TestDepositsCryptoMatrix:
             f"got {err!r}; {_response_assert_detail(response)}"
         )
 
-    def test_deposit_invalid_symbol(self) -> None:
-        user = _make_user("cryptobad")
+    def test_deposit_invalid_symbol(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("cryptobad"))
         response = user.api.deposits.deposit_crypto(
             {"symbol": "NOPE", "amount": 0.01, "walletAddress": "bc1qtest"},
             expected_failure=True,
@@ -248,8 +244,8 @@ class TestDepositsCryptoMatrix:
             f"got {err!r}; {_response_assert_detail(response)}"
         )
 
-    def test_deposit_amount_below_min(self) -> None:
-        user = _make_user("cryptomin")
+    def test_deposit_amount_below_min(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("cryptomin"))
         response = user.api.deposits.deposit_crypto(
             {"symbol": "BTC", "amount": 0.000001, "walletAddress": "bc1qtest"},
             expected_failure=True,
@@ -262,8 +258,8 @@ class TestDepositsCryptoMatrix:
         )
 
     @pytest.mark.smoke
-    def test_happy_path_address_then_deposit(self) -> None:
-        user = _make_user("happy")
+    def test_happy_path_address_then_deposit(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("happy"))
         addr = user.api.deposits.crypto_address({"symbol": "BTC"})
         assert isinstance(addr, CryptoDepositAddressResponse), (
             f"expected CryptoDepositAddressResponse, got {type(addr).__name__!r}"
@@ -299,8 +295,8 @@ class TestDepositsAuthAndList:
                 f"list_fiat_unauthenticated: expected HTTP 401; {_response_assert_detail(response)}"
             )
 
-    def test_list_fiat_limit_meta(self) -> None:
-        user = _make_user("listlim")
+    def test_list_fiat_limit_meta(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("listlim"))
         listed = user.api.deposits.list_fiat(limit=5)
         assert listed.meta.limit == 5, (
             f"list_fiat_limit_meta: expected meta.limit 5, got {listed.meta.limit!r}"
@@ -309,8 +305,8 @@ class TestDepositsAuthAndList:
             f"list_fiat_limit_meta: expected at most 5 rows, got {len(listed.data)} (limit was 5)"
         )
 
-    def test_get_fiat_unknown_id(self) -> None:
-        user = _make_user("fiat404")
+    def test_get_fiat_unknown_id(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("fiat404"))
         response = user.api.deposits.get_fiat("00000000-0000-4000-8000-000000000099", expected_failure=True)
         assert isinstance(response, httpx.Response), (
             f"expected httpx.Response, got {type(response).__name__!r} value={response!r}"
@@ -324,8 +320,8 @@ class TestDepositsAuthAndList:
             f"{_response_assert_detail(response)}"
         )
 
-    def test_get_crypto_unknown_id(self) -> None:
-        user = _make_user("cry404")
+    def test_get_crypto_unknown_id(self, fxt_regular_user) -> None:
+        user = fxt_regular_user(_configure_deposits_api_user("cry404"))
         response = user.api.deposits.get_crypto("00000000-0000-4000-8000-000000000099", expected_failure=True)
         assert isinstance(response, httpx.Response), (
             f"expected httpx.Response, got {type(response).__name__!r} value={response!r}"
