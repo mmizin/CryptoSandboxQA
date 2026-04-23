@@ -64,6 +64,7 @@ If requirements are incomplete, **ask concise clarifications** (preconditions, i
 **Conventions**
 
 - Match **naming, typing, and imports** of neighboring files; no drive-by refactors outside the request.
+- For authenticated calls after creating users, prefer **`user.api`** / **`admin.api`** (for example, `user.api.deposits.*`, `user.api.orders.*`) over direct `user_client_from_registered` / `admin_client_from_registered` imports unless non-default client kwargs are required (align with [ARCHITECTURE.md](../../ARCHITECTURE.md)).
 - Use **repo root `.env`** / **`tests/backend_tests/.env`** via [`src/utils/env_loader.py`](../../tests/backend_tests/src/utils/env_loader.py); never commit secrets.
 - Structure each integration test **readably**: clear step boundaries (comments or small helpers) so failures point to the failing phase.
 - Keep journeys **deterministic**; use **polling or retries** only when the product already implies async behavior and the codebase has a precedent for waiting—avoid arbitrary sleeps.

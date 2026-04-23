@@ -14,7 +14,6 @@ from models.payments.deposit_models import (
     FiatDepositCreatedResponse,
 )
 from services.auth_client import AuthClient
-from services.user_client import user_client_from_registered
 from strategies.user.api_strategy import ApiUserCreationStrategy
 
 
@@ -47,7 +46,7 @@ class TestFiatDepositIntegration:
 
     def test_fiat_deposit_balance_list_transactions(self) -> None:
         user = _make_user("fiat")
-        api = user_client_from_registered(user)
+        api = user.api
         before = _usd_available(api.list_wallets())
 
         created = api.deposits.deposit_fiat(
@@ -78,7 +77,7 @@ class TestCryptoDepositIntegration:
 
     def test_crypto_deposit_chain(self) -> None:
         user = _make_user("btc")
-        api = user_client_from_registered(user)
+        api = user.api
         before = _btc_available(api.list_wallets())
 
         addr = api.deposits.crypto_address({"symbol": "BTC"})
