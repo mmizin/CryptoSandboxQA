@@ -8,10 +8,13 @@ import secrets
 import time
 from collections.abc import Callable
 
+import httpx
+
 from builders.deposit_builder import DepositBuilder
 from builders.user_builder import UserBuilder
 from models.trading.order_models import CreateOrderRequest
 from services.user_client import UserClient
+from utils.http_assertions import response_assert_detail
 
 
 def unique_ms() -> int:
@@ -47,20 +50,34 @@ def fund_user_for_trading(api: UserClient) -> None:
     )
 
 
-def assert_response_contains(resp, *needles: str) -> None:
+def assert_response_contains(resp: object, *needles: str, context: str = "") -> None:
     """Assert at least one needle appears in the raw body (4xx/5xx JSON or Nest validation)."""
     text = (getattr(resp, "text", None) or "") if not isinstance(resp, str) else resp
     low = text.lower()
     ok = any(n.lower() in low for n in needles if n)
-    assert ok, text[:4000]
+    if ok:
+        return
+    prefix = f"{context}: " if context else ""
+    if isinstance(resp, httpx.Response):
+        extra = response_assert_detail(resp)
+    else:
+        extra = f"body_excerpt={text[:2000]!r}"
+    msg = f"{prefix}expected at least one of {needles!r} in response body; {extra}"
+    raise AssertionError(msg)
 
 
 def assert_create_order_201_and_shape(api: UserClient, body: CreateOrderRequest) -> None:
     """POST /orders returns 201 and JSON compatible with ``Order.from_api_dict``."""
     payload = body.to_api_dict()
-    r = api.http_client.post("/orders", json=payload)
-    assert r.status_code == 201, r.text
-    data = r.json()
-    assert data.get("id"), data
-    assert data.get("symbol") == body.symbol
-    assert data.get("userId") or data.get("user_id")
+    response = api.http_client.post("/orders", json=payload)
+    assert response.status_code == 201, (
+        f"assert_create_order_201: expected HTTP 201; {response_assert_detail(response)}"
+    )
+    data = response.json()
+    assert data.get("id"), f"assert_create_order_201: expected id in body, got {data!r}"
+    assert data.get("symbol") == body.symbol, (
+        f"assert_create_order_201: expected symbol {body.symbol!r}, got {data.get('symbol')!r} body={data!r}"
+    )
+    assert data.get("userId") or data.get("user_id"), (
+        f"assert_create_order_201: expected userId in body, got {data!r}"
+    )

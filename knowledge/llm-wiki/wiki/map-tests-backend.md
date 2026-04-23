@@ -1,6 +1,6 @@
 # Map — Python API tests (`tests/backend_tests/`)
 
-**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/backend_tests/`.
+**Canonical detail:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § `tests/backend_tests/`. When writing or editing API test calls, follow [`docs/CODE_STYLE_READABILITY.md`](../../../docs/CODE_STYLE_READABILITY.md) (named request locals, clear identifiers).
 
 ## Where to look first
 

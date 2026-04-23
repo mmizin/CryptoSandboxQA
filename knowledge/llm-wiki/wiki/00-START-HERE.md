@@ -8,6 +8,7 @@ This file is the **map of content (MOC)** — use it to choose a thin overview p
 
 | I need to… | Go to |
 |------------|--------|
+| Code style, naming, request-body locals | [`docs/CODE_STYLE_READABILITY.md`](../../../docs/CODE_STYLE_READABILITY.md) · [`docs/examples/code-style-templates.md`](../../../docs/examples/code-style-templates.md) · [`.cursor/rules/code-readability.mdc`](../../../.cursor/rules/code-readability.mdc) |
 | Jump by repo path | [`index-by-repo-path.md`](index-by-repo-path.md) |
 | Backend modules & flows | [`map-backend.md`](map-backend.md) |
 | Frontend app structure | [`map-frontend.md`](map-frontend.md) |

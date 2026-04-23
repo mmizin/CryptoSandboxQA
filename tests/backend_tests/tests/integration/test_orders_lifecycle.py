@@ -55,7 +55,7 @@ def _f(port: str) -> float:
 
 def _portfolio(user: RegisteredTestUser) -> dict[str, Any]:
     raw = user.api.get("/portfolio/balances")
-    assert isinstance(raw, dict)
+    assert isinstance(raw, dict), f"expected dict from /portfolio/balances, got {type(raw).__name__!r}"
     return raw
 
 
@@ -72,27 +72,30 @@ def test_tc_int_01_deposit_market_buy_order_list_and_balances(
     )
 
     after_deposit = _balances_map(_portfolio(user))
-    assert "USD" in after_deposit
+    assert "USD" in after_deposit, f"tc_int_01: expected USD in balances after deposit, got {list(after_deposit)!r}"
     usd_avail_before = _f(after_deposit["USD"]["available"])
 
     req = OrderRequestFactory.spot_market_buy(symbol="BTC_USD", quantity=0.001)
     created = user.api.orders.create(req)
-    assert isinstance(created, Order)
-    assert created.symbol == "BTC_USD"
-    assert created.order_type == "market"
-    assert created.status == "open"
+    assert isinstance(created, Order), f"expected Order, got {type(created).__name__!r}"
+    assert created.symbol == "BTC_USD", f"expected symbol BTC_USD, got {created.symbol!r}"
+    assert created.order_type == "market", f"expected market order, got {created.order_type!r}"
+    assert created.status == "open", f"expected open status, got {created.status!r}"
 
     listed = user.api.orders.list(symbol="BTC_USD", limit=20)
-    assert listed.total >= 1
+    assert listed.total >= 1, f"list orders: expected total>=1, got {listed.total!r}"
     ids = {o.id for o in listed.data}
-    assert created.id in ids
+    assert created.id in ids, f"list orders: expected id {created.id!r} in {ids!r}"
 
     after_order = _balances_map(_portfolio(user))
-    assert "USD" in after_order
+    assert "USD" in after_order, f"tc_int_01: expected USD in balances after order, got {list(after_order)!r}"
     locked = _f(after_order["USD"]["locked"])
     avail = _f(after_order["USD"]["available"])
-    assert locked > 0
-    assert avail + locked == pytest.approx(usd_avail_before, rel=1e-6, abs=1e-4)
+    assert locked > 0, f"expected locked>0 for open order, got locked={locked!r} avail={avail!r}"
+    assert avail + locked == pytest.approx(usd_avail_before, rel=1e-6, abs=1e-4), (
+        f"tc_int_01: conservation expected avail+locked≈{usd_avail_before}, got {avail + locked!r} "
+        f"(avail={avail!r} locked={locked!r})"
+    )
 
 
 def test_tc_int_02_limit_buy_cancel_unlocks_quote(
@@ -110,18 +113,23 @@ def test_tc_int_02_limit_buy_cancel_unlocks_quote(
     # Price deliberately below typical last price so matching skips counterpart sell liquidity.
     req = OrderRequestFactory.spot_limit_buy(price=1.0, symbol="BTC_USD", quantity=0.001)
     created = user.api.orders.create(req)
-    assert isinstance(created, Order)
-    assert created.status == "open"
-    assert created.order_type == "limit"
+    assert isinstance(created, Order), f"expected Order, got {type(created).__name__!r}"
+    assert created.status == "open", f"expected open, got {created.status!r}"
+    assert created.order_type == "limit", f"expected limit, got {created.order_type!r}"
 
     after_create = _balances_map(_portfolio(user))
     locked_after_create = _f(after_create["USD"]["locked"])
     expected_reserve = 0.001 * 1.0
-    assert locked_after_create == pytest.approx(expected_reserve, rel=0, abs=1e-2)
+    assert locked_after_create == pytest.approx(expected_reserve, rel=0, abs=1e-2), (
+        f"tc_int_02: expected locked≈{expected_reserve}, got {locked_after_create!r}"
+    )
 
     cancelled = user.api.orders.cancel(created.id)
-    assert isinstance(cancelled, Order)
-    assert cancelled.status == "cancelled"
+    assert isinstance(cancelled, Order), f"expected Order from cancel, got {type(cancelled).__name__!r}"
+    assert cancelled.status == "cancelled", f"expected cancelled, got {cancelled.status!r}"
 
     after_cancel = _balances_map(_portfolio(user))
-    assert _f(after_cancel["USD"]["locked"]) == pytest.approx(0.0, abs=1e-6)
+    locked_end = _f(after_cancel["USD"]["locked"])
+    assert locked_end == pytest.approx(0.0, abs=1e-6), (
+        f"tc_int_02: expected locked≈0 after cancel, got {locked_end!r}"
+    )
