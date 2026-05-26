@@ -62,7 +62,7 @@ After `setup`, add **SMTP** lines to the **repository root** `.env` if you want 
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Repository layout, Nest modules, auth, realtime, env loading, and how pieces fit together. |
 | [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) | Purpose-built QA surfaces: `data-testid` maps, client/API validation, Mailpit flows, iframe practice, Portfolio Analytics, simulated delays, Markets modals. |
 | [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) | Naming and extracting locals for request bodies and similar call arguments; templates in [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md). |
-| [docs/openapi.json](docs/openapi.json) | Static OpenAPI spec (import into Postman, Insomnia, etc.) without running the backend. |
+| [openapi.json](openapi.json) | Static OpenAPI spec (import into Postman, Insomnia, etc.) without running the backend. |
 | [docs/API_DESIGN_PLAN.md](docs/API_DESIGN_PLAN.md) | Design-time API notes and history (see banner in file; current behavior is in ARCHITECTURE and Swagger). |
 | [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) | Schema rationale and history; **source of truth** for tables is `backend/prisma/schema.prisma`. |
 | [LICENSE](LICENSE) | License for the project. |
@@ -86,7 +86,7 @@ Use the running app plus the artifacts below to practice **manual**, **API**, **
 
   Config loads the **repository root** `.env` first, then **`tests/ui-tests/.env`** (overrides). Start the app (`npm run dev` from the repo root) before running tests. Contributors can align tags (`@smoke`, `@merge-gate`, `@client-validation`) with [`.cursor/rules/playwright-ui-tests.mdc`](.cursor/rules/playwright-ui-tests.mdc).
 
-- **API contract testing** — Interactive [Swagger UI](http://localhost:3001/api/docs) when the backend is up; static spec in [`docs/openapi.json`](docs/openapi.json). Regenerate after API changes: `npm run openapi:generate` (see [OpenAPI (Swagger)](#openapi-swagger)).
+- **API contract testing** — Interactive [Swagger UI](http://localhost:3001/api/docs) when the backend is up; static spec in [`openapi.json`](openapi.json). Regenerate after API changes: `npm run openapi:generate` (see [OpenAPI (Swagger)](#openapi-swagger)).
 
 - **Transactional email** — [Mailpit](http://localhost:8025) for password reset, welcome, orders, deposits. Configure SMTP in the repo root `.env` (see [Password reset & Mailpit](#password-reset--mailpit-dev)).
 
@@ -294,7 +294,7 @@ Put SMTP and secrets in the **repository root** `.env` when using `npm run dev` 
 
 **For testers:** A static OpenAPI spec is available in the repo:
 
-- **Static spec file**: [`docs/openapi.json`](docs/openapi.json) — use this for API testing tools (Postman, Insomnia, REST Assured, etc.). You can import it without running the backend.
+- **Static spec file**: [`openapi.json`](openapi.json) — use this for API testing tools (Postman, Insomnia, REST Assured, etc.). You can import it without running the backend.
 
 Interactive API docs are available when the backend is running:
 

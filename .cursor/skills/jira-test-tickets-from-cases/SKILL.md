@@ -56,7 +56,7 @@ When **test-design** already ran, **reuse its Evidence** in **`Test`** descripti
 | ------ | --------------- |
 | [ARCHITECTURE.md](../../../ARCHITECTURE.md) | Modules, routes, auth/session, pointers to constraint files |
 | [docs/QA_TESTING_FEATURES.md](../../../docs/QA_TESTING_FEATURES.md) | `data-testid`, field rules, training surfaces |
-| [docs/openapi.json](../../../docs/openapi.json) | Endpoints, request/response shapes, status codes |
+| [openapi.json](../../../openapi.json) | Endpoints, request/response shapes, status codes |
 | **Implementation** | Relevant `frontend/`, `backend/` (pages, DTOs, services, guards) for the feature |
 | **Existing automation** | `tests/ui-tests/` page objects or specs when they cover the same flow |
 

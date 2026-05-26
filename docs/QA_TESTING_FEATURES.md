@@ -26,7 +26,7 @@ The repository ships **Playwright** tests under [`tests/ui-tests/`](../tests/ui-
 
 ### API list pagination (requests & responses)
 
-Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`docs/openapi.json`](../docs/openapi.json). For typing automation, shared envelopes **`Paginated`** / **`PaginatedMeta`** live in [`tests/ui-tests/src/models/pagination.types.ts`](../tests/ui-tests/src/models/pagination.types.ts) (re-exported from the models barrel).
+Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`openapi.json`](../openapi.json). For typing automation, shared envelopes **`Paginated`** / **`PaginatedMeta`** live in [`tests/ui-tests/src/models/pagination.types.ts`](../tests/ui-tests/src/models/pagination.types.ts) (re-exported from the models barrel).
 
 ---
 
@@ -140,7 +140,7 @@ Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../
 ### Automation hints
 
 - Mailpit exposes a **REST API** on the same port as the UI (e.g. list messages) for E2E tests that need to read the code without the browser—see [Mailpit API docs](https://mailpit.axllent.org/docs/api-v1/).
-- Static OpenAPI: [`docs/openapi.json`](./openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
+- Static OpenAPI: [`openapi.json`](../openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
 
 ---
 
@@ -166,7 +166,7 @@ Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailServ
 ### Automation
 
 - Reuse Mailpit’s [REST API](https://mailpit.axllent.org/docs/api-v1/) to assert subjects or bodies after API calls (register, orders, deposits).
-- OpenAPI: register/deposit/order routes in [`docs/openapi.json`](./openapi.json).
+- OpenAPI: register/deposit/order routes in [`openapi.json`](../openapi.json).
 
 ---
 
