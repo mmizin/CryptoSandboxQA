@@ -67,7 +67,7 @@ Reply with:
 
 - **What changed** in the repo (high level).
 - **Which files** you updated (`ARCHITECTURE.md`, which `wiki/*.md`, any `raw/*`), or **none** if nothing was needed.
-- **Follow-ups** (e.g. “regenerate `docs/openapi.json` if API surface changed” — only if true).
+- **Follow-ups** (e.g. “regenerate `openapi.json` if API surface changed” — only if true).
 
 ---
 

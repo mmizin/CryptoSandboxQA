@@ -7,7 +7,7 @@
 | Topic | Location |
 |-------|----------|
 | Nest app wiring | `backend/src/app.module.ts`, feature `*.module.ts` under `backend/src/` |
-| OpenAPI / Swagger helpers | `backend/src/openapi/`, exported `docs/openapi.json` |
+| OpenAPI / Swagger helpers | `backend/src/openapi/`, exported [`openapi.json`](../../../openapi.json) (repo root) |
 | Prisma schema & seeds | `backend/prisma/schema.prisma`, `backend/prisma/seed-*.js` |
 | Deposits domain | `backend/src/deposits/` |
 | Orders & matching | `backend/src/orders/` |

@@ -11,12 +11,12 @@ async function generate() {
   const config = createOpenApiConfig();
   const document = SwaggerModule.createDocument(app, config);
 
-  const outputDir = join(__dirname, '../../docs');
+  const outputDir = join(__dirname, '../..');
   const outputPath = join(outputDir, 'openapi.json');
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(outputPath, JSON.stringify(document, null, 2), 'utf-8');
 
-  console.log(`OpenAPI spec written to docs/openapi.json`);
+  console.log(`OpenAPI spec written to openapi.json`);
   await app.close();
 }
 

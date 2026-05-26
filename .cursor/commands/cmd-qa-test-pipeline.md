@@ -51,7 +51,7 @@ After each major phase, **leave durable traces**:
 ## Phase 1 — Design test cases
 
 1. Follow [.cursor/skills/design-test-cases/SKILL.md](../skills/design-test-cases/SKILL.md).
-2. Ground scenarios in [ARCHITECTURE.md](../../ARCHITECTURE.md), [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md), [docs/openapi.json](../../docs/openapi.json), and implementation as the skill describes. **When useful for path / harness orientation**, skim the **Knowledge wiki** maps (section above) for the layers in scope (e.g. [`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) / [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) when designing UI or API test coverage).
+2. Ground scenarios in [ARCHITECTURE.md](../../ARCHITECTURE.md), [docs/QA_TESTING_FEATURES.md](../../docs/QA_TESTING_FEATURES.md), [openapi.json](../../openapi.json), and implementation as the skill describes. **When useful for path / harness orientation**, skim the **Knowledge wiki** maps (section above) for the layers in scope (e.g. [`map-tests-ui.md`](../../knowledge/llm-wiki/wiki/map-tests-ui.md) / [`map-tests-backend.md`](../../knowledge/llm-wiki/wiki/map-tests-backend.md) when designing UI or API test coverage).
 3. Produce categorized output suitable for Jira: **API** / **UI** / **Integration** (Jira-handoff shape: explicit matrix rows, oracles, planned Playwright tags when UI is in scope).
 4. If **layers** were specified in the invocation, **omit** or clearly mark out-of-scope layers.
 
