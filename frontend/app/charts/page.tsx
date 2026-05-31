@@ -65,7 +65,8 @@ export default function ChartsPage() {
             ← Back
           </button>
         </div>
-        <h1 className="text-2xl font-bold text-white group-data-[theme=light]:text-slate-900 mb-2">
+        <h1 className="flex items-center gap-3 text-6xl font-bold text-white group-data-[theme=light]:text-slate-900 mb-2">
+          <img src="/tv.jpg" alt="TradingView" width={84} height={84} className="rounded-md" />
           Advanced Charts
         </h1>
         <p className="text-slate-400 group-data-[theme=light]:text-slate-600 mb-6">
