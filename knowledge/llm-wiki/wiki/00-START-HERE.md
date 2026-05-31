@@ -12,6 +12,7 @@ This file is the **map of content (MOC)** — use it to choose a thin overview p
 | Jump by repo path | [`index-by-repo-path.md`](index-by-repo-path.md) |
 | Backend modules & flows | [`map-backend.md`](map-backend.md) |
 | Frontend app structure | [`map-frontend.md`](map-frontend.md) |
+| TradingView Lightweight Charts | [`map-charts-lightweight.md`](map-charts-lightweight.md) |
 | Playwright harness & tags | [`map-tests-ui.md`](map-tests-ui.md) |
 | Python API tests & clients | [`map-tests-backend.md`](map-tests-backend.md) |
 | Same feature across API + UI tests | [`map-testing-by-capability.md`](map-testing-by-capability.md) |

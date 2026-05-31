@@ -13,4 +13,5 @@
 ## Related wiki
 
 - [`index-by-repo-path.md`](index-by-repo-path.md)
+- [`map-charts-lightweight.md`](map-charts-lightweight.md) for TradingView Lightweight Charts integration guide
 - [`map-tests-ui.md`](map-tests-ui.md) for Playwright page objects mirroring UI routes
