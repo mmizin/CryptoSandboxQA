@@ -1,0 +1,42 @@
+# Plan before coding — all implementation work
+
+**Before starting ANY implementation work, always create and get approval on a plan.**
+
+## Applies to
+
+- **EnterPlanMode** tasks (explicit planning mode)
+- **Regular implementation requests** (user asks for a feature/fix/refactor)
+- **Bug fixes** (non-trivial changes)
+- **Refactoring** (multi-file changes)
+- **All other code work** unless the task is strictly trivial (one-liner, obvious fix) and the user has explicitly opted out
+
+## Workflow
+
+1. **Create plan file** in `.claude/plans/<date>-<task-slug>/` directory
+   - Use today's date in `YYYY-MM-DD` format
+   - Use a short kebab-case slug describing the task
+   - Example: `.claude/plans/2026-05-27-add-2fa-login/plan.md`
+
+2. **Write the plan** with:
+   - High-level approach and architecture decisions
+   - Step-by-step implementation steps
+   - Files that will be created or modified
+   - Any trade-offs or alternatives considered
+
+3. **Open the plan file** after finishing (so the user can read it in the editor)
+   - This allows the user to review in context (they can navigate the codebase from the editor while reviewing)
+
+4. **Get explicit approval** — Wait for clear user approval before writing any code
+   - User reviews the opened plan file
+   - User approves, requests changes, or decides not to proceed
+   - Only proceed to implementation after explicit approval
+
+5. **Call ExitPlanMode** when approval is given
+   - User has reviewed and approved
+   - You proceed to implementation or refine the approach based on feedback
+
+## Why
+
+Planning upfront prevents wasted work, ensures alignment on approach, saves iteration cycles, and lets the user review in context before implementation. Explicit approval gates implementation and avoids surprises.
+
+Plans stay organized and retrievable in `.claude/plans/` by date and slug. Opening the file in the editor is the mechanism that makes review and navigation easy.

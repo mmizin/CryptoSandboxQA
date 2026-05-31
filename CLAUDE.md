@@ -40,17 +40,6 @@ pytest loads: repo root `.env` → `tests/backend_tests/.env` (overrides), via `
 
 **Prisma migrations:** `npm run setup` uses `prisma db push` (no migration files) for local bootstrap. Use `prisma migrate dev` for named migrations; `prisma migrate deploy` for production.
 
-## Architecture doc
-
-@ARCHITECTURE.md
-
-Update `ARCHITECTURE.md` in the same change set when meaningful system shape changes: new/removed NestJS modules or controllers, Prisma models or major fields, auth or realtime behavior, main frontend routes, observability, or OpenAPI workflow. Skip trivial fixes.
-
-## Code style (applies to new and edited code)
-
-@docs/CODE_STYLE_READABILITY.md
-@docs/examples/code-style-templates.md
-
 ## Knowledge base
 
 @knowledge/llm-wiki/wiki/00-START-HERE.md

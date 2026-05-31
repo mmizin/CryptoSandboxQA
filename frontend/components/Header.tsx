@@ -154,6 +154,17 @@ function MarketsDropdown() {
   );
 }
 
+function ChartsLink() {
+  const buttonBase =
+    'rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1 transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800';
+
+  return (
+    <Link href="/charts" className={buttonBase} data-testid="nav-charts-link">
+      Charts
+    </Link>
+  );
+}
+
 function BuyCryptoDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -428,6 +439,7 @@ export function Header() {
           <BuyCryptoDropdown />
           <DepositCryptoDropdown />
           <MarketsDropdown />
+          <ChartsLink />
           <AssetsDropdown />
           <TradeDropdown />
         </div>

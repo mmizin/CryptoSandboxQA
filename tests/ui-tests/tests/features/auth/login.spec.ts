@@ -1,7 +1,7 @@
 import * as allure from "allure-js-commons";
-import { expect, test } from "../../src/fixtures";
-import { registerTestUserViaApi } from "../../src/utils/users";
-import { LoginPage } from "../../src/pages/login.page";
+import { expect, test } from "@/fixtures";
+import { registerTestUserViaApi } from "@/utils/users";
+import { LoginPage } from "@/pages/login.page";
 
 test.describe("Login page", { tag: ["@e2e", "@login"] }, () => {
     test.beforeEach(async () => {

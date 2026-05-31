@@ -90,7 +90,7 @@ These screens already use **feature-specific** validation modules (ranges, IBAN,
 ### API vs client
 
 - **Client validation** blocks submit and shows inline errors (no network call for that submit).
-- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — see [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/e2e/login.spec.ts) for invalid-credentials server responses.
+- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — see [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/features/auth/login.spec.ts) for invalid-credentials server responses.
 
 ---
 
@@ -243,3 +243,31 @@ On **`/markets/prices`**, **`/markets/rankings/spot`**, and **`/markets/trading-
 **Deep link:** With default props, opening a row sets **`?detail=SYMBOL`** (uppercase) on the current path; closing the detail modal clears it. Useful for shareable URLs and browser Back/forward checks.
 
 **Shared primitives:** [`MarketsModal`](../frontend/components/MarketsModal.tsx) (focus trap, ref-counted body scroll lock via [`useBodyScrollLock`](../frontend/lib/useBodyScrollLock.ts)), [`MarketsCryptoDetailModal`](../frontend/components/MarketsCryptoDetailModal.tsx) (detail + nested stack).
+
+---
+
+## Advanced Charts: canvas chart automation (`/charts`)
+
+The **Charts** header link opens [`/charts`](../frontend/app/charts/page.tsx) ([`AdvancedChart`](../frontend/components/AdvancedChart.tsx)), an interactive candlestick chart rendered with **TradingView Lightweight Charts** (canvas-based) on **deterministic mock OHLC data** ([`chartMockData.ts`](../frontend/lib/chartMockData.ts), seeded per coin + interval). Public route (no auth required).
+
+**Why it's a distinct surface:** Lightweight Charts draws to a **`<canvas>`**, so candles are **not in the DOM** — you cannot read individual bars with selectors. Practice shifts to **toolbar controls, the ARIA/`data-testid` readout, and screenshot / visual assertions** instead of DOM scraping. The recharts surfaces (dashboard analytics, trade price chart) remain the SVG-DOM counterpart.
+
+| Control | `data-testid` | Notes |
+|---------|---------------|-------|
+| Page root | `advanced-chart-page` | |
+| Nav link | `nav-charts-link` | In the top header |
+| Canvas mount | `advanced-chart-container` | The `<canvas>` lives here; empty state is `advanced-chart-empty` |
+| Coin select | `advanced-chart-coin-select` | Options from `TRADE_COINS` (10 coins) |
+| Interval select | `advanced-chart-interval-select` | `1m / 5m / 15m / 1H / 1D` |
+| Series toggle | `advanced-chart-series-candlestick`, `advanced-chart-series-line`, `advanced-chart-series-area` | `aria-pressed` reflects the active series |
+| Volume toggle | `advanced-chart-volume-toggle` | `aria-pressed`; toggles the histogram series |
+| Live toggle | `advanced-chart-live-toggle` | `aria-pressed`; **pause it for stable screenshots / value assertions** |
+| Reset zoom | `advanced-chart-reset-zoom` | Calls `timeScale().fitContent()` |
+| Last price | `advanced-chart-last-price` | DOM mirror of the latest close |
+| Crosshair readout | `advanced-chart-readout` + `advanced-chart-readout-open/high/low/close` | DOM mirror of the candle under the crosshair; falls back to the latest candle when the pointer leaves the chart |
+
+**Live ticking:** When **Live** is on, the most recent candle updates every ~1.5s via `series.update()` (history stays deterministic). The readout and last-price values change on each tick, so **pause Live** (`advanced-chart-live-toggle`) before asserting exact numbers or taking baseline screenshots.
+
+**Determinism:** History is reproducible for a given `(symbol, interval)` — same candles on every load. Only the live tick uses real randomness, and only on the last candle.
+
+**Pan / zoom:** Drag the chart to pan and use the wheel (or pinch) to zoom; **Reset zoom** restores fit-to-content. These act on the canvas, so verify via screenshots or the readout rather than DOM nodes.
