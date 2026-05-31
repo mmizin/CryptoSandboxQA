@@ -18,17 +18,21 @@ interface TradeOrderEntryProps {
   currentPrice?: number;
   onOrderSubmitted?: () => void;
   onOrderCreated?: (order: WorkingOrder) => void;
+  fixedSide?: 'buy' | 'sell';
 }
 
 const buttonBase =
-  'rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400 group-data-[theme=light]:bg-emerald-50 group-data-[theme=light]:text-emerald-700 group-data-[theme=light]:hover:bg-emerald-100 group-data-[theme=light]:hover:text-emerald-800 group-data-[theme=light]:disabled:hover:bg-emerald-50 group-data-[theme=light]:disabled:hover:text-emerald-700';
+  'rounded-lg px-4 py-2 text-sm font-medium transition-colors border-0 outline-none focus:outline-none bg-slate-700/60 text-slate-300 hover:bg-slate-600/80 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700/60 disabled:hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200 group-data-[theme=light]:hover:text-slate-900 group-data-[theme=light]:disabled:hover:bg-slate-100 group-data-[theme=light]:disabled:hover:text-slate-600';
+
+const submitButtonBuy =
+  'rounded-lg px-4 py-2 text-sm font-medium border-0 outline-none focus:outline-none bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-2 focus:ring-emerald-500/50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
 
 const submitButtonSell =
   'rounded-lg px-4 py-2 text-sm font-medium border-0 outline-none focus:outline-none bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-500/50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
 
-export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPrice: currentPriceProp, onOrderSubmitted, onOrderCreated }: TradeOrderEntryProps) {
+export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPrice: currentPriceProp, onOrderSubmitted, onOrderCreated, fixedSide }: TradeOrderEntryProps) {
   const [orderType, setOrderType] = useState<OrderType>('market');
-  const [side, setSide] = useState<'buy' | 'sell'>('buy');
+  const [side, setSide] = useState<'buy' | 'sell'>(fixedSide ?? 'buy');
   const [amount, setAmount] = useState('');
   const [amountInUsd, setAmountInUsd] = useState(false);
   const [price, setPrice] = useState('');
@@ -148,8 +152,15 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPric
 
   return (
     <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4 group-data-[theme=light]:border-slate-200 group-data-[theme=light]:bg-white/80">
-      <h3 className="text-sm font-medium text-white group-data-[theme=light]:text-slate-900 mb-4">
-        Order Entry
+      <h3 className={`text-sm font-semibold mb-4 ${
+        fixedSide === 'buy'
+          ? 'text-emerald-400 group-data-[theme=light]:text-emerald-700'
+          : fixedSide === 'sell'
+          ? 'text-red-400 group-data-[theme=light]:text-red-700'
+          : 'text-white group-data-[theme=light]:text-slate-900'
+      }`}>
+        {fixedSide === 'buy' ? 'Buy' : fixedSide === 'sell' ? 'Sell' : 'Order Entry'}
+        {fixedSide && selectedCoin ? ` ${selectedCoin.symbol}` : ''}
       </h3>
       {selectedCoin && (
         <p className="text-xs text-slate-500 mb-3 group-data-[theme=light]:text-slate-500">
@@ -174,30 +185,32 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPric
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setSide('buy')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
-              side === 'buy'
-                ? 'bg-emerald-500/40 text-emerald-300 ring-2 ring-emerald-400/50 shadow-sm shadow-emerald-500/20 group-data-[theme=light]:bg-emerald-200 group-data-[theme=light]:text-emerald-950 group-data-[theme=light]:ring-emerald-500/40'
-                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
-            }`}
-          >
-            Buy
-          </button>
-          <button
-            type="button"
-            onClick={() => setSide('sell')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
-              side === 'sell'
-                ? 'bg-red-500/40 text-red-300 ring-2 ring-red-400/50 shadow-sm shadow-red-500/20 group-data-[theme=light]:bg-red-200 group-data-[theme=light]:text-red-950 group-data-[theme=light]:ring-red-500/40'
-                : 'bg-red-500/10 text-red-400/90 hover:bg-red-500/20 hover:text-red-300 group-data-[theme=light]:bg-red-50 group-data-[theme=light]:text-red-700 group-data-[theme=light]:hover:bg-red-100 group-data-[theme=light]:hover:text-red-800'
-            }`}
-          >
-            Sell
-          </button>
-        </div>
+        {!fixedSide && (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSide('buy')}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
+                side === 'buy'
+                  ? 'bg-emerald-500/40 text-emerald-300 ring-2 ring-emerald-400/50 shadow-sm shadow-emerald-500/20 group-data-[theme=light]:bg-emerald-200 group-data-[theme=light]:text-emerald-950 group-data-[theme=light]:ring-emerald-500/40'
+                  : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/80 hover:text-slate-300 group-data-[theme=light]:bg-slate-100 group-data-[theme=light]:text-slate-600 group-data-[theme=light]:hover:bg-slate-200'
+              }`}
+            >
+              Buy
+            </button>
+            <button
+              type="button"
+              onClick={() => setSide('sell')}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors border-0 outline-none focus:outline-none ${
+                side === 'sell'
+                  ? 'bg-red-500/40 text-red-300 ring-2 ring-red-400/50 shadow-sm shadow-red-500/20 group-data-[theme=light]:bg-red-200 group-data-[theme=light]:text-red-950 group-data-[theme=light]:ring-red-500/40'
+                  : 'bg-red-500/10 text-red-400/90 hover:bg-red-500/20 hover:text-red-300 group-data-[theme=light]:bg-red-50 group-data-[theme=light]:text-red-700 group-data-[theme=light]:hover:bg-red-100 group-data-[theme=light]:hover:text-red-800'
+              }`}
+            >
+              Sell
+            </button>
+          </div>
+        )}
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="block text-xs text-slate-400 group-data-[theme=light]:text-slate-600">
@@ -281,7 +294,7 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPric
           <button
             type="submit"
             disabled={submitLoading || !selectedCoin}
-            className={side === 'buy' ? buttonBase : submitButtonSell}
+            className={(fixedSide ?? side) === 'buy' ? submitButtonBuy : submitButtonSell}
           >
             {submitLoading ? 'Submitting...' : 'Submit'}
           </button>
