@@ -78,7 +78,7 @@ These screens already use **feature-specific** validation modules (ranges, IBAN,
 | Feature | Module | Examples of rules |
 |---------|--------|-------------------|
 | Buy / Sell | [`buySellValidation.ts`](../frontend/lib/buySellValidation.ts) | Amount min/max USD, IBAN pattern, card number digits, CVV length, expiry MM/YY |
-| Trade order entry | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks |
+| Trade order entry | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks; **stop orders:** `stopPrice` field appears when order type is **stop** |
 | Fiat / crypto deposit | [`depositCashValidation.ts`](../frontend/lib/depositCashValidation.ts), [`depositCryptoValidation.ts`](../frontend/lib/depositCryptoValidation.ts) | Amount ranges, payment-method fields |
 | Calculator | [`calculatorValidation.ts`](../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
 | 2FA modal | [`twoFactorValidation.ts`](../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
@@ -271,3 +271,36 @@ The **Charts** header link opens [`/charts`](../frontend/app/charts/page.tsx) ([
 **Determinism:** History is reproducible for a given `(symbol, interval)` — same candles on every load. Only the live tick uses real randomness, and only on the last candle.
 
 **Pan / zoom:** Drag the chart to pan and use the wheel (or pinch) to zoom; **Reset zoom** restores fit-to-content. These act on the canvas, so verify via screenshots or the readout rather than DOM nodes.
+
+**Order triggers visualization:** The chart displays **working orders** (open limit/stop orders) side-by-side with the candlestick series. As the **live price** ticks upward or downward, the UI evaluates which orders would trigger:
+- **Buy Limit:** triggers when livePrice ≤ price (market fell to/below the limit)
+- **Sell Limit:** triggers when livePrice ≥ price (market rose to/above the limit)
+- **Buy Stop:** triggers when livePrice ≥ stopPrice (market rose to/above the stop)
+- **Sell Stop:** triggers when livePrice ≤ stopPrice (market fell to/below the stop)
+
+Trigger logic is in [`lib/orderTriggers.ts`](../frontend/lib/orderTriggers.ts) (`evaluateOrderTriggers` function). The hook [`lib/useOrderTriggers.ts`](../frontend/lib/useOrderTriggers.ts) maintains the "triggered" set as the live price updates. Test by placing orders on `/trade/spot` or `/trade/futures`, then opening `/charts` on the same symbol and observing which orders light up as the price ticks toward their trigger levels.
+
+---
+
+## Trade orders: stop orders (`/trade/spot`, `/trade/futures`)
+
+**Stop orders** are a new order type alongside **limit** and **market**, allowing you to set a **trigger price** (`stopPrice`) at which a market order executes. Practical use: place a sell stop to protect a position if the price drops, or a buy stop to enter above a resistance level.
+
+**UI entry points:** [`/trade/spot`](../frontend/app/trade/spot/page.tsx) and [`/trade/futures`](../frontend/app/trade/futures/page.tsx) both integrate stop-order entry via [`TradeOrderEntry`](../frontend/components/TradeOrderEntry.tsx) (order type selector + conditional stop-price field).
+
+| Field | Type | Rules | Validation |
+|-------|------|-------|-----------|
+| Order type | Dropdown | `limit`, `market`, **`stop`** | Selected via radio or dropdown (varies by UI) |
+| Stop price | Number (conditional) | Required when type = **stop**; positive number, typically ≤ 8 decimal places | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) — `stopPrice` field |
+| Quantity | Number | Positive, max **8** decimals (crypto) or **2** (USD/EUR) | Same validators |
+| Price (limit) | Number (hidden when type = market or stop) | Positive; required for **limit** orders | Same validators |
+
+**Backend schema:** [`Order`](../backend/prisma/schema.prisma) model includes `stopPrice: Decimal?` (`stop_price` column, nullable). API accepts **`stopPrice`** in [`CreateOrderDto`](../backend/src/orders/dto/create-order.dto.ts) when `type = "stop"`.
+
+**Execution:** Stop orders remain **open** until the live price ticks to/through the `stopPrice`, at which point the trigger logic (front-end or backend) fires the order. The **Advanced Charts** (`/charts`) surface visualizes this: place a stop order on `/trade/spot`, then watch `/charts` on the same symbol to see when your order would trigger as the price moves.
+
+**Test scenarios:**
+1. Place a buy stop at a price above the current market → observe it in pending orders → open `/charts` on the same symbol → watch the price tick upward and see the order trigger
+2. Place a sell stop below current market → order cancels/expires if price dips to the trigger
+3. Verify stop orders persist in the order history (`GET /orders` or `/history` UI)
+4. Verify the order-details email reflects the correct `type` and `stopPrice` in the API response

@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { AdvancedChart, type ChartSeriesType } from '@/components/AdvancedChart';
-import { TradeOrderEntry } from '@/components/TradeOrderEntry';
+import { TradeOrderEntryDual } from '@/components/TradeOrderEntryDual';
 import { TradeOrdersTabs } from '@/components/TradeOrdersTabs';
 import { useOrderTriggers } from '@/lib/useOrderTriggers';
 import {
@@ -166,32 +166,27 @@ export default function ChartsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
-          <div className="flex flex-col gap-4">
-            <AdvancedChart
-              coin={coin}
-              intervalId={intervalId}
-              seriesType={seriesType}
-              showVolume={showVolume}
-              live={live}
-              onPriceUpdate={setLivePrice}
-            />
-            <TradeOrdersTabs
-              marketType="spot"
-              refreshTrigger={refreshTrigger}
-              onCancelOrder={removeWorkingOrder}
-            />
-          </div>
-
-          <div>
-            <TradeOrderEntry
-              selectedCoin={coin}
-              marketType="spot"
-              currentPrice={livePrice ?? undefined}
-              onOrderSubmitted={bumpRefresh}
-              onOrderCreated={addWorkingOrder}
-            />
-          </div>
+        <div className="flex flex-col gap-4">
+          <AdvancedChart
+            coin={coin}
+            intervalId={intervalId}
+            seriesType={seriesType}
+            showVolume={showVolume}
+            live={live}
+            onPriceUpdate={setLivePrice}
+          />
+          <TradeOrderEntryDual
+            selectedCoin={coin}
+            marketType="spot"
+            currentPrice={livePrice ?? undefined}
+            onOrderSubmitted={bumpRefresh}
+            onOrderCreated={addWorkingOrder}
+          />
+          <TradeOrdersTabs
+            marketType="spot"
+            refreshTrigger={refreshTrigger}
+            onCancelOrder={removeWorkingOrder}
+          />
         </div>
       </div>
     </main>
