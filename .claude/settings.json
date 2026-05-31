@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(**/.env*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Edit(**/.env*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Write(**/.env*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Edit(.cursor/**)",
+      "Write(.cursor/**)",
+      "Read(.cursor/**)"
+    ],
+    "allow": [
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(python3 *)",
+      "Bash(python *)",
+      "Bash(pytest *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(gh *)",
+      "Bash(docker *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(mkdir *)",
+      "Bash(curl *)",
+      "Bash(kill *)",
+      "Bash(lsof *)",
+      "Bash(ps *)",
+      "Bash(jq *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(which *)",
+      "Bash(type *)",
+      "Bash(env)",
+      "Bash(printenv *)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:github.com)",
+      "mcp__github__*",
+      "Read(frontend/)",
+      "Read(backend/)",
+      "Read(tests/)",
+      "Read(docs/)",
+      "Read(scripts/)",
+      "Read(knowledge/)",
+      "Read(*.json)",
+      "Read(*.md)",
+      "Read(.claude/)",
+      "Edit(frontend/)",
+      "Edit(backend/)",
+      "Edit(tests/)",
+      "Edit(*.md)",
+      "Edit(.claude/)",
+      "Write(frontend/)",
+      "Write(backend/)",
+      "Write(tests/)",
+      "Write(docs/)",
+      "Write(knowledge/)",
+      "Write(.claude/)",
+      "Skill(run-backend-tests)",
+      "Skill(run-ui-tests)",
+      "Skill(update-config)",
+      "Skill(verify)",
+      "Skill(code-review)",
+      "Skill(run)"
+    ]
+  },
+  "env": {
+    "SIMULATED_PERSIST_DELAY_MS": "0",
+    "BASH_DEFAULT_TIMEOUT_MS": "120000"
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

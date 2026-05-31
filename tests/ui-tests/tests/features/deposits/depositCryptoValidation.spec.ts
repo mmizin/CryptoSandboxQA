@@ -2,9 +2,9 @@
  * KAN-75 / TC-UI-02 — Deposit crypto client validation (`DepositCryptoForm`).
  */
 import * as allure from "allure-js-commons";
-import { test, expect } from "../../src/fixtures";
-import type { TestUser } from "../../src/models/user/TestUser";
-import { registerTestUserViaApi } from "../../src/utils/users";
+import { test, expect } from "@/fixtures";
+import type { TestUser } from "@/models/user/TestUser";
+import { registerTestUserViaApi } from "@/utils/users";
 
 /** Mirrors `frontend/lib/depositCryptoValidation.ts` (avoid `@/` re-exports from that file). */
 const MSG = {

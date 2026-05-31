@@ -15,10 +15,10 @@ import {
     AuthMessages,
     EMAIL_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
-} from '../../../../frontend/lib/authFieldConstraints';
+} from 'frontend/lib/authFieldConstraints';
 
 import * as allure from "allure-js-commons";
-import { test, expect } from '../../src/fixtures';
+import { test, expect } from '@/fixtures';
 
 /** Messages intended for the email field (React `login-email-error` when native validation does not run first). */
 const EMAIL_FIELD_MESSAGES = new Set<string>([

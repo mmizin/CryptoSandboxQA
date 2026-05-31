@@ -26,7 +26,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | Backend | NestJS (TypeScript), Prisma ORM |
 | Database | PostgreSQL |
 | Realtime | Socket.IO (`@nestjs/websockets`, namespace `/ticker`) |
-| Frontend | Next.js (React), Zustand (where used), Socket.IO client, **@dnd-kit** (sortable drag-and-drop on dashboard Portfolio Analytics) |
+| Frontend | Next.js (React), Zustand (where used), Socket.IO client, **@dnd-kit** (sortable drag-and-drop on dashboard Portfolio Analytics), **recharts** (SVG charts) + **lightweight-charts** (canvas candlestick charts on `/charts`) |
 | API docs | Swagger UI + OpenAPI JSON (`/api/docs`, `/api/docs-json`) |
 | Metrics | `prom-client` — `GET /metrics` (Prometheus text format) |
 | Tooling | npm workspaces, Docker Compose (Postgres + **Mailpit** for dev SMTP + optional observability stack) |
@@ -223,6 +223,7 @@ sequenceDiagram
 | `/calculate` | Calculator-style training UI |
 | `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
 | `/trade/spot`, `/trade/futures` | Trade experiences |
+| `/charts` | **Advanced Charts** (header **Charts** link): interactive candlestick chart via **TradingView Lightweight Charts** (canvas) on deterministic mock OHLC ([`chartMockData.ts`](frontend/lib/chartMockData.ts)); coin/interval/series/volume toggles, pausable live tick, crosshair DOM readout — canvas-based QA practice surface, see [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) |
 | `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery; tables wrap [`MarketsCryptoTable`](frontend/components/MarketsCryptoTable.tsx) (in **Suspense**) with QA modals — detail view (`?detail=SYMBOL`), about/methodology, reset confirm (`alertdialog`), nested stacked dialog — see [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) |
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |

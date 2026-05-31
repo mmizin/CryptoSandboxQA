@@ -1,16 +1,16 @@
 import type { Page, TestInfo } from "@playwright/test";
 import * as allure from "allure-js-commons";
-import { expect, test } from "../../src/fixtures";
-import { CHART_BLOCK_COUNT, type DashboardPage } from "../../src/pages/dashboard.page";
-import { arrayMove } from "../../src/utils/array-move";
-import { chartTestIdsToBlockIds } from "../../src/utils/portfolio-analytics-charts";
+import { expect, test } from "@/fixtures";
+import { CHART_BLOCK_COUNT, type DashboardPage } from "@/pages/dashboard.page";
+import { arrayMove } from "@/utils/array-move";
+import { chartTestIdsToBlockIds } from "@/utils/portfolio-analytics-charts";
 import {
     combineSeed,
     createMulberry32,
     getSeedFromEnv,
     pickDistinctIndices,
-} from "../../src/utils/seeded-random";
-import { openDashboardWithApiUser, registerTestUserViaApi } from "../../src/utils/users";
+} from "@/utils/seeded-random";
+import { openDashboardWithApiUser, registerTestUserViaApi } from "@/utils/users";
 
 /** Same key as `PORTFOLIO_ANALYTICS_ORDER_KEY` in `frontend/components/DashboardCharts.tsx`. */
 const PORTFOLIO_ANALYTICS_ORDER_KEY = "portfolio-analytics-block-order";

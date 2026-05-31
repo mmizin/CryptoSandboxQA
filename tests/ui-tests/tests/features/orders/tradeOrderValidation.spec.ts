@@ -6,9 +6,9 @@
  */
 import type { Page } from "@playwright/test";
 import * as allure from "allure-js-commons";
-import { expect, test } from "../../src/fixtures";
-import type { TradePage } from "../../src/pages/trade.page";
-import { openTradePageWithApiUser, registerTestUserViaApi } from "../../src/utils/users";
+import { expect, test } from "@/fixtures";
+import type { TradePage } from "@/pages/trade.page";
+import { openTradePageWithApiUser, registerTestUserViaApi } from "@/utils/users";
 
 /** Expected copy aligned with `tradeOrderValidation.ts` (avoid diverging via re-export from app). */
 const TradeValidationMessages = {
