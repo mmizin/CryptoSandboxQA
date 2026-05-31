@@ -16,8 +16,8 @@ export class CreateOrderDto {
   @IsIn(['buy', 'sell'])
   side: string;
 
-  @ApiProperty({ enum: ['limit', 'market'], example: 'limit' })
-  @IsIn(['limit', 'market'])
+  @ApiProperty({ enum: ['limit', 'market', 'stop'], example: 'limit' })
+  @IsIn(['limit', 'market', 'stop'])
   type: string;
 
   @ApiProperty({ example: 0.001, minimum: 0 })
@@ -30,6 +30,12 @@ export class CreateOrderDto {
   @IsNumber()
   @IsPositive()
   price?: number;
+
+  @ApiPropertyOptional({ example: 51000, minimum: 0, description: 'Required for stop orders' })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  stopPrice?: number;
 
   @ApiPropertyOptional({
     enum: ['open', 'filled', 'cancelled'],

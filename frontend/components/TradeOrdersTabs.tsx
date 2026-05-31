@@ -29,7 +29,7 @@ function mapApiOrderToTradeOrder(o: ApiOrder): TradeOrder {
   return {
     id: o.id,
     symbol: baseSymbol,
-    orderType: (o.type === 'market' ? 'market' : 'limit') as 'market' | 'limit' | 'stop-limit',
+    orderType: (o.type === 'market' ? 'market' : o.type === 'stop' ? 'stop-limit' : 'limit') as 'market' | 'limit' | 'stop-limit',
     side: o.side as 'buy' | 'sell',
     amount: typeof o.quantity === 'number' ? o.quantity : parseFloat(String(o.quantity)) || 0,
     price: o.price != null ? (typeof o.price === 'number' ? o.price : parseFloat(String(o.price))) : null,
@@ -41,6 +41,7 @@ function mapApiOrderToTradeOrder(o: ApiOrder): TradeOrder {
 interface TradeOrdersTabsProps {
   marketType?: 'spot' | 'futures';
   refreshTrigger?: number;
+  onCancelOrder?: (orderId: string) => void;
 }
 
 const buttonBase =
@@ -51,7 +52,7 @@ const sortButtonBase =
 
 type SortField = 'symbol' | 'orderType' | 'amount' | 'price' | 'status' | 'createdAt';
 
-export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger }: TradeOrdersTabsProps) {
+export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger, onCancelOrder }: TradeOrdersTabsProps) {
   const [orders, setOrders] = useState<TradeOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,7 @@ export function TradeOrdersTabs({ marketType = 'spot', refreshTrigger }: TradeOr
     setStatusChangingId(orderId);
     try {
       await ordersApi.setStatus(orderId, status);
+      if (status === 'cancelled') onCancelOrder?.(orderId);
       loadOrders();
     } catch {
       setError('Failed to update order status');

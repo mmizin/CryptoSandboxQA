@@ -166,6 +166,8 @@ blob-report/
 # Python egg info
 *.egg-info/
 
+# Claude Code plans
+.claude/plans/
 
 # Obsidian
 .obsidian/

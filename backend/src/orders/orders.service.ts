@@ -57,6 +57,7 @@ export class OrdersService {
       type: string;
       quantity: number;
       price?: number;
+      stopPrice?: number;
       marketType?: string;
       initialStatus?: string;
     },
@@ -76,12 +77,15 @@ export class OrdersService {
     if (!['buy', 'sell'].includes(data.side)) {
       throw new BadRequestException('Side must be buy or sell');
     }
-    if (!['limit', 'market'].includes(data.type)) {
-      throw new BadRequestException('Type must be limit or market');
+    if (!['limit', 'market', 'stop'].includes(data.type)) {
+      throw new BadRequestException('Type must be limit, market, or stop');
     }
     if (data.quantity <= 0) throw new BadRequestException('Quantity must be positive');
     if (data.type === 'limit' && (data.price == null || data.price <= 0)) {
       throw new BadRequestException('Limit orders require a positive price');
+    }
+    if (data.type === 'stop' && (data.stopPrice == null || data.stopPrice <= 0)) {
+      throw new BadRequestException('Stop orders require a positive stopPrice');
     }
 
     const marketType = data.marketType ?? 'spot';
@@ -97,7 +101,9 @@ export class OrdersService {
       } else {
         const price = data.type === 'market'
           ? await this.matchingService.getLastPrice(data.symbol)
-          : data.price!;
+          : data.type === 'stop'
+            ? (data.stopPrice ?? await this.matchingService.getLastPrice(data.symbol))
+            : data.price!;
         const cost = data.quantity * Number(price);
         const balance = await this.walletsService.getBalance(userId, quote);
         if (new Decimal(balance).lt(cost)) {
@@ -159,16 +165,20 @@ export class OrdersService {
       const lockRefPrice =
         data.type === 'limit'
           ? data.price!
-          : data.side === 'buy'
-            ? await this.matchingService.getLastPrice(data.symbol)
-            : undefined;
+          : data.type === 'stop'
+            ? (data.stopPrice ?? await this.matchingService.getLastPrice(data.symbol))
+            : data.side === 'buy'
+              ? await this.matchingService.getLastPrice(data.symbol)
+              : undefined;
 
       const orderPriceForRow =
         data.type === 'limit'
           ? data.price!
-          : data.side === 'buy'
-            ? lockRefPrice!
-            : null;
+          : data.type === 'stop'
+            ? null
+            : data.side === 'buy'
+              ? lockRefPrice!
+              : null;
 
       order = await this.prisma.$transaction(async (tx) => {
         const o = await tx.order.create({
@@ -180,6 +190,7 @@ export class OrdersService {
             orderType: data.type,
             quantity: data.quantity,
             price: orderPriceForRow,
+            stopPrice: data.stopPrice ?? null,
             filledQuantity: 0,
             orderStatus: 'open',
           },

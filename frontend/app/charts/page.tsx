@@ -1,9 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { AdvancedChart, type ChartSeriesType } from '@/components/AdvancedChart';
+import { TradeOrderEntry } from '@/components/TradeOrderEntry';
+import { TradeOrdersTabs } from '@/components/TradeOrdersTabs';
+import { useOrderTriggers } from '@/lib/useOrderTriggers';
 import {
   TRADE_COINS,
   CHART_INTERVALS,
@@ -40,11 +43,21 @@ export default function ChartsPage() {
   const [seriesType, setSeriesType] = useState<ChartSeriesType>('candlestick');
   const [showVolume, setShowVolume] = useState(true);
   const [live, setLive] = useState(true);
+  const [livePrice, setLivePrice] = useState<number | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const coin: TradeCoin | null = useMemo(
     () => TRADE_COINS.find((c) => c.symbol === symbol) ?? null,
     [symbol]
   );
+
+  const bumpRefresh = useCallback(() => setRefreshTrigger((n) => n + 1), []);
+
+  const { addWorkingOrder, removeWorkingOrder } = useOrderTriggers({
+    symbol,
+    livePrice,
+    onTriggered: bumpRefresh,
+  });
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -59,7 +72,7 @@ export default function ChartsPage() {
       className="min-h-screen transition-colors duration-200 px-4 py-6 sm:px-6 lg:px-8"
       data-testid="advanced-chart-page"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <button type="button" onClick={handleBack} className={backBtn}>
             ← Back
@@ -153,13 +166,33 @@ export default function ChartsPage() {
           </div>
         </div>
 
-        <AdvancedChart
-          coin={coin}
-          intervalId={intervalId}
-          seriesType={seriesType}
-          showVolume={showVolume}
-          live={live}
-        />
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
+          <div className="flex flex-col gap-4">
+            <AdvancedChart
+              coin={coin}
+              intervalId={intervalId}
+              seriesType={seriesType}
+              showVolume={showVolume}
+              live={live}
+              onPriceUpdate={setLivePrice}
+            />
+            <TradeOrdersTabs
+              marketType="spot"
+              refreshTrigger={refreshTrigger}
+              onCancelOrder={removeWorkingOrder}
+            />
+          </div>
+
+          <div>
+            <TradeOrderEntry
+              selectedCoin={coin}
+              marketType="spot"
+              currentPrice={livePrice ?? undefined}
+              onOrderSubmitted={bumpRefresh}
+              onOrderCreated={addWorkingOrder}
+            />
+          </div>
+        </div>
       </div>
     </main>
   );

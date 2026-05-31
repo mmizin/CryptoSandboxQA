@@ -10,11 +10,14 @@ import { type TradeCoin } from '@/lib/tradeMockData';
 import { SubmitLoadingBar } from '@/components/SubmitLoadingBar';
 import { awaitMinElapsedSince } from '@/lib/submitLoadingMinDuration';
 import { ordersApi, walletsApi } from '@/lib/api';
+import { type WorkingOrder } from '@/lib/orderTriggers';
 
 interface TradeOrderEntryProps {
   selectedCoin: TradeCoin | null;
   marketType?: 'spot' | 'futures';
+  currentPrice?: number;
   onOrderSubmitted?: () => void;
+  onOrderCreated?: (order: WorkingOrder) => void;
 }
 
 const buttonBase =
@@ -23,7 +26,7 @@ const buttonBase =
 const submitButtonSell =
   'rounded-lg px-4 py-2 text-sm font-medium border-0 outline-none focus:outline-none bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-500/50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
 
-export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubmitted }: TradeOrderEntryProps) {
+export function TradeOrderEntry({ selectedCoin, marketType = 'spot', currentPrice: currentPriceProp, onOrderSubmitted, onOrderCreated }: TradeOrderEntryProps) {
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('');
@@ -49,7 +52,7 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
       .catch(() => setBalances({}));
   }, [success]); // Refetch after successful order
 
-  const currentPrice = selectedCoin?.price ?? 0;
+  const currentPrice = currentPriceProp ?? selectedCoin?.price ?? 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,11 +65,6 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
     }
 
     const symbol = selectedCoin.symbol.toUpperCase();
-
-    if (orderType === 'stop-limit') {
-      setError('Stop-limit orders are not yet supported. Use limit order.');
-      return;
-    }
 
     const state: OrderFormState = {
       orderType,
@@ -96,18 +94,34 @@ export function TradeOrderEntry({ selectedCoin, marketType = 'spot', onOrderSubm
         ? Math.round((parseFloat(amount) / currentPrice) * 1e8) / 1e8
         : parseFloat(amount);
 
+    const apiType = orderType === 'stop-limit' ? 'stop' : orderType;
+
     setSubmitLoading(true);
     const submitStartedAt = Date.now();
     try {
-      await ordersApi.create({
+      const created = await ordersApi.create({
         symbol: `${symbol}_USD`,
         side,
-        type: orderType,
+        type: apiType,
         quantity,
-        price: orderType === 'limit' ? parseFloat(price) : undefined,
+        price: (orderType === 'limit' || orderType === 'stop-limit') ? parseFloat(price) : undefined,
+        stopPrice: orderType === 'stop-limit' ? parseFloat(stopPrice) : undefined,
         marketType,
         initialStatus: initialStatus !== 'open' ? initialStatus : undefined,
-      });
+      }) as { id: string };
+
+      if ((orderType === 'limit' || orderType === 'stop-limit') && initialStatus === 'open' && onOrderCreated) {
+        onOrderCreated({
+          id: created.id,
+          symbol,
+          side,
+          orderType: apiType as 'limit' | 'stop',
+          price: orderType === 'limit' || orderType === 'stop-limit' ? parseFloat(price) : null,
+          stopPrice: orderType === 'stop-limit' ? parseFloat(stopPrice) : null,
+          quantity,
+        });
+      }
+
       setSuccess('Order placed successfully');
       setAmount('');
       setPrice('');

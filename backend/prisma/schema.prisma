@@ -211,9 +211,10 @@ model Order {
   marketType      String    @default("spot") @map("market_type") // spot, futures
   symbol          String
   side            String // buy, sell
-  orderType       String    @map("order_type") // limit, market
+  orderType       String    @map("order_type") // limit, market, stop
   quantity        Decimal   @db.Decimal(30, 8)
   price           Decimal?  @db.Decimal(30, 8)
+  stopPrice       Decimal?  @map("stop_price") @db.Decimal(30, 8)
   filledQuantity  Decimal   @default(0) @map("filled_quantity") @db.Decimal(30, 8)
   orderStatus     String    @default("open") @map("order_status") // open, partially_filled, filled, cancelled, rejected, expired
   failureReason   String?   @map("failure_reason")

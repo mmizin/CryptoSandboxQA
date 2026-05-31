@@ -342,7 +342,7 @@ export const ordersApi = {
     const q = new URLSearchParams(filtered as Record<string, string>).toString();
     return api<{ data: unknown[]; total: number }>(`/orders${q ? `?${q}` : ''}`);
   },
-  create: (data: { symbol: string; side: string; type: string; quantity: number; price?: number; marketType?: string; initialStatus?: string }) =>
+  create: (data: { symbol: string; side: string; type: string; quantity: number; price?: number; stopPrice?: number; marketType?: string; initialStatus?: string }) =>
     api('/orders', { method: 'POST', body: JSON.stringify(data) }),
   cancel: (orderId: string) =>
     api(`/orders/${orderId}/cancel`, { method: 'POST' }),

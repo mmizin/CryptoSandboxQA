@@ -36,6 +36,7 @@ export class OrdersController {
       type: dto.type,
       quantity: dto.quantity,
       price: dto.price,
+      stopPrice: dto.stopPrice,
       marketType: dto.marketType,
       initialStatus: dto.initialStatus,
     },

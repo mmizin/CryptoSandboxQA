@@ -27,6 +27,7 @@ interface AdvancedChartProps {
   seriesType: ChartSeriesType;
   showVolume: boolean;
   live: boolean;
+  onPriceUpdate?: (price: number) => void;
 }
 
 const UP_COLOR = '#10b981';
@@ -52,7 +53,7 @@ function themeColors(theme: 'dark' | 'light') {
 
 type Readout = { open: number; high: number; low: number; close: number } | null;
 
-export function AdvancedChart({ coin, intervalId, seriesType, showVolume, live }: AdvancedChartProps) {
+export function AdvancedChart({ coin, intervalId, seriesType, showVolume, live, onPriceUpdate }: AdvancedChartProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -193,7 +194,8 @@ export function AdvancedChart({ coin, intervalId, seriesType, showVolume, live }
     const last = candles[candles.length - 1];
     setLastClose(last ? last.close : null);
     setReadout(last ? { open: last.open, high: last.high, low: last.low, close: last.close } : null);
-  }, [coin, intervalId, seriesType, showVolume]);
+    if (last) onPriceUpdate?.(last.close);
+  }, [coin, intervalId, seriesType, showVolume]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Re-theme without rebuilding --------------------------------------
   useEffect(() => {
@@ -236,6 +238,7 @@ export function AdvancedChart({ coin, intervalId, seriesType, showVolume, live }
       }
       setLastClose(candle.close);
       setReadout({ open: candle.open, high: candle.high, low: candle.low, close: candle.close });
+      onPriceUpdate?.(candle.close);
     }, LIVE_TICK_MS);
     return () => window.clearInterval(id);
   }, [live, coin, intervalId, seriesType, showVolume]);
