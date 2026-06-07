@@ -1,68 +1,110 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for working in CryptoSandboxQA — a full-stack crypto exchange sandbox for QA training.
 
-## Project overview
+**Stack:** NestJS backend (port 3001), Next.js frontend (port 3000), PostgreSQL, Prisma ORM, Socket.IO realtime. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full module breakdown and [`knowledge/llm-wiki/`](knowledge/llm-wiki/wiki/00-START-HERE.md) for testing setup.
 
-CryptoSandboxQA is a full-stack crypto exchange training sandbox for QA practice. Stack: NestJS backend (port 3001), Next.js frontend (port 3000), PostgreSQL, Prisma ORM, Socket.IO; Playwright UI tests under `tests/ui-tests/`; pytest API tests under `tests/backend_tests/`.
+## Quick start
 
-## Setup and run
-
+**One-time setup:**
 ```bash
-# One-time setup
 npm install
-npm run db:up        # start Postgres + Mailpit (Docker)
-npm run setup        # copy .env, run migrations, seed baseline data
-
-# Day-to-day
-npm run dev          # backend + frontend
-npm run stack:up     # full observability stack (+ Prometheus, Grafana)
+npm run db:up                # Start PostgreSQL + Mailpit
+npm run setup                # Copy .env, run migrations, seed baseline
 ```
 
+**Daily development:**
+```bash
+npm run dev                  # Concurrent backend + frontend
+npm run db:down              # Stop containers (keep volumes)
+npm run db:reset             # Full reset with volume deletion
+npm run db:seed              # Seed demo users beyond baseline
+npm run db:migrate           # Interactive Prisma migrations
+npm run prisma:studio        # Inspect database (localhost:5555)
+npm run openapi:generate     # Regenerate OpenAPI spec after API changes
+npm run stack:up             # Full stack with Prometheus + Grafana
+npm run stack:down           # Stop observability stack
+```
 
+**Testing:**
+- `/run-ui-tests @auth` — Playwright by feature tag
+- `/run-backend-tests @orders` — pytest by marker
+- View reports: `allure-results/` (auto-generated)
 
-## Environment loading (non-obvious)
+## How to work here
 
-NestJS loads **repo root `.env`** even though the backend process runs from `backend/` — `ConfigModule` walks up to the root. Do not put `DATABASE_URL` or `SMTP_*` only in `backend/.env`; put them in the repo-root `.env`.
+**1. State assumptions explicitly.** Don't assume. Surface tradeoffs immediately. Ask if unclear. For non-trivial changes, create a plan file.
 
-Playwright loads: repo root `.env` → `tests/ui-tests/.env` (overrides).
-pytest loads: repo root `.env` → `tests/backend_tests/.env` (overrides), via `utils/env_loader.py`.
+**2. Simplicity first.** Minimum code that solves the problem. No speculative features, abstractions for single-use, error handling for impossible scenarios, or "flexibility" that wasn't requested.
 
-## Non-obvious behavior
+**3. Surgical changes only.** Touch only what your task requires. Don't "improve" adjacent code, refactor unrelated modules, or delete pre-existing dead code (mention it instead). Your test: every changed line traces to the user's request.
 
-**Simulated persistence delay:** Orders and deposits wait `SIMULATED_PERSIST_DELAY_MS` (default 1200 ms) after validation but before the DB write — intentional training UX. Set `SIMULATED_PERSIST_DELAY_MS=0` to disable in tests.
+**4. No auto-commits.** Wait for explicit instruction before committing or pushing.
 
-**Order lock mechanics:** Placing an order locks funds in `user_balances.balance_locked` (sell → base qty; buy → quote value). Settlement via `WalletsService.settle*InTx`. The `balance_transactions` table records `order_lock` / `order_unlock` events.
+## Key patterns & non-obvious behavior
 
-**Email without SMTP:** If `SMTP_HOST` is not set, `MailService` logs the full message body to the backend terminal instead of sending. Add `SMTP_HOST=localhost` + `SMTP_PORT=1025` in root `.env` for Mailpit.
+**Order lifecycle & locking:** Order creation validates amounts and balance, locks funds in `user_balances.balance_locked` (sell order locks base qty; buy order locks quote value ≈ qty × limit price, or market price for market buys), waits `SIMULATED_PERSIST_DELAY_MS` (default 1200ms, env var — set to 0 for fast tests), writes to DB, matches orders via FIFO, settles via `WalletsService.settle*InTx` (moves locked → available). Lock/unlock events logged in `balance_transactions` as `order_lock` / `order_unlock` records. This mechanics is **critical for testing** — verify balances before and after order flows.
 
-**Socket.IO realtime:** Ticker namespace is `/ticker`; frontend subscribes to last price + 24h volume per trading pair.
+**Stop orders:** Stored on backend with `stop_price` field. Buy stop triggers when `price >= stopPrice`; sell stop when `price <= stopPrice`, then converts to market order. **Frontend must stay open** — no server-side trigger. See `.claude/rules/frontend.md` for frontend implementation details.
 
-**Prisma migrations:** `npm run setup` uses `prisma db push` (no migration files) for local bootstrap. Use `prisma migrate dev` for named migrations; `prisma migrate deploy` for production.
+**Simulated persistence delay:** Intentional training UX. Orders and deposits wait `SIMULATED_PERSIST_DELAY_MS` (default 1200ms) between validation and DB write, mimicking gateway/settlement lag. Set `SIMULATED_PERSIST_DELAY_MS=0` in `.env` to disable for fast test loops.
 
-## Knowledge base
+**Admin operations:** Impersonate a user: `POST /auth/impersonate` (body: `userId`) returns JWT for that user; `POST /auth/end-impersonation` restores. Bulk import users: `POST /auth/admin/bulk-import-users` (multipart) accepts CSV or JSON with same columns as single create. Query user data: `GET /admin/users/:userId/wallets`, `/orders`, `/deposits`, `/portfolio`, `/transactions`, etc.
 
-@knowledge/llm-wiki/wiki/00-START-HERE.md
+**Email & SMTP:** If `SMTP_HOST` unset, `MailService` logs message body to backend terminal instead of sending. For Mailpit (SMTP mock): set `SMTP_HOST=localhost SMTP_PORT=1025` in repo-root `.env`. Mailpit UI at `localhost:8025`.
 
-Deep-dive references (read when the task touches that area):
-- `docs/QA_TESTING_FEATURES.md` — test surfaces, selectors, form validation rules, timing quirks, iframe practice
-- `docs/API_DESIGN_PLAN.md` — API design conventions and endpoint descriptions
-- `docs/DATABASE_DESIGN_PROPOSAL.md` — DB schema rationale and table relationships
-- `openapi.json` (repo root) — static OpenAPI spec; regenerate with `npm run openapi:generate`
+## Common workflows
+
+See `.claude/rules/backend.md` for API endpoint and Prisma workflows. See `.claude/rules/tests.md` for test running workflows.
+
+**Inspect the database:**
+- Interactive: `cd backend && npm run prisma:studio` → `http://localhost:5555` (web UI to view/edit all records)
+- Direct query: `docker exec crypto-postgres psql -U postgres` (requires SQL knowledge; useful for complex queries)
+- Check current balances: `SELECT user_id, asset, balance, balance_locked FROM user_balances;`
+
+**Create and manage admin users:**
+- Create: `POST /auth/admin/create-user` (requires `ADMIN_API_KEY` in `.env`); payload matches single user create DTO
+- Impersonate: `POST /auth/impersonate` (body: `{ userId: "..." }`) → returns JWT for that user (no password needed); `POST /auth/end-impersonation` to restore
+- List: `GET /users` (admin-only endpoint, returns paginated users)
+- Export: `GET /users/bulk/export?format=json&limit=100` (exports user data without passwords)
+- Bulk import: `POST /auth/admin/bulk-import-users` (multipart, CSV/JSON with same columns: email, password, firstName, lastName, username, etc.)
 
 ## Git workflow
 
-- **Branch naming:** `type/description` (e.g. `feat/2fa-login`, `test/orders-validation`, `fix/wallet-lock`).
-- **Do not commit automatically** after finishing work — wait for explicit instruction.
-- **PRs target `master`** unless told otherwise. Do not merge until the user explicitly approves.
-- **After merge:** `git fetch origin && git checkout master && git pull origin master`, then delete the feature branch.
-- **One feature branch at a time.** Ask before switching or starting another branch while work is in progress.
+- **Branch naming:** `type/description` (e.g. `feat/stop-orders`, `fix/order-lock`, `test/deposit-validation`)
+- **No auto-commit:** Wait for explicit instruction before committing
+- **PRs target `master`:** Don't merge until user approves
+- **After merge:** `git fetch origin && git checkout master && git pull origin master`, then delete the feature branch
+- **One branch at a time:** Ask before switching branches mid-work
 
-## Do not add tests unless explicitly asked
+## Knowledge base
 
-Do not create, extend, or modify automated tests unless the user explicitly requests it. This applies to all test types (unit, API, E2E).
+Most-used references:
+- **Architecture & modules:** [`ARCHITECTURE.md`](ARCHITECTURE.md) — backend module diagrams, frontend stack, data flows
+- **Testing setup & patterns:** [`knowledge/llm-wiki/wiki/00-START-HERE.md`](knowledge/llm-wiki/wiki/00-START-HERE.md) — navigation hub for all test docs
+- **API design:** [`docs/API_DESIGN_PLAN.md`](docs/API_DESIGN_PLAN.md) — endpoint conventions, request/response shapes
+- **Database schema:** [`docs/DATABASE_DESIGN_PROPOSAL.md`](docs/DATABASE_DESIGN_PROPOSAL.md) — table relationships, constraints
+- **Code style:** [`docs/CODE_STYLE_READABILITY.md`](docs/CODE_STYLE_READABILITY.md) — naming, patterns, examples
+- **QA testing:** [`docs/QA_TESTING_FEATURES.md`](docs/QA_TESTING_FEATURES.md) — test surfaces, selectors, form rules, timing quirks
+- **OpenAPI spec:** [`openapi.json`](openapi.json) — regenerate with `npm run openapi:generate` after API changes
 
-## Backend: Prisma migration reminder
+## Troubleshooting & common issues
 
-When a feature change adds or alters Prisma models, flag that `cd backend && npm run prisma:migrate` (interactive) is needed before the change can be used. Production uses `prisma migrate deploy`.
+**Port conflicts:** Backend wants 3001, frontend wants 3000, Postgres wants 5432, Mailpit wants 1025. If already in use, check `npm run db:down` or kill processes. `lsof -i :3001` on macOS/Linux.
 
+**Migrations failing:** If `npm run prisma:migrate` fails, check that migrations are in `backend/prisma/migrations/` and database is running (`npm run db:up`). Can't rollback in `db push` mode; use `db reset` for local dev.
+
+**Tests hanging:** If Playwright tests hang, check `PLAYWRIGHT_BASE_URL` in `.env` is correct (usually `http://localhost:3000`). If API tests hang, confirm backend is running and `API_URL` points to correct host (usually `http://localhost:3001`).
+
+**Balance mismatches:** Orders lock funds in `balance_locked`. Verify flow: locked → DB write → match → settle. Check `balance_transactions` table for `order_lock` / `order_unlock` / `order_fill` events. If balance seems wrong, inspect via Prisma Studio.
+
+**Email not sending:** If `SMTP_HOST` is unset, mail goes to backend logs, not inbox. Check backend terminal or add Mailpit: `SMTP_HOST=localhost SMTP_PORT=1025` in `.env`.
+
+**Schema out of sync:** After pulling code with Prisma changes, run `npm run db:migrate` (if migrations exist) or `npm run setup` (if using `db push`).
+
+## Policies
+
+- **No refactoring of unrelated code.** If adjacent code looks bad, mention it in your summary — don't fix it.
+- **Commit only on explicit request.** Never commit or push without being asked.
+
+See `.claude/rules/tests.md` for test creation policies.
