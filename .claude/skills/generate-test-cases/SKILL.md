@@ -32,6 +32,7 @@ Use this checklist to track progress through test case creation:
 - [ ] **Step 3:** Define test cases
 - [ ] **Step 4:** Format for target framework
 - [ ] **Step 5:** Save and tag test cases
+- [ ] **Step 5a:** Test cases written to folder destination
 - [ ] **Step 6:** Review and validate
 
 ---
