@@ -2,7 +2,7 @@
 
 Guidance for working in CryptoSandboxQA — a full-stack crypto exchange sandbox for QA training.
 
-**Stack:** NestJS backend (port 3001), Next.js frontend (port 3000), PostgreSQL, Prisma ORM, Socket.IO realtime. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full module breakdown and [`knowledge/llm-wiki/`](knowledge/llm-wiki/wiki/00-START-HERE.md) for testing setup.
+**Stack:** NestJS backend (port 3001), Next.js frontend (port 3000), PostgreSQL, Prisma ORM, Socket.IO realtime. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full module breakdown.
 
 ## Quick start
 
@@ -25,11 +25,6 @@ npm run openapi:generate     # Regenerate OpenAPI spec after API changes
 npm run stack:up             # Full stack with Prometheus + Grafana
 npm run stack:down           # Stop observability stack
 ```
-
-**Testing:**
-- `/run-ui-tests @auth` — Playwright by feature tag
-- `/run-backend-tests @orders` — pytest by marker
-- View reports: `allure-results/` (auto-generated)
 
 ## How to work here
 
@@ -55,7 +50,7 @@ npm run stack:down           # Stop observability stack
 
 ## Common workflows
 
-See `.claude/rules/backend.md` for API endpoint and Prisma workflows. See `.claude/rules/tests.md` for test running workflows.
+See `.claude/rules/backend.md` for API endpoint and Prisma workflows.
 
 **Inspect the database:**
 - Interactive: `cd backend && npm run prisma:studio` → `http://localhost:5555` (web UI to view/edit all records)
@@ -81,11 +76,9 @@ See `.claude/rules/backend.md` for API endpoint and Prisma workflows. See `.clau
 
 Most-used references:
 - **Architecture & modules:** [`ARCHITECTURE.md`](ARCHITECTURE.md) — backend module diagrams, frontend stack, data flows
-- **Testing setup & patterns:** [`knowledge/llm-wiki/wiki/00-START-HERE.md`](knowledge/llm-wiki/wiki/00-START-HERE.md) — navigation hub for all test docs
 - **API design:** [`docs/API_DESIGN_PLAN.md`](docs/API_DESIGN_PLAN.md) — endpoint conventions, request/response shapes
 - **Database schema:** [`docs/DATABASE_DESIGN_PROPOSAL.md`](docs/DATABASE_DESIGN_PROPOSAL.md) — table relationships, constraints
 - **Code style:** [`docs/CODE_STYLE_READABILITY.md`](docs/CODE_STYLE_READABILITY.md) — naming, patterns, examples
-- **QA testing:** [`docs/QA_TESTING_FEATURES.md`](docs/QA_TESTING_FEATURES.md) — test surfaces, selectors, form rules, timing quirks
 - **OpenAPI spec:** [`openapi.json`](openapi.json) — regenerate with `npm run openapi:generate` after API changes
 
 ## Troubleshooting & common issues
@@ -93,8 +86,6 @@ Most-used references:
 **Port conflicts:** Backend wants 3001, frontend wants 3000, Postgres wants 5432, Mailpit wants 1025. If already in use, check `npm run db:down` or kill processes. `lsof -i :3001` on macOS/Linux.
 
 **Migrations failing:** If `npm run prisma:migrate` fails, check that migrations are in `backend/prisma/migrations/` and database is running (`npm run db:up`). Can't rollback in `db push` mode; use `db reset` for local dev.
-
-**Tests hanging:** If Playwright tests hang, check `PLAYWRIGHT_BASE_URL` in `.env` is correct (usually `http://localhost:3000`). If API tests hang, confirm backend is running and `API_URL` points to correct host (usually `http://localhost:3001`).
 
 **Balance mismatches:** Orders lock funds in `balance_locked`. Verify flow: locked → DB write → match → settle. Check `balance_transactions` table for `order_lock` / `order_unlock` / `order_fill` events. If balance seems wrong, inspect via Prisma Studio.
 
@@ -106,5 +97,3 @@ Most-used references:
 
 - **No refactoring of unrelated code.** If adjacent code looks bad, mention it in your summary — don't fix it.
 - **Commit only on explicit request.** Never commit or push without being asked.
-
-See `.claude/rules/tests.md` for test creation policies.

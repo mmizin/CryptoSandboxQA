@@ -9,7 +9,6 @@
 - [Tech stack](#tech-stack)
 - [Quick start](#quick-start)
 - [Documentation](#documentation)
-- [Testing & automation](#testing--automation)
 - [Docker Compose (full stack with observability)](#docker-compose-full-stack-with-observability)
 - [Detailed setup](#detailed-setup)
 - [Usage](#usage)
@@ -60,39 +59,13 @@ After `setup`, add **SMTP** lines to the **repository root** `.env` if you want 
 | Doc | What it is |
 |-----|------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Repository layout, Nest modules, auth, realtime, env loading, and how pieces fit together. |
-| [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) | Purpose-built QA surfaces: `data-testid` maps, client/API validation, Mailpit flows, iframe practice, Portfolio Analytics, simulated delays, Markets modals. |
 | [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) | Naming and extracting locals for request bodies and similar call arguments; templates in [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md). |
 | [openapi.json](openapi.json) | Static OpenAPI spec (import into Postman, Insomnia, etc.) without running the backend. |
 | [docs/API_DESIGN_PLAN.md](docs/API_DESIGN_PLAN.md) | Design-time API notes and history (see banner in file; current behavior is in ARCHITECTURE and Swagger). |
 | [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) | Schema rationale and history; **source of truth** for tables is `backend/prisma/schema.prisma`. |
 | [LICENSE](LICENSE) | License for the project. |
 
-This [README](#cryptosandboxqa) is the entry point; use the table of contents above to jump to setup, testing, and env reference.
-
----
-
-## Testing & automation
-
-Use the running app plus the artifacts below to practice **manual**, **API**, **email**, **E2E**, and **performance** testing.
-
-- **Browser E2E (Playwright)** — The repo includes [`tests/ui-tests/`](tests/ui-tests/) (`@playwright/test`, Allure reporter in [`playwright.config.ts`](tests/ui-tests/playwright.config.ts)). From the project root, install and run:
-
-  ```bash
-  cd tests/ui-tests
-  npm install
-  cp .env.example .env   # optional: set PLAYWRIGHT_BASE_URL / BASE_URL (default http://localhost:3000)
-  npx playwright test
-  ```
-
-  Config loads the **repository root** `.env` first, then **`tests/ui-tests/.env`** (overrides). Start the app (`npm run dev` from the repo root) before running tests. Contributors can align tags (`@smoke`, `@merge-gate`, `@client-validation`) with [`.cursor/rules/playwright-ui-tests.mdc`](.cursor/rules/playwright-ui-tests.mdc).
-
-- **API contract testing** — Interactive [Swagger UI](http://localhost:3001/api/docs) when the backend is up; static spec in [`openapi.json`](openapi.json). Regenerate after API changes: `npm run openapi:generate` (see [OpenAPI (Swagger)](#openapi-swagger)).
-
-- **Transactional email** — [Mailpit](http://localhost:8025) for password reset, welcome, orders, deposits. Configure SMTP in the repo root `.env` (see [Password reset & Mailpit](#password-reset--mailpit-dev)).
-
-- **Load / metrics** — `npm run stack:up` exposes Prometheus and Grafana for scraping and dashboards (see [Docker Compose](#docker-compose-full-stack-with-observability)).
-
-Hands-on feature catalog for selectors and flows: **[docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md)**.
+This [README](#cryptosandboxqa) is the entry point; use the table of contents above to jump to setup and env reference.
 
 ---
 
@@ -244,8 +217,6 @@ npm run frontend:dev  # Frontend on port 3000
 5. **Forgot password:** [Forgot password?](http://localhost:3000/forgot-password) → get an **8-digit code** (Mailpit or backend log) → [reset password](http://localhost:3000/reset-password) → sign in with the new password  
 6. **Other mail (with SMTP / Mailpit):** after **register**, **place/cancel/fill orders**, or **deposit** fiat/crypto (or training credit), check Mailpit for the matching notification — or the API log if `SMTP_HOST` is unset (same behavior as reset; see [Password reset & Mailpit](#password-reset--mailpit-dev)).
 
-For a structured list of QA surfaces and skills, see **[docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md)** and [Testing & automation](#testing--automation) above.
-
 ---
 
 ## Password reset & Mailpit (dev)
@@ -261,8 +232,7 @@ Mailpit and `SMTP_*` / `MAIL_FROM` drive **all** backend mail: reset codes, welc
 
 - **No SMTP:** leave `SMTP_HOST` unset — the backend **logs** the full message (reset codes, welcome, order, deposit bodies — each prefixed in logs); check the terminal running the API.
 - **Typo trap:** the variable must be **`SMTP_HOST`**, not `MTP_HOST`.
-- **Transactional mail checklist:** [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) § *Transactional email (welcome, orders, deposits)*.
-- **Details:** [ARCHITECTURE.md](ARCHITECTURE.md) (password reset, transactional mail, env loading), [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (API, troubleshooting, automation).
+- **Details:** [ARCHITECTURE.md](ARCHITECTURE.md) (password reset, transactional mail, env loading).
 
 ---
 
@@ -309,4 +279,4 @@ Use the Swagger UI "Authorize" button to add your JWT token (from login) to test
 npm run openapi:generate
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for full architecture details. For the documentation index and testing overview, see [Documentation](#documentation) and [Testing & automation](#testing--automation) at the top of this README.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for full architecture details. For the documentation index, see [Documentation](#documentation) at the top of this README.

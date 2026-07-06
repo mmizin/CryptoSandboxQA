@@ -89,6 +89,19 @@
     "BASH_DEFAULT_TIMEOUT_MS": "120000"
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.' 2>/dev/null | grep -qiE '(api.?key|api.?secret|password|passwd|secret|token|bearer|aws_|authorization|private.?key|client.?secret|oauth)' && echo '{\"systemMessage\":\"⚠️  Warning: Possible sensitive data detected in your prompt (API keys, passwords, tokens, secrets, etc.). Please review before submitting.\"}' || true",
+            "timeout": 5,
+            "statusMessage": "Checking for sensitive data..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "*",
