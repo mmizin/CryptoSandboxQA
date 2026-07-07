@@ -16,17 +16,9 @@ This document is for **QA engineers, testers, and engineers** who want a realist
 
 This document lists **purpose-built surfaces** in CryptoSandboxQA for manual checks and automation practice (selectors, frames, API-backed flows). Add a new section here whenever you introduce another training or testability feature.
 
-### In-repo Playwright (E2E)
-
-The repository ships **Playwright** tests under [`tests/ui-tests/`](../tests/ui-tests/). Configuration loads the repo root `.env` then [`tests/ui-tests/.env`](../tests/ui-tests/.env) (see [`playwright.config.ts`](../tests/ui-tests/playwright.config.ts)); set `PLAYWRIGHT_BASE_URL` or `BASE_URL` for the app origin. Run from `tests/ui-tests/` with `npm install` and `npx playwright test`. Reports use **Allure** (`allure-playwright` in config). Specs may add **`allure-js-commons`** metadata per [`.cursor/skills/allure-reporting/SKILL.md`](../.cursor/skills/allure-reporting/SKILL.md). Tag vocabulary for contributors (`@smoke`, `@merge-gate`, `@client-validation`, …) lives in [`.cursor/rules/playwright-ui-tests.mdc`](../.cursor/rules/playwright-ui-tests.mdc). Optional **API-shaped TypeScript types** (users, markets/cryptos, orders, balances, payments) are exported from [`tests/ui-tests/src/models/index.ts`](../tests/ui-tests/src/models/index.ts). For setup from the repo root, see [README § Testing & automation](../README.md#testing--automation).
-
-### In-repo pytest (API / integration)
-
-**Python** HTTP tests live under [`tests/backend_tests/`](../tests/backend_tests/). Install with `python3 -m pip install -e .` from that directory, configure **`API_URL`** (and related keys) via the repo root `.env` / `tests/backend_tests/.env`. Run e.g. `pytest -m smoke`. **Allure:** `allure-pytest` writes results to `allure-results` by default (`pytest.ini` `addopts`); patterns and hierarchies are in [`.cursor/skills/allure-reporting/SKILL.md`](../.cursor/skills/allure-reporting/SKILL.md). Marker vocabulary matches Playwright tags: [`.cursor/rules/pytest-backend-api-tests.mdc`](../.cursor/rules/pytest-backend-api-tests.mdc).
-
 ### API list pagination (requests & responses)
 
-Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`openapi.json`](../openapi.json). For typing automation, shared envelopes **`Paginated`** / **`PaginatedMeta`** live in [`tests/ui-tests/src/models/pagination.types.ts`](../tests/ui-tests/src/models/pagination.types.ts) (re-exported from the models barrel).
+Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`openapi.json`](../openapi.json).
 
 ---
 
@@ -83,14 +75,10 @@ These screens already use **feature-specific** validation modules (ranges, IBAN,
 | Calculator | [`calculatorValidation.ts`](../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
 | 2FA modal | [`twoFactorValidation.ts`](../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
 
-### Automation (when you add tests)
-
-- Assert on **`data-testid`** and the exact **error strings** from `AuthMessages` and the dashboard / deposit validators in the tables above. If you change copy in [`authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts), update any tests in the same change.
-
 ### API vs client
 
 - **Client validation** blocks submit and shows inline errors (no network call for that submit).
-- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** — see [`tests/ui-tests/tests/e2e/login.spec.ts`](../tests/ui-tests/tests/features/auth/login.spec.ts) for invalid-credentials server responses.
+- **Invalid data that passes client checks** (e.g. wrong login password) still returns **API errors** via the API response (e.g. 401 Unauthorized for wrong credentials).
 
 ---
 
@@ -182,18 +170,7 @@ The app serves a **same-origin** training form inside an iframe so you can pract
 - **Page:** [http://localhost:3000/qa/iframe-practice](http://localhost:3000/qa/iframe-practice)
 - **Embedded document:** `/qa/iframe-form.html` (static file under [`frontend/public/qa/`](../frontend/public/qa/))
 
-**Playwright sketch** (same API as in [`tests/ui-tests/`](../tests/ui-tests/); add a spec under that package or run ad hoc):
-
-```ts
-const frame = page.frameLocator('[data-testid="practice-iframe"]');
-await frame.getByTestId('iframe-email').fill('qa@example.com');
-await frame.getByTestId('iframe-amount').fill('100');
-await frame.getByTestId('iframe-terms').check();
-await frame.getByTestId('iframe-submit').click();
-await expect(frame.getByTestId('iframe-success')).toBeVisible();
-```
-
-**Selenium / Cypress:** switch to the frame (or use frame-scoped queries), then locate by the same `data-testid` or by label (`Email`, `Amount (USD)`, etc.).
+**Playwright / Selenium / Cypress:** For frame automation, switch to the frame (or use frame-scoped queries), then locate by the same `data-testid` or by label (`Email`, `Amount (USD)`, etc.). Use `frameLocator()` in Playwright or frame-scoped selectors in other tools.
 
 ---
 

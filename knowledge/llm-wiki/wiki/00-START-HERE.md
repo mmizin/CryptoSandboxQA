@@ -2,7 +2,7 @@
 
 **Canonical architecture:** [`ARCHITECTURE.md`](../../../ARCHITECTURE.md)
 
-This file is the **map of content (MOC)** — use it to choose a thin overview page before opening large trees in `backend/`, `frontend/`, or `tests/`.
+This file is the **map of content (MOC)** — use it to choose a thin overview page before opening large trees in `backend/` or `frontend/`.
 
 ## Navigate by problem
 
@@ -13,10 +13,6 @@ This file is the **map of content (MOC)** — use it to choose a thin overview p
 | Jump by repo path | [`index-by-repo-path.md`](index-by-repo-path.md) |
 | Backend modules & flows | [`map-backend.md`](map-backend.md) |
 | Frontend app structure | [`map-frontend.md`](map-frontend.md) |
-| Playwright harness & tags | [`map-tests-ui.md`](map-tests-ui.md) |
-| Python API tests & clients | [`map-tests-backend.md`](map-tests-backend.md) |
-| Same feature across API + UI tests | [`map-testing-by-capability.md`](map-testing-by-capability.md) |
-| Allure HTML reports (pytest + Playwright metadata) | [`.cursor/skills/allure-reporting/SKILL.md`](../../../.cursor/skills/allure-reporting/SKILL.md) |
 
 ## Optional Obsidian wikilinks
 
