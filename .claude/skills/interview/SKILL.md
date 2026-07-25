@@ -34,7 +34,7 @@ Idea author (PM / Eng / CTO / anyone). Tech Lead joins at multi-perspective revi
 - «intake feature <slug>», «start new feature with CONTEXT», «full intake for <slug>».
 - `/sdlc-interview <slug>` as explicit invocation.
 - User drops a raw idea in prose and asks «format this per SDLC» / «run ideation for <slug>».
-- Glossary-aware: on start the skill reads `CONTEXT.md` if it exists (repo root or `docs/features/<slug>/`), keeps the glossary as session state, and triggers `sdlc:fix-term` inline for new domain terms.
+- Glossary-aware: on start the skill reads `docs-new/foundation/GLOSSARY.md` if it exists, keeps the glossary as session state, and appends new domain terms to it directly.
 - Skip if `docs/features/<slug>/idea-brief.md` already exists with `status: Confirmed` and is fresh (≤2 weeks) — update it first, don't rewrite.
 
 ## Inputs
@@ -84,7 +84,7 @@ Each `AskUserQuestion` in this skill (Phases 1, 2, 9, 10, 11) is formulated so t
 ### 0. Pre-plan setup (read-only)
 
 - **Read** `./templates/idea-brief.md` — load the skeleton into session memory (NO copy yet).
-- **Read** `CONTEXT.md` (root and `docs/features/<slug>/` if exists) — load the `## Glossary` into session state.
+- **Read** `docs-new/foundation/GLOSSARY.md` (if it exists) — load the glossary into session state.
 - **Verify** `docs/features/<slug>/idea-brief.md` does not exist with `status: Confirmed` (else: skip, update existing).
 - **NO Write / Edit / mkdir.** Setup becomes one of the steps in the plan, which will be executed in Phase 12.
 
@@ -103,9 +103,9 @@ Pick 3-5 questions from 5 categories based on idea-shape:
 
 Delivery: AskUserQuestion in batches of 2-3 (not all-at-once).
 
-### 3. Glossary capture (deferred fix-term)
+### 3. Glossary capture (deferred)
 
-For each new domain term in user responses — add the term to the session-state list `pending_glossary_terms`. **Do not call** `sdlc:fix-term` now — it would write to CONTEXT.md, which is not allowed in planning mode. Skip generic tech terms (HTTP, JSON, queue, cache, database). Terms are applied in Phase 12 (post-ExitPlanMode) before writing idea-brief.md.
+For each new domain term in user responses — add the term to the session-state list `pending_glossary_terms`. **Do not write** to GLOSSARY.md now — Write/Edit is not allowed in planning mode. Skip generic tech terms (HTTP, JSON, queue, cache, database). Terms are applied in Phase 12 (post-ExitPlanMode) before writing idea-brief.md.
 
 ### 4. Competitive research (Claude-driven, read-only)
 
@@ -194,7 +194,7 @@ Everything above exists in session memory only. Now the skill **calls `ExitPlanM
 
 1. Create directory `docs/features/<slug>/` (if absent).
 2. Copy template `./templates/idea-brief.md` → `docs/features/<slug>/idea-brief.md`.
-3. Apply pending glossary terms (Phase 3 list) via `sdlc:fix-term` to `CONTEXT.md`.
+3. Apply pending glossary terms (Phase 3 list) directly to `docs-new/foundation/GLOSSARY.md`.
 4. Fill 15 sections + Related + DoD self-check in the new file from all session memory (Phases 1-11).
 5. Update frontmatter: `status: Confirmed`, `value_score.{rice,state,confirmed_at}`, `feasibility_state: confirmed`.
 6. Run Phase 13 self-check (regex, length, citations).
@@ -208,7 +208,7 @@ After `ExitPlanMode` (or immediately if plan mode is not active):
 
 - **mkdir** `docs/features/<slug>/` if absent.
 - **Copy** template → `docs/features/<slug>/idea-brief.md`.
-- **Apply** pending glossary terms (call `sdlc:fix-term` for each, if needed).
+- **Apply** pending glossary terms by editing `docs-new/foundation/GLOSSARY.md` directly (one line per term, alphabetical, following its existing format), if needed.
 - **Edit/Write** all sections 1-15 + Related + DoD self-check from session memory. Update frontmatter:
   - `status: Confirmed`
   - `value_score.rice: <N>`, `value_score.state: confirmed`, `value_score.confirmed_at: <today YYYY-MM-DD>`
@@ -287,10 +287,10 @@ ADR (`sdlc:architecture-design`) is NOT called at gate 1 — this is a gate 3 co
 > **Skill behavior (planning-mode-friendly flow):**
 >
 > **— Plan mode (read-only) —**
-> 1. **Phase 0** — suggests slug `rate-limiting-per-user`. User confirms. **Read** template and root `CONTEXT.md`. NO copy yet.
+> 1. **Phase 0** — suggests slug `rate-limiting-per-user`. User confirms. **Read** template and `docs-new/foundation/GLOSSARY.md`. NO copy yet.
 > 2. **Phase 1** — AskUserQuestion: "Describe the idea in 1-3 sentences". Captures raw paragraph verbatim in session memory as §1 draft.
 > 3. **Phase 2** — Socratic batch 1 (AskUserQuestion): "Which customer segment is affected?" "How frequently does this happen?" Batch 2 (AskUserQuestion): "What have you tried before?" "What does 'it worked' mean — which metric?"
-> 4. **Phase 3** — User response mentions "tenant" → added to `pending_glossary_terms` (fix-term called in Phase 12, since CONTEXT.md write is deferred).
+> 4. **Phase 3** — User response mentions "tenant" → added to `pending_glossary_terms` (applied to GLOSSARY.md in Phase 12, since the write is deferred).
 > 5. **Phase 4** — Claude runs WebSearch: Kong per-consumer, Tyk, AWS API Gateway throttling, Cloudflare rate-limit. Builds §6 table in session memory.
 > 6. **Phase 5** — 3 parallel sub-agents (single message):
 >    - A (Simplicity): "Per-tenant request quota at edge proxy" — fastest, generic, S effort.
@@ -304,9 +304,9 @@ ADR (`sdlc:architecture-design`) is NOT called at gate 1 — this is a gate 3 co
 > 12. **Phase 11** — Claude picks **Approach C**. Rationale cites: RICE=80, Feasibility 3/3 ☑, Engineer bullet, Kong gap. AskUserQuestion: user accepts.
 >
 > **— ExitPlanMode handoff —**
-> 13. **Phase 11.5** — `ExitPlanMode` with plan: "create dir, copy template, apply fix-term tenant, fill 15 sections, run self-check, propose commit".
+> 13. **Phase 11.5** — `ExitPlanMode` with plan: "create dir, copy template, add 'tenant' to GLOSSARY.md, fill 15 sections, run self-check, propose commit".
 >
 > **— Execute (post-plan) —**
-> 14. **Phase 12** — `mkdir docs/features/rate-limiting-per-user/`, copy template, `sdlc:fix-term tenant`, Write idea-brief.md with all sections. Frontmatter `status: Confirmed`, `confirmed_at: 2026-05-21`.
+> 14. **Phase 12** — `mkdir docs/features/rate-limiting-per-user/`, copy template, add "tenant" to `docs-new/foundation/GLOSSARY.md`, Write idea-brief.md with all sections. Frontmatter `status: Confirmed`, `confirmed_at: 2026-05-21`.
 > 15. **Phase 13** — self-check: 15 sections ✓, no Postgres/Redis in body ✓, 4.2 pages ✓, citations ✓.
 > 16. **Phase 14** — Commit message proposed: `01: idea-brief for rate-limiting-per-user` (user executes). Next: PM + Tech Lead → `sdlc:write-prd rate-limiting-per-user`.

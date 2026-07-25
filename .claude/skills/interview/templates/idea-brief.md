@@ -135,7 +135,7 @@ Rationale MUST cite:
 - [ ] ...
 
 ## Related
-- Links to CONTEXT.md, ticket, related features
+- Links to docs-new/foundation/GLOSSARY.md, ticket, related features
 
 ## DoD self-check
 - [ ] 15 sections present
