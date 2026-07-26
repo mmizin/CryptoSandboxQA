@@ -911,7 +911,7 @@
 | **Withdraw** | Amount < 10 (env configurable), crypto-only |
 | **Trade** | Amount/price positive, decimals per asset, balance checks |
 | **2FA Code** | 6 digits (TOTP-style) |
-| **Documentation** | Full table in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (Input field rules) |
+| **Documentation** | Full table in [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md) (Input field rules) |
 
 ---
 

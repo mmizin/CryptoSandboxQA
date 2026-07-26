@@ -4,7 +4,7 @@
 **Source:** `DOCUMENTATION_IMPLEMENTATION_PLAN.md`, `product-toolkit`
 (`prd-engine`), `architecture-toolkit` (`adr-expert`, `c4-expert`)
 
-Conventions for artifacts produced under `docs-new/` during the
+Conventions for artifacts produced under `docs/` during the
 documentation implementation effort. This file is the single place these
 rules are stated; later artifacts reference it instead of restating it.
 
@@ -40,7 +40,7 @@ permanence rule as the PRD contract's requirement IDs (see
 ## Cross-linking
 
 - Every PRD/ADR/C4 that depends on Foundation content links to the specific
-  file in `docs-new/foundation/` (e.g. "see `GLOSSARY.md` for Order") rather
+  file in `docs/foundation/` (e.g. "see `GLOSSARY.md` for Order") rather
   than redefining the term.
 - Every PRD/ADR that depends on an earlier-phase artifact links to it by
   slug ID, not by re-deriving its content.

@@ -91,6 +91,6 @@ We chose **NestJS** (v9+) as the backend framework, running on Node.js.
 ## References
 
 - NestJS docs: https://docs.nestjs.com/
-- Backend architecture: [`ARCHITECTURE.md`](../../ARCHITECTURE.md)
-- Backend module breakdown: [`ARCHITECTURE.md` § Backend application](../../ARCHITECTURE.md#backend-application)
-- Setup: [`CLAUDE.md` § Quick start](../../CLAUDE.md#quick-start)
+- Backend architecture: [`ARCHITECTURE.md`](../../../../ARCHITECTURE.md)
+- Backend module breakdown: [`ARCHITECTURE.md` § Backend application](../../../../ARCHITECTURE.md#backend-application)
+- Setup: [`CLAUDE.md` § Quick start](../../../../CLAUDE.md#quick-start)

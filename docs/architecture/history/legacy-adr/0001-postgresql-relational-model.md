@@ -81,5 +81,5 @@ We chose **PostgreSQL** as the primary relational database.
 ## References
 
 - Schema design: [`docs/DATABASE_DESIGN_PROPOSAL.md`](../DATABASE_DESIGN_PROPOSAL.md)
-- Setup guide: [`CLAUDE.md` § Database setup](../../CLAUDE.md#quick-start)
+- Setup guide: [`CLAUDE.md` § Database setup](../../../../CLAUDE.md#quick-start)
 - Prisma docs: https://www.prisma.io/docs/

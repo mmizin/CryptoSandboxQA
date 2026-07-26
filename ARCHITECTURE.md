@@ -9,7 +9,7 @@ A small crypto exchange training platform for QA practice. Simulate trades, vali
 | `backend/` | NestJS API, Prisma schema & migrations; baseline market data from [`prisma/seed-market.js`](backend/prisma/seed-market.js) (invoked by `npm run setup`); optional demo users via [`prisma/seed-demo.js`](backend/prisma/seed-demo.js) (`npm run db:seed`); [`src/openapi/`](backend/src/openapi/) helpers and sample payloads for Swagger / `openapi.json` |
 | `frontend/` | Next.js (App Router) UI |
 | `scripts/` | `setup`, database up/down/dump/restore helpers |
-| `docs/` | Design notes ([API plan](docs/API_DESIGN_PLAN.md), [DB proposal](docs/DATABASE_DESIGN_PROPOSAL.md)), [code style / readability](docs/CODE_STYLE_READABILITY.md) ([examples](docs/examples/code-style-templates.md)), [QA testing features](docs/QA_TESTING_FEATURES.md); see [README.md § Documentation](README.md#documentation) for the full doc index |
+| `docs/` | Current documentation per [`DOCUMENTATION_IMPLEMENTATION_PLAN.md`](DOCUMENTATION_IMPLEMENTATION_PLAN.md): PRDs (`docs/features/`), active ADRs (`docs/architecture/adr/`), architecture findings, foundation docs; [`docs/architecture/history/`](docs/architecture/history/) archives legacy design notes ([API plan](docs/architecture/history/API_DESIGN_PLAN.md), [DB proposal](docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md), [legacy ADRs 0001-0007](docs/architecture/history/legacy-adr/)); [`docs/engineering/`](docs/engineering/) holds [code style / readability](docs/engineering/CODE_STYLE_READABILITY.md) ([examples](docs/engineering/code-style-templates.md)); [`docs/guides/`](docs/guides/) holds [QA testing features](docs/guides/QA_TESTING_FEATURES.md); see [README.md § Documentation](README.md#documentation) for the full doc index |
 | [`openapi.json`](openapi.json) | Static OpenAPI spec at repo root; regenerate via `npm run openapi:generate` |
 | `knowledge/llm-wiki/` | Karpathy-style **LLM wiki** vault: [`raw/`](knowledge/llm-wiki/raw/README.md) for ingest inputs, [`wiki/`](knowledge/llm-wiki/wiki/00-START-HERE.md) for maintained maps — start at [`wiki/00-START-HERE.md`](knowledge/llm-wiki/wiki/00-START-HERE.md) and [`wiki/index-by-repo-path.md`](knowledge/llm-wiki/wiki/index-by-repo-path.md) for fast navigation |
 | `.cursor/commands/` | Cursor command playbooks; pipeline flows use a **`cmd-`** filename prefix (e.g. [cmd-qa-test-pipeline.md](.cursor/commands/cmd-qa-test-pipeline.md) — [QA test automation pipeline](#qa-test-automation-pipeline); [cmd-update-knowledge.md](.cursor/commands/cmd-update-knowledge.md) — [LLM wiki knowledge refresh](#llm-wiki-knowledge-refresh)) |
@@ -136,13 +136,13 @@ Admin controllers use the `admin/users` prefix and require an admin-authenticate
 | **Deposits** | [`DepositsService`](backend/src/deposits/deposits.service.ts) fiat/crypto; [`WalletsService.credit`](backend/src/wallets/wallets.service.ts) updates balances and creates deposit rows. Errors **logged**; deposit still succeeds. |
 | **Reset vs. rest** | **Password reset** still **throws** on SMTP failure when host is set (client sees error). Other mail types swallow delivery errors after logging. |
 
-Manual / automation notes: [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) § *Transactional email*.
+Manual / automation notes: [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md) § *Transactional email*.
 
 ---
 
 ## Database (Prisma)
 
-Full DDL lives in `backend/prisma/schema.prisma`. Detailed narrative: [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md).
+Full DDL lives in `backend/prisma/schema.prisma`. Detailed narrative: [docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md](docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md).
 
 ### Tables in active use
 
@@ -223,8 +223,8 @@ sequenceDiagram
 | `/calculate` | Calculator-style training UI |
 | `/qa/iframe-practice` | Same-origin iframe with embedded form ([`frontend/public/qa/iframe-form.html`](frontend/public/qa/iframe-form.html) → `/qa/iframe-form.html`) for automation practice |
 | `/trade/spot`, `/trade/futures` | Trade experiences; **stop orders** UI integration (order type selector + stopPrice input on **stop** selection) |
-| `/charts` | **Advanced Charts** (header **Charts** link): interactive candlestick/line/area chart via **TradingView Lightweight Charts** (canvas) on deterministic mock OHLC ([`chartMockData.ts`](frontend/lib/chartMockData.ts)); coin/interval/series-type/volume toggles, pausable live tick, crosshair DOM readout, **order trigger visualization** (displays working orders that would trigger at live price via [`lib/orderTriggers.ts`](frontend/lib/orderTriggers.ts) + [`lib/useOrderTriggers.ts`](frontend/lib/useOrderTriggers.ts)) — canvas-based QA practice surface, see [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) |
-| `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery; tables wrap [`MarketsCryptoTable`](frontend/components/MarketsCryptoTable.tsx) (in **Suspense**) with QA modals — detail view (`?detail=SYMBOL`), about/methodology, reset confirm (`alertdialog`), nested stacked dialog — see [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) |
+| `/charts` | **Advanced Charts** (header **Charts** link): interactive candlestick/line/area chart via **TradingView Lightweight Charts** (canvas) on deterministic mock OHLC ([`chartMockData.ts`](frontend/lib/chartMockData.ts)); coin/interval/series-type/volume toggles, pausable live tick, crosshair DOM readout, **order trigger visualization** (displays working orders that would trigger at live price via [`lib/orderTriggers.ts`](frontend/lib/orderTriggers.ts) + [`lib/useOrderTriggers.ts`](frontend/lib/useOrderTriggers.ts)) — canvas-based QA practice surface, see [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md) |
+| `/markets/prices`, `/markets/rankings/spot`, `/markets/trading-data/overview` | Markets discovery; tables wrap [`MarketsCryptoTable`](frontend/components/MarketsCryptoTable.tsx) (in **Suspense**) with QA modals — detail view (`?detail=SYMBOL`), about/methodology, reset confirm (`alertdialog`), nested stacked dialog — see [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md) |
 | `/profile`, `/profile/settings`, `/profile/portfolio` | Profile & portfolio |
 | `/admin/import-users`, `/admin/impersonate` | Admin tooling UI |
 
@@ -234,7 +234,7 @@ Shared UI uses theme-aware Tailwind patterns (`group-data-[theme=light]`, emeral
 
 **API client**: `frontend/lib/api.ts` (REST to `NEXT_PUBLIC_API_URL`). Live prices use Socket.IO to the backend.
 
-**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/dashboardDepositValidation.ts`](frontend/lib/dashboardDepositValidation.ts) (dashboard quick deposit — reuses [`depositCashValidation.ts`](frontend/lib/depositCashValidation.ts) / [`depositCryptoValidation.ts`](frontend/lib/depositCryptoValidation.ts)), [`frontend/lib/withdrawValidation.ts`](frontend/lib/withdrawValidation.ts) (withdraw amount vs `WALLET_WITHDRAW_AMOUNT_MAX`). Shared **API** limits: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_WITHDRAW_AMOUNT_MAX` on [`WithdrawDto`](backend/src/wallets/dto/withdraw.dto.ts) for `POST /wallets/withdraw`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
+**Client-side validation** (inline errors before submit, aligned with Nest DTOs where applicable): [`frontend/lib/authFieldConstraints.ts`](frontend/lib/authFieldConstraints.ts), [`frontend/lib/searchFieldConstraints.ts`](frontend/lib/searchFieldConstraints.ts), [`frontend/lib/dashboardDepositValidation.ts`](frontend/lib/dashboardDepositValidation.ts) (dashboard quick deposit — reuses [`depositCashValidation.ts`](frontend/lib/depositCashValidation.ts) / [`depositCryptoValidation.ts`](frontend/lib/depositCryptoValidation.ts)), [`frontend/lib/withdrawValidation.ts`](frontend/lib/withdrawValidation.ts) (withdraw amount vs `WALLET_WITHDRAW_AMOUNT_MAX`). Shared **API** limits: [`backend/src/common/validation.constants.ts`](backend/src/common/validation.constants.ts) (`EMAIL_MAX_LENGTH`, `WALLET_WITHDRAW_AMOUNT_MAX` on [`WithdrawDto`](backend/src/wallets/dto/withdraw.dto.ts) for `POST /wallets/withdraw`). Rules, `data-testid`s, and positive/negative scenarios are documented in [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md) (*Input field rules and restrictions*).
 
 ---
 
@@ -290,12 +290,12 @@ The **`update-knowledge`** playbook mainly **reconciles [`knowledge/llm-wiki/`](
 
 ## QA scenarios (high level)
 
-Dedicated UI / automation practice surfaces are catalogued in [docs/QA_TESTING_FEATURES.md](docs/QA_TESTING_FEATURES.md).
+Dedicated UI / automation practice surfaces are catalogued in [docs/guides/QA_TESTING_FEATURES.md](docs/guides/QA_TESTING_FEATURES.md).
 
 1. **Auth**: Register → login (optional **welcome** mail in Mailpit/logs) → optional 2FA → logout (session invalid); forgot password → **8-digit code** (email or Mailpit / logs) → reset password → login.
 2. **Admin**: Create admin via API key → impersonate user → end impersonation.
 3. **Wallets / deposits**: Fiat or crypto deposit → verify `user_balances`, history endpoints, and optional **deposit receipt** in Mailpit/logs.
-4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades; optional **order status** mail per transition (see [QA_TESTING_FEATURES](docs/QA_TESTING_FEATURES.md)).
+4. **Orders**: Limit/market on spot (and futures UI where wired) → fill or cancel → inspect trades; optional **order status** mail per transition (see [QA_TESTING_FEATURES](docs/guides/QA_TESTING_FEATURES.md)).
 5. **Realtime**: Socket.IO `/ticker` → subscribe → assert `ticker` events.
 6. **Observability**: Hit `/metrics`, confirm Grafana/Prometheus in stack profile.
 7. **Iframe forms**: Open `/qa/iframe-practice`, scope automation to the iframe, fill fields with `data-testid` / labels, submit, assert in-frame success.

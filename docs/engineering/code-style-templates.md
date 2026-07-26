@@ -1,6 +1,6 @@
 # Code style templates (readability)
 
-Use these as patterns when writing or refactoring tests and clients. The full rules are in [../CODE_STYLE_READABILITY.md](../CODE_STYLE_READABILITY.md).
+Use these as patterns when writing or refactoring tests and clients. The full rules are in [CODE_STYLE_READABILITY.md](CODE_STYLE_READABILITY.md).
 
 ## Python (API tests / clients)
 

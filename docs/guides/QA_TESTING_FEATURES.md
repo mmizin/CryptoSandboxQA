@@ -12,13 +12,13 @@ This document is for **QA engineers, testers, and engineers** who want a realist
 | **Rich UI & a11y** | Modals, focus trap, stacked dialogs, URL query params (Markets); keyboard **drag-and-drop** on Portfolio Analytics. |
 | **Timing & async** | **Simulated persist delay** before DB writes — designing waits and stable assertions. |
 | **Admin & bulk** | Import/export, impersonation-related surfaces; **iframe** same-origin frame switching. |
-| **Performance awareness** | Optional Docker stack with **Prometheus / Grafana** (see root [README](../README.md)). |
+| **Performance awareness** | Optional Docker stack with **Prometheus / Grafana** (see root [README](../../README.md)). |
 
 This document lists **purpose-built surfaces** in CryptoSandboxQA for manual checks and automation practice (selectors, frames, API-backed flows). Add a new section here whenever you introduce another training or testability feature.
 
 ### API list pagination (requests & responses)
 
-Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`openapi.json`](../openapi.json).
+Many **list** endpoints accept **`limit`** and **`offset`** as query parameters and return a body shaped like **`{ data: [...], total, meta: { total, limit, offset } }`** (e.g. orders, transactions, fiat/crypto deposit lists). Exact query names and caps vary by route—use Swagger at **`/api/docs`** or [`openapi.json`](../../openapi.json).
 
 ---
 
@@ -30,11 +30,11 @@ Implementation lives in:
 
 | Module | Purpose |
 |--------|---------|
-| [`frontend/lib/authFieldConstraints.ts`](../frontend/lib/authFieldConstraints.ts) | Auth forms: constants (`PASSWORD_MIN_LENGTH`, `EMAIL_MAX_LENGTH`, …), `AuthMessages`, validators |
-| [`frontend/lib/searchFieldConstraints.ts`](../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
-| [`frontend/lib/dashboardDepositValidation.ts`](../frontend/lib/dashboardDepositValidation.ts) | Dashboard quick deposit amount (delegates to deposit cash / crypto validators) |
+| [`frontend/lib/authFieldConstraints.ts`](../../frontend/lib/authFieldConstraints.ts) | Auth forms: constants (`PASSWORD_MIN_LENGTH`, `EMAIL_MAX_LENGTH`, …), `AuthMessages`, validators |
+| [`frontend/lib/searchFieldConstraints.ts`](../../frontend/lib/searchFieldConstraints.ts) | Search/filter text: `SEARCH_MAX_LENGTH`, `clampSearchInput` |
+| [`frontend/lib/dashboardDepositValidation.ts`](../../frontend/lib/dashboardDepositValidation.ts) | Dashboard quick deposit amount (delegates to deposit cash / crypto validators) |
 
-**Backend parity:** `EMAIL_MAX_LENGTH` **254** matches auth validators. `WALLET_WITHDRAW_AMOUNT_MAX` applies to **`POST /wallets/withdraw`** ([`WithdrawDto`](../backend/src/wallets/dto/withdraw.dto.ts)) amount. The dashboard quick deposit uses **`POST /deposits/fiat`** or **`POST /deposits/crypto`**. DTOs apply `@IsEmail()` + `@MaxLength(254)` on email. Same email cap on [`RegisterDto`](../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../backend/src/auth/dto/login.dto.ts), [`ForgotPasswordDto`](../backend/src/auth/dto/forgot-password.dto.ts), [`ResetPasswordWithCodeDto`](../backend/src/auth/dto/reset-password-with-code.dto.ts), [`RegisterWithProfileDto`](../backend/src/auth/dto/register-with-profile.dto.ts), [`CreateAdminDto`](../backend/src/auth/dto/create-admin.dto.ts), and admin user DTOs with an `email` field.
+**Backend parity:** `EMAIL_MAX_LENGTH` **254** matches auth validators. `WALLET_WITHDRAW_AMOUNT_MAX` applies to **`POST /wallets/withdraw`** ([`WithdrawDto`](../../backend/src/wallets/dto/withdraw.dto.ts)) amount. The dashboard quick deposit uses **`POST /deposits/fiat`** or **`POST /deposits/crypto`**. DTOs apply `@IsEmail()` + `@MaxLength(254)` on email. Same email cap on [`RegisterDto`](../../backend/src/auth/dto/register.dto.ts), [`LoginDto`](../../backend/src/auth/dto/login.dto.ts), [`ForgotPasswordDto`](../../backend/src/auth/dto/forgot-password.dto.ts), [`ResetPasswordWithCodeDto`](../../backend/src/auth/dto/reset-password-with-code.dto.ts), [`RegisterWithProfileDto`](../../backend/src/auth/dto/register-with-profile.dto.ts), [`CreateAdminDto`](../../backend/src/auth/dto/create-admin.dto.ts), and admin user DTOs with an `email` field.
 
 ### Rules by field (auth)
 
@@ -57,11 +57,11 @@ Implementation lives in:
 
 | Area | Input / `data-testid` | Type | Restrictions | Notes |
 |------|------------------------|------|----------------|--------|
-| Markets tables | Search `markets-search-input` | Search text | Max **128** chars; trimmed at start; length clamped on `onChange` | [`MarketsCryptoTable`](../frontend/components/MarketsCryptoTable.tsx) |
-| Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../frontend/components/TradeCoinTable.tsx) |
-| Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../frontend/components/CryptoSearchSelect.tsx) |
-| Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../frontend/app/admin/impersonate/page.tsx) |
-| Dashboard | Quick deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | **USD/EUR:** same rules as Deposit cash — min **1**, max **50_000**, max **2** decimal places ([`validateDepositAmount`](../frontend/lib/depositCashValidation.ts)). **BTC/ETH:** same as Deposit crypto — min **0.00001**, max **100**, max **8** decimal places ([`validateDepositCryptoAmount`](../frontend/lib/depositCryptoValidation.ts)). Submits to **`POST /deposits/fiat`** or **`POST /deposits/crypto`** (after address via **`POST /deposits/crypto/address`**). | Error strings match those modules (e.g. `Amount is required`, `Minimum amount is …`, `Maximum amount is …`). |
+| Markets tables | Search `markets-search-input` | Search text | Max **128** chars; trimmed at start; length clamped on `onChange` | [`MarketsCryptoTable`](../../frontend/components/MarketsCryptoTable.tsx) |
+| Trade coin table | Search (no testid on field) | Search text | Max **128** chars; same clamp | [`TradeCoinTable`](../../frontend/components/TradeCoinTable.tsx) |
+| Buy / sell crypto | Combobox search | Search text | Max **128** chars; same clamp | [`CryptoSearchSelect`](../../frontend/components/CryptoSearchSelect.tsx) |
+| Admin impersonate | Search `admin-impersonate-search` | Search text | Max **128** chars; same clamp | [`/admin/impersonate`](../../frontend/app/admin/impersonate/page.tsx) |
+| Dashboard | Quick deposit amount `dashboard-deposit-amount` | Number (`type="number"`) | **USD/EUR:** same rules as Deposit cash — min **1**, max **50_000**, max **2** decimal places ([`validateDepositAmount`](../../frontend/lib/depositCashValidation.ts)). **BTC/ETH:** same as Deposit crypto — min **0.00001**, max **100**, max **8** decimal places ([`validateDepositCryptoAmount`](../../frontend/lib/depositCryptoValidation.ts)). Submits to **`POST /deposits/fiat`** or **`POST /deposits/crypto`** (after address via **`POST /deposits/crypto/address`**). | Error strings match those modules (e.g. `Amount is required`, `Minimum amount is …`, `Maximum amount is …`). |
 
 ### Other forms (dedicated validators, not the same module as auth)
 
@@ -69,11 +69,11 @@ These screens already use **feature-specific** validation modules (ranges, IBAN,
 
 | Feature | Module | Examples of rules |
 |---------|--------|-------------------|
-| Buy / Sell | [`buySellValidation.ts`](../frontend/lib/buySellValidation.ts) | Amount min/max USD, IBAN pattern, card number digits, CVV length, expiry MM/YY |
-| Trade order entry | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks; **stop orders:** `stopPrice` field appears when order type is **stop** |
-| Fiat / crypto deposit | [`depositCashValidation.ts`](../frontend/lib/depositCashValidation.ts), [`depositCryptoValidation.ts`](../frontend/lib/depositCryptoValidation.ts) | Amount ranges, payment-method fields |
-| Calculator | [`calculatorValidation.ts`](../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
-| 2FA modal | [`twoFactorValidation.ts`](../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
+| Buy / Sell | [`buySellValidation.ts`](../../frontend/lib/buySellValidation.ts) | Amount min/max USD, IBAN pattern, card number digits, CVV length, expiry MM/YY |
+| Trade order entry | [`tradeOrderValidation.ts`](../../frontend/lib/tradeOrderValidation.ts) | Amount/price positive, decimal places, balance checks; **stop orders:** `stopPrice` field appears when order type is **stop** |
+| Fiat / crypto deposit | [`depositCashValidation.ts`](../../frontend/lib/depositCashValidation.ts), [`depositCryptoValidation.ts`](../../frontend/lib/depositCryptoValidation.ts) | Amount ranges, payment-method fields |
+| Calculator | [`calculatorValidation.ts`](../../frontend/lib/calculatorValidation.ts) | Amount min/max, fiat/crypto selection |
+| 2FA modal | [`twoFactorValidation.ts`](../../frontend/lib/twoFactorValidation.ts) | 6-digit TOTP-style code |
 
 ### API vs client
 
@@ -90,8 +90,8 @@ End-to-end password reset for QA: code is delivered by **SMTP** (Mailpit in dev)
 
 | Step | Location |
 |------|----------|
-| Request code | [`/forgot-password`](../frontend/app/forgot-password/page.tsx) — also linked from **Forgot password?** on the home sign-in form ([`/`](../frontend/app/page.tsx)). |
-| Apply code | [`/reset-password`](../frontend/app/reset-password/page.tsx) — email + **8-digit code** + new password (with confirmation). |
+| Request code | [`/forgot-password`](../../frontend/app/forgot-password/page.tsx) — also linked from **Forgot password?** on the home sign-in form ([`/`](../../frontend/app/page.tsx)). |
+| Apply code | [`/reset-password`](../../frontend/app/reset-password/page.tsx) — email + **8-digit code** + new password (with confirmation). |
 
 ### API (unauthenticated)
 
@@ -100,13 +100,13 @@ End-to-end password reset for QA: code is delivered by **SMTP** (Mailpit in dev)
 | `POST` | `/auth/forgot-password` | `{ "email": "user@example.com" }` | Always **200** + generic message (no email enumeration). |
 | `POST` | `/auth/reset-password` | `{ "email", "code", "newPassword" }` | `code`: 8 digits (spaces stripped server-side). `newPassword`: min length **6** (same as register). **400** if code wrong/expired or email unknown. Success invalidates **all** sessions for that user. |
 
-Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../frontend/lib/api.ts).
+Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../../frontend/lib/api.ts).
 
 ### Prerequisites for “real” mail in Mailpit
 
-1. **Database:** `user_password_resets` table must exist — run **`npm run setup`** or **`npm run db:migrate`** so Prisma `db push` applies [`schema.prisma`](../backend/prisma/schema.prisma).
-2. **Mailpit:** `npm run db:up` starts Postgres + Mailpit (see root [`docker-compose.yml`](../docker-compose.yml)). SMTP **1025**, UI **8025** (ports overridable via `MAILPIT_SMTP_PORT` / `MAILPIT_HTTP_PORT`).
-3. **Env (repo root `.env` recommended):** `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_SECURE=false`. Optional: `MAIL_FROM`. Nest loads root `.env` when the API runs from the `backend/` workspace—see [`nestEnvFilePaths()`](../backend/src/app.module.ts) in [ARCHITECTURE.md](../ARCHITECTURE.md).
+1. **Database:** `user_password_resets` table must exist — run **`npm run setup`** or **`npm run db:migrate`** so Prisma `db push` applies [`schema.prisma`](../../backend/prisma/schema.prisma).
+2. **Mailpit:** `npm run db:up` starts Postgres + Mailpit (see root [`docker-compose.yml`](../../docker-compose.yml)). SMTP **1025**, UI **8025** (ports overridable via `MAILPIT_SMTP_PORT` / `MAILPIT_HTTP_PORT`).
+3. **Env (repo root `.env` recommended):** `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_SECURE=false`. Optional: `MAIL_FROM`. Nest loads root `.env` when the API runs from the `backend/` workspace—see [`nestEnvFilePaths()`](../../backend/src/app.module.ts) in [ARCHITECTURE.md](../../ARCHITECTURE.md).
 4. **Registered user:** Forgot-password **sends nothing** if `email` is not in `users` (response still looks like success). Use a seeded account (e.g. `demo@example.com` after optional `npm run db:seed`) or register first.
 
 ### Manual test checklist
@@ -128,19 +128,19 @@ Client helpers: [`authApi.forgotPassword` / `authApi.resetPasswordWithCode`](../
 ### Automation hints
 
 - Mailpit exposes a **REST API** on the same port as the UI (e.g. list messages) for E2E tests that need to read the code without the browser—see [Mailpit API docs](https://mailpit.axllent.org/docs/api-v1/).
-- Static OpenAPI: [`openapi.json`](../openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
+- Static OpenAPI: [`openapi.json`](../../openapi.json) (`/auth/forgot-password`, `/auth/reset-password`).
 
 ---
 
 ## Transactional email (welcome, orders, deposits)
 
-Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailService`](../backend/src/mail/mail.service.ts)). Plain-text messages; inspect **Mailpit** at [http://localhost:8025](http://localhost:8025) when `SMTP_HOST` is set, or the **API terminal** for `[no SMTP_HOST — email was not sent]` plus the full body.
+Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailService`](../../backend/src/mail/mail.service.ts)). Plain-text messages; inspect **Mailpit** at [http://localhost:8025](http://localhost:8025) when `SMTP_HOST` is set, or the **API terminal** for `[no SMTP_HOST — email was not sent]` plus the full body.
 
 | Notification | When | Notes |
 |--------------|------|--------|
 | **Welcome** | After successful `POST /auth/register` or `POST /auth/register-with-profile` | Not sent for admin bootstrap (`POST /auth/admin/register`), `POST /auth/admin/create-user`, or bulk import. |
 | **Order status** | **Open**, **filled**, or **canceled** (`cancelled` in API) for the user’s order | One email after order **create** (reflects state after matching — e.g. filled immediately). **Cancel** and admin/testing **set status** paths also notify. When a resting **maker** is fully filled during match, that user gets a **filled** email from matching (the **taker** is covered by create’s end-state mail — no duplicate). |
-| **Deposit (fiat / crypto)** | After successful deposit persist + credit | **`POST /deposits/fiat`** and **`POST /deposits/crypto`** (balance credit via [`WalletsService.credit`](../backend/src/wallets/wallets.service.ts) inside `DepositsService`). |
+| **Deposit (fiat / crypto)** | After successful deposit persist + credit | **`POST /deposits/fiat`** and **`POST /deposits/crypto`** (balance credit via [`WalletsService.credit`](../../backend/src/wallets/wallets.service.ts) inside `DepositsService`). |
 
 **Failure behavior:** Password reset still propagates SMTP errors to the client when mail is configured. Welcome, order, and deposit sends **log errors** and do not fail the main API operation.
 
@@ -154,13 +154,13 @@ Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailServ
 ### Automation
 
 - Reuse Mailpit’s [REST API](https://mailpit.axllent.org/docs/api-v1/) to assert subjects or bodies after API calls (register, orders, deposits).
-- OpenAPI: register/deposit/order routes in [`openapi.json`](../openapi.json).
+- OpenAPI: register/deposit/order routes in [`openapi.json`](../../openapi.json).
 
 ---
 
 ## Admin: bulk user import & export
 
-- **Page:** [`/admin/import-users`](../frontend/app/admin/import-users/page.tsx) — CSV/JSON upload uses **`POST /auth/admin/bulk-import-users`** (multipart `file`). Export card calls **`GET /users/bulk/export`** with presets (first 100, last 100, date range) and format JSON/CSV.
+- **Page:** [`/admin/import-users`](../../frontend/app/admin/import-users/page.tsx) — CSV/JSON upload uses **`POST /auth/admin/bulk-import-users`** (multipart `file`). Export card calls **`GET /users/bulk/export`** with presets (first 100, last 100, date range) and format JSON/CSV.
 - **`data-testid`:** `admin-bulk-export-panel`, `admin-bulk-export-format`, `admin-bulk-export-first100`, `admin-bulk-export-last100`, `admin-bulk-export-from`, `admin-bulk-export-to`, `admin-bulk-export-daterange`, `admin-bulk-export-error`, `admin-import-skipped-section`.
 
 ## Iframe automation practice
@@ -168,7 +168,7 @@ Same **SMTP / Mailpit / log-if-no-host** pipeline as forgot-password ([`MailServ
 The app serves a **same-origin** training form inside an iframe so you can practice frame-scoped selectors without third-party widgets or cross-origin blocks.
 
 - **Page:** [http://localhost:3000/qa/iframe-practice](http://localhost:3000/qa/iframe-practice)
-- **Embedded document:** `/qa/iframe-form.html` (static file under [`frontend/public/qa/`](../frontend/public/qa/))
+- **Embedded document:** `/qa/iframe-form.html` (static file under [`frontend/public/qa/`](../../frontend/public/qa/))
 
 **Playwright / Selenium / Cypress:** For frame automation, switch to the frame (or use frame-scoped queries), then locate by the same `data-testid` or by label (`Email`, `Amount (USD)`, etc.). Use `frameLocator()` in Playwright or frame-scoped selectors in other tools.
 
@@ -176,7 +176,7 @@ The app serves a **same-origin** training form inside an iframe so you can pract
 
 ## Portfolio Analytics: drag-and-drop, shuffle, add/remove blocks (dashboard)
 
-The **Portfolio Analytics** section on [`/dashboard`](../frontend/app/dashboard/page.tsx) (see [`DashboardCharts`](../frontend/components/DashboardCharts.tsx)) exposes six chart/progress blocks in a **sortable grid**:
+The **Portfolio Analytics** section on [`/dashboard`](../../frontend/app/dashboard/page.tsx) (see [`DashboardCharts`](../../frontend/components/DashboardCharts.tsx)) exposes six chart/progress blocks in a **sortable grid**:
 
 - **Drag:** Drag **anywhere on the card** (grip, title, padding, or chart area); a **~6px** pointer move starts the drag so simple clicks/tooltips on charts still behave.
 - **Shuffle:** Button **Shuffle blocks** (`data-testid="shuffle-analytics-blocks"`) randomizes **visible** block order (disabled when fewer than two visible blocks; retries briefly if the permutation matches the previous order).
@@ -185,7 +185,7 @@ The **Portfolio Analytics** section on [`/dashboard`](../frontend/app/dashboard/
 - **Undo:** After removing a block, an undo bar appears: **`data-testid="analytics-undo-remove"`** with **`data-testid="analytics-undo-remove-button"`** (auto-dismiss ~5s).
 - **Persistence:** **Visible order** is saved under `portfolio-analytics-block-order`; **hidden ids** under `portfolio-analytics-block-hidden` (both **`sessionStorage`**, per tab). Legacy tabs that only have a full-length order array are **migrated** (all blocks visible, same order).
 - **Keyboard:** Focus a chart card and use **arrow keys** (@dnd-kit keyboard sensor) to move blocks where supported.
-- **UI / theme (visual checks):** Toolbar actions (**Customize layout**, **Add block**, **Shuffle blocks**) and the add-block **dropdown rows** use **neutral slate** borders and fills (same family as selects elsewhere), not emerald fills. **Remove** controls (`remove-analytics-block-*`) are **slate-bordered** on the card when Customize is on; **hover / keyboard focus** use **red** accent for the destructive action. Root **`button`** defaults come from [`globals.css`](../frontend/app/globals.css) (`var(--input-bg)` / `var(--text)`), so unstyled buttons are theme-neutral, not hardcoded green.
+- **UI / theme (visual checks):** Toolbar actions (**Customize layout**, **Add block**, **Shuffle blocks**) and the add-block **dropdown rows** use **neutral slate** borders and fills (same family as selects elsewhere), not emerald fills. **Remove** controls (`remove-analytics-block-*`) are **slate-bordered** on the card when Customize is on; **hover / keyboard focus** use **red** accent for the destructive action. Root **`button`** defaults come from [`globals.css`](../../frontend/app/globals.css) (`var(--input-bg)` / `var(--text)`), so unstyled buttons are theme-neutral, not hardcoded green.
 
 Chart containers keep their existing **`aria-label`** and **`data-testid`** values (e.g. `chart-balance-pie`, `chart-area-portfolio`).
 
@@ -195,18 +195,18 @@ Chart containers keep their existing **`aria-label`** and **`data-testid`** valu
 
 Orders and deposits **do not hit PostgreSQL immediately** after validation. The API waits a short, configurable period to mimic real-world payment/settlement or sync latency before the first persist.
 
-- **Applies to:** `POST /orders` (order creation), `POST /deposits/fiat`, `POST /deposits/crypto` — see [`simulatedPersistDelay`](../backend/src/common/simulated-persist-delay.ts) and call sites in `OrdersService` / `DepositsService`.
+- **Applies to:** `POST /orders` (order creation), `POST /deposits/fiat`, `POST /deposits/crypto` — see [`simulatedPersistDelay`](../../backend/src/common/simulated-persist-delay.ts) and call sites in `OrdersService` / `DepositsService`.
 - **Default:** **1200 ms** if `SIMULATED_PERSIST_DELAY_MS` is unset.
 - **Disable:** set `SIMULATED_PERSIST_DELAY_MS=0` in the backend environment.
 - **Tune:** set `SIMULATED_PERSIST_DELAY_MS` to any positive milliseconds (capped at 60s in code) for slower/faster “processing” in demos or stability tests.
 
-The frontend may also keep submit loading UI visible for a minimum duration; together these delays affect **how long** automations should wait after click before asserting success (see [`ARCHITECTURE.md`](../ARCHITECTURE.md) and `.env.example`).
+The frontend may also keep submit loading UI visible for a minimum duration; together these delays affect **how long** automations should wait after click before asserting success (see [`ARCHITECTURE.md`](../../ARCHITECTURE.md) and `.env.example`).
 
 ---
 
 ## Markets: modal QA surfaces (`MarketsCryptoTable`)
 
-On **`/markets/prices`**, **`/markets/rankings/spot`**, and **`/markets/trading-data/overview`**, the shared [`MarketsCryptoTable`](../frontend/components/MarketsCryptoTable.tsx) exposes several dialogs for manual and automated checks (backdrop, scroll lock, focus trap, stacked dialogs, routing).
+On **`/markets/prices`**, **`/markets/rankings/spot`**, and **`/markets/trading-data/overview`**, the shared [`MarketsCryptoTable`](../../frontend/components/MarketsCryptoTable.tsx) exposes several dialogs for manual and automated checks (backdrop, scroll lock, focus trap, stacked dialogs, routing).
 
 | Scenario | How to open | `data-testid` (panel / key controls) |
 |----------|-------------|--------------------------------------|
@@ -219,13 +219,13 @@ On **`/markets/prices`**, **`/markets/rankings/spot`**, and **`/markets/trading-
 
 **Deep link:** With default props, opening a row sets **`?detail=SYMBOL`** (uppercase) on the current path; closing the detail modal clears it. Useful for shareable URLs and browser Back/forward checks.
 
-**Shared primitives:** [`MarketsModal`](../frontend/components/MarketsModal.tsx) (focus trap, ref-counted body scroll lock via [`useBodyScrollLock`](../frontend/lib/useBodyScrollLock.ts)), [`MarketsCryptoDetailModal`](../frontend/components/MarketsCryptoDetailModal.tsx) (detail + nested stack).
+**Shared primitives:** [`MarketsModal`](../../frontend/components/MarketsModal.tsx) (focus trap, ref-counted body scroll lock via [`useBodyScrollLock`](../../frontend/lib/useBodyScrollLock.ts)), [`MarketsCryptoDetailModal`](../../frontend/components/MarketsCryptoDetailModal.tsx) (detail + nested stack).
 
 ---
 
 ## Advanced Charts: canvas chart automation (`/charts`)
 
-The **Charts** header link opens [`/charts`](../frontend/app/charts/page.tsx) ([`AdvancedChart`](../frontend/components/AdvancedChart.tsx)), an interactive candlestick chart rendered with **TradingView Lightweight Charts** (canvas-based) on **deterministic mock OHLC data** ([`chartMockData.ts`](../frontend/lib/chartMockData.ts), seeded per coin + interval). Public route (no auth required).
+The **Charts** header link opens [`/charts`](../../frontend/app/charts/page.tsx) ([`AdvancedChart`](../../frontend/components/AdvancedChart.tsx)), an interactive candlestick chart rendered with **TradingView Lightweight Charts** (canvas-based) on **deterministic mock OHLC data** ([`chartMockData.ts`](../../frontend/lib/chartMockData.ts), seeded per coin + interval). Public route (no auth required).
 
 **Why it's a distinct surface:** Lightweight Charts draws to a **`<canvas>`**, so candles are **not in the DOM** — you cannot read individual bars with selectors. Practice shifts to **toolbar controls, the ARIA/`data-testid` readout, and screenshot / visual assertions** instead of DOM scraping. The recharts surfaces (dashboard analytics, trade price chart) remain the SVG-DOM counterpart.
 
@@ -255,7 +255,7 @@ The **Charts** header link opens [`/charts`](../frontend/app/charts/page.tsx) ([
 - **Buy Stop:** triggers when livePrice ≥ stopPrice (market rose to/above the stop)
 - **Sell Stop:** triggers when livePrice ≤ stopPrice (market fell to/below the stop)
 
-Trigger logic is in [`lib/orderTriggers.ts`](../frontend/lib/orderTriggers.ts) (`evaluateOrderTriggers` function). The hook [`lib/useOrderTriggers.ts`](../frontend/lib/useOrderTriggers.ts) maintains the "triggered" set as the live price updates. Test by placing orders on `/trade/spot` or `/trade/futures`, then opening `/charts` on the same symbol and observing which orders light up as the price ticks toward their trigger levels.
+Trigger logic is in [`lib/orderTriggers.ts`](../../frontend/lib/orderTriggers.ts) (`evaluateOrderTriggers` function). The hook [`lib/useOrderTriggers.ts`](../../frontend/lib/useOrderTriggers.ts) maintains the "triggered" set as the live price updates. Test by placing orders on `/trade/spot` or `/trade/futures`, then opening `/charts` on the same symbol and observing which orders light up as the price ticks toward their trigger levels.
 
 ---
 
@@ -263,16 +263,16 @@ Trigger logic is in [`lib/orderTriggers.ts`](../frontend/lib/orderTriggers.ts) (
 
 **Stop orders** are a new order type alongside **limit** and **market**, allowing you to set a **trigger price** (`stopPrice`) at which a market order executes. Practical use: place a sell stop to protect a position if the price drops, or a buy stop to enter above a resistance level.
 
-**UI entry points:** [`/trade/spot`](../frontend/app/trade/spot/page.tsx) and [`/trade/futures`](../frontend/app/trade/futures/page.tsx) both integrate stop-order entry via [`TradeOrderEntry`](../frontend/components/TradeOrderEntry.tsx) (order type selector + conditional stop-price field).
+**UI entry points:** [`/trade/spot`](../../frontend/app/trade/spot/page.tsx) and [`/trade/futures`](../../frontend/app/trade/futures/page.tsx) both integrate stop-order entry via [`TradeOrderEntry`](../../frontend/components/TradeOrderEntry.tsx) (order type selector + conditional stop-price field).
 
 | Field | Type | Rules | Validation |
 |-------|------|-------|-----------|
 | Order type | Dropdown | `limit`, `market`, **`stop`** | Selected via radio or dropdown (varies by UI) |
-| Stop price | Number (conditional) | Required when type = **stop**; positive number, typically ≤ 8 decimal places | [`tradeOrderValidation.ts`](../frontend/lib/tradeOrderValidation.ts) — `stopPrice` field |
+| Stop price | Number (conditional) | Required when type = **stop**; positive number, typically ≤ 8 decimal places | [`tradeOrderValidation.ts`](../../frontend/lib/tradeOrderValidation.ts) — `stopPrice` field |
 | Quantity | Number | Positive, max **8** decimals (crypto) or **2** (USD/EUR) | Same validators |
 | Price (limit) | Number (hidden when type = market or stop) | Positive; required for **limit** orders | Same validators |
 
-**Backend schema:** [`Order`](../backend/prisma/schema.prisma) model includes `stopPrice: Decimal?` (`stop_price` column, nullable). API accepts **`stopPrice`** in [`CreateOrderDto`](../backend/src/orders/dto/create-order.dto.ts) when `type = "stop"`.
+**Backend schema:** [`Order`](../../backend/prisma/schema.prisma) model includes `stopPrice: Decimal?` (`stop_price` column, nullable). API accepts **`stopPrice`** in [`CreateOrderDto`](../../backend/src/orders/dto/create-order.dto.ts) when `type = "stop"`.
 
 **Execution:** Stop orders remain **open** until the live price ticks to/through the `stopPrice`, at which point the trigger logic (front-end or backend) fires the order. The **Advanced Charts** (`/charts`) surface visualizes this: place a stop order on `/trade/spot`, then watch `/charts` on the same symbol to see when your order would trigger as the price moves.
 

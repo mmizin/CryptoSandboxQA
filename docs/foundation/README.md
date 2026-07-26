@@ -23,7 +23,7 @@ for, what its core domain terms mean, and how its top-level pieces relate.
 | [`SYSTEM-OVERVIEW.md`](SYSTEM-OVERVIEW.md) | One-page narrative tying to `ARCHITECTURE.md` |
 | [`GLOSSARY.md`](GLOSSARY.md) | Canonical definitions: User, Wallet, Balance, Order, Trade, Deposit, Withdrawal, Asset, Session, Impersonation |
 | [`DOMAIN-MODEL.md`](DOMAIN-MODEL.md) | Core entities and relationships |
-| [`C4-CONTEXT.md`](C4-CONTEXT.md) | System boundary diagram (frontend, backend, Postgres, SMTP, Socket.IO) |
+| [`C4-CONTEXT.md`](../architecture/c4/C4-CONTEXT.md) | System boundary diagram (frontend, backend, Postgres, SMTP, Socket.IO) |
 | [`DOCUMENTATION-STANDARDS.md`](DOCUMENTATION-STANDARDS.md) | PRD/ADR/C4 naming & cross-link conventions for this documentation effort |
 
 ## Why this exists as a separate layer

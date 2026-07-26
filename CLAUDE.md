@@ -76,9 +76,9 @@ See `.claude/rules/backend.md` for API endpoint and Prisma workflows.
 
 Most-used references:
 - **Architecture & modules:** [`ARCHITECTURE.md`](ARCHITECTURE.md) — backend module diagrams, frontend stack, data flows
-- **API design:** [`docs/API_DESIGN_PLAN.md`](docs/API_DESIGN_PLAN.md) — endpoint conventions, request/response shapes
-- **Database schema:** [`docs/DATABASE_DESIGN_PROPOSAL.md`](docs/DATABASE_DESIGN_PROPOSAL.md) — table relationships, constraints
-- **Code style:** [`docs/CODE_STYLE_READABILITY.md`](docs/CODE_STYLE_READABILITY.md) — naming, patterns, examples
+- **API design:** [`docs/architecture/history/API_DESIGN_PLAN.md`](docs/architecture/history/API_DESIGN_PLAN.md) — endpoint conventions, request/response shapes
+- **Database schema:** [`docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md`](docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md) — table relationships, constraints
+- **Code style:** [`docs/engineering/CODE_STYLE_READABILITY.md`](docs/engineering/CODE_STYLE_READABILITY.md) — naming, patterns, examples
 - **OpenAPI spec:** [`openapi.json`](openapi.json) — regenerate with `npm run openapi:generate` after API changes
 
 ## Troubleshooting & common issues

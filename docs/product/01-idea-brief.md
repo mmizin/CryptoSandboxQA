@@ -169,7 +169,7 @@ Footnotes: rows searched 2026-07-08, queries "crypto exchange testnet sandbox fo
 - [ ] How is per-learner progress reset relative to the sandbox database reset? — owner: mmizin, due: write-prd
 
 ## Related
-- `docs-new/product/` — product docs home
+- `docs/product/` — product docs home
 - `CLAUDE.md` — order lifecycle, locking, and admin tooling reference
 - `ARCHITECTURE.md` — backend module breakdown
 

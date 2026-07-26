@@ -1,6 +1,14 @@
-# Architecture Decision Records (ADRs)
+# Architecture Decision Records (ADRs) — Legacy Archive
 
-This directory contains Architecture Decision Records (ADRs) — a lightweight method for capturing important architectural decisions and their rationale.
+> **Historical archive, not active architecture decisions.** ADR-0001 through
+> ADR-0007 predate the `architecture-toolkit` workflow and are retained here
+> purely for historical reference. They are **not** part of the current ADR
+> baseline and are not maintained going forward. For current, active ADRs
+> (0008+), see [`docs/architecture/adr/`](../../adr/).
+
+This directory contains the original Architecture Decision Records (ADRs) —
+a lightweight method for capturing important architectural decisions and
+their rationale — from before the documentation rebuild.
 
 ## What is an ADR?
 
@@ -44,6 +52,13 @@ Where `NNNN` is a zero-padded decision number (e.g., `0001`, `0042`).
 | [0006](./0006-playwright-ui-testing.md) | Playwright for UI testing | Accepted |
 | [0007](./0007-pytest-backend-testing.md) | pytest for backend API testing | Accepted |
 
+New ADRs (0008+) are produced under `docs/architecture/adr/` per
+`DOCUMENTATION_IMPLEMENTATION_PLAN.md`'s location convention — see
+[`docs/architecture/adr/`](../../adr/) for the current, active index. This
+directory (`docs/architecture/history/legacy-adr/`) is a historical archive
+holding the pre-existing 0001-0007 only; not extended further and not
+numbered continuously with 0008+.
+
 ## ADR workflow
 
 ### When to write an ADR
@@ -80,7 +95,7 @@ When reviewing an ADR in a PR:
 
 ## Quick links
 
-- **ARCHITECTURE.md** — System overview, module structure, data flows
-- **DATABASE_DESIGN_PROPOSAL.md** — Schema, constraints, relationships
-- **API_DESIGN_PLAN.md** — Endpoint conventions, request/response patterns
-- **CODE_STYLE_READABILITY.md** — Naming, patterns, examples
+- **[ARCHITECTURE.md](../../../../ARCHITECTURE.md)** — System overview, module structure, data flows
+- **[DATABASE_DESIGN_PROPOSAL.md](../DATABASE_DESIGN_PROPOSAL.md)** — Schema, constraints, relationships (historical)
+- **[API_DESIGN_PLAN.md](../API_DESIGN_PLAN.md)** — Endpoint conventions, request/response patterns (historical)
+- **[docs/engineering/CODE_STYLE_READABILITY.md](../../../engineering/CODE_STYLE_READABILITY.md)** — Naming, patterns, examples

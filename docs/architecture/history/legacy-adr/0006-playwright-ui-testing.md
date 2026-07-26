@@ -101,7 +101,7 @@ We chose **Playwright** (v1.40+) for all UI and end-to-end testing.
 
 - Playwright docs: https://playwright.dev/
 - Playwright best practices: https://playwright.dev/docs/best-practices
-- Test organization: [`tests/ui-tests/`](../../tests/ui-tests/) — Feature-based structure (auth, orders, deposits, etc.)
-- Page objects: [`tests/ui-tests/src/pages/`](../../tests/ui-tests/src/pages/)
-- Running tests: [`CLAUDE.md` § Testing](../../CLAUDE.md#testing) — `/run-ui-tests @auth` by feature tag
-- Setup guide: [`knowledge/llm-wiki/wiki/00-START-HERE.md`](../../knowledge/llm-wiki/wiki/00-START-HERE.md)
+- Test organization: [`tests/ui-tests/`](../../../../tests/ui-tests/) — Feature-based structure (auth, orders, deposits, etc.)
+- Page objects: [`tests/ui-tests/src/pages/`](../../../../tests/ui-tests/src/pages/)
+- Running tests: [`CLAUDE.md` § Testing](../../../../CLAUDE.md#testing) — `/run-ui-tests @auth` by feature tag
+- Setup guide: [`knowledge/llm-wiki/wiki/00-START-HERE.md`](../../../../knowledge/llm-wiki/wiki/00-START-HERE.md)

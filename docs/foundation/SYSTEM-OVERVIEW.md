@@ -78,4 +78,4 @@ audit trail QA scenarios are built to inspect.
 - [`FEATURES_INVENTORY.md`](../../FEATURES_INVENTORY.md) — feature-by-feature
   detail (endpoints, DTOs, files)
 - [`DOMAIN-MODEL.md`](DOMAIN-MODEL.md) — entity relationships
-- [`C4-CONTEXT.md`](C4-CONTEXT.md) — system boundary diagram
+- [`C4-CONTEXT.md`](../architecture/c4/C4-CONTEXT.md) — system boundary diagram

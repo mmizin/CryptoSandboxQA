@@ -94,4 +94,4 @@ We chose **Prisma ORM** (v4+) for all database access and schema management.
 - Prisma docs: https://www.prisma.io/docs/
 - Schema design: [`docs/DATABASE_DESIGN_PROPOSAL.md`](../DATABASE_DESIGN_PROPOSAL.md)
 - NestJS + Prisma: https://docs.nestjs.com/recipes/prisma
-- Setup: [`CLAUDE.md` § Quick start](../../CLAUDE.md#quick-start)
+- Setup: [`CLAUDE.md` § Quick start](../../../../CLAUDE.md#quick-start)

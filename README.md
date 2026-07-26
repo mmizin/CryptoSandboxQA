@@ -59,10 +59,10 @@ After `setup`, add **SMTP** lines to the **repository root** `.env` if you want 
 | Doc | What it is |
 |-----|------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Repository layout, Nest modules, auth, realtime, env loading, and how pieces fit together. |
-| [docs/CODE_STYLE_READABILITY.md](docs/CODE_STYLE_READABILITY.md) | Naming and extracting locals for request bodies and similar call arguments; templates in [docs/examples/code-style-templates.md](docs/examples/code-style-templates.md). |
+| [docs/engineering/CODE_STYLE_READABILITY.md](docs/engineering/CODE_STYLE_READABILITY.md) | Naming and extracting locals for request bodies and similar call arguments; templates in [docs/engineering/code-style-templates.md](docs/engineering/code-style-templates.md). |
 | [openapi.json](openapi.json) | Static OpenAPI spec (import into Postman, Insomnia, etc.) without running the backend. |
-| [docs/API_DESIGN_PLAN.md](docs/API_DESIGN_PLAN.md) | Design-time API notes and history (see banner in file; current behavior is in ARCHITECTURE and Swagger). |
-| [docs/DATABASE_DESIGN_PROPOSAL.md](docs/DATABASE_DESIGN_PROPOSAL.md) | Schema rationale and history; **source of truth** for tables is `backend/prisma/schema.prisma`. |
+| [docs/architecture/history/API_DESIGN_PLAN.md](docs/architecture/history/API_DESIGN_PLAN.md) | Design-time API notes and history (see banner in file; current behavior is in ARCHITECTURE and Swagger). |
+| [docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md](docs/architecture/history/DATABASE_DESIGN_PROPOSAL.md) | Schema rationale and history; **source of truth** for tables is `backend/prisma/schema.prisma`. |
 | [LICENSE](LICENSE) | License for the project. |
 
 This [README](#cryptosandboxqa) is the entry point; use the table of contents above to jump to setup and env reference.

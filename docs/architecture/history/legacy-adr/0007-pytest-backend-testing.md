@@ -104,7 +104,7 @@ We chose **pytest** (v7+) with **httpx** (async HTTP client) for backend API tes
 - pytest fixtures: https://docs.pytest.org/en/stable/fixture.html
 - pytest parametrize: https://docs.pytest.org/en/stable/parametrize.html
 - httpx docs: https://www.python-httpx.org/
-- Test organization: [`tests/backend_tests/`](../../tests/backend_tests/) — Pytest matrices by feature
-- Running tests: [`CLAUDE.md` § Testing](../../CLAUDE.md#testing) — `/run-backend-tests @orders` by marker
-- Setup guide: [`knowledge/llm-wiki/wiki/00-START-HERE.md`](../../knowledge/llm-wiki/wiki/00-START-HERE.md)
+- Test organization: [`tests/backend_tests/`](../../../../tests/backend_tests/) — Pytest matrices by feature
+- Running tests: [`CLAUDE.md` § Testing](../../../../CLAUDE.md#testing) — `/run-backend-tests @orders` by marker
+- Setup guide: [`knowledge/llm-wiki/wiki/00-START-HERE.md`](../../../../knowledge/llm-wiki/wiki/00-START-HERE.md)
 - Allure reporting: https://docs.qameta.io/allure/

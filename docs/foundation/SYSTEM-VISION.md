@@ -1,7 +1,7 @@
 # System Vision — CryptoSandboxQA
 
 **Status:** Draft
-**Source:** `docs-new/product/01-idea-brief.md` (§2, §3, §13), `CLAUDE.md`
+**Source:** `docs/product/01-idea-brief.md` (§2, §3, §13), `CLAUDE.md`
 
 ## Why this system exists
 

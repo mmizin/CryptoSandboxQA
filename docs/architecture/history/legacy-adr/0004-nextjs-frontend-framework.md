@@ -98,5 +98,5 @@ We chose **Next.js** (v13+ with App Router) for the frontend.
 - Next.js docs: https://nextjs.org/docs
 - App Router guide: https://nextjs.org/docs/app
 - React docs: https://react.dev/
-- Frontend architecture: [`ARCHITECTURE.md` § Tech stack](../../ARCHITECTURE.md#tech-stack)
-- Setup: [`CLAUDE.md` § Quick start](../../CLAUDE.md#quick-start)
+- Frontend architecture: [`ARCHITECTURE.md` § Tech stack](../../../../ARCHITECTURE.md#tech-stack)
+- Setup: [`CLAUDE.md` § Quick start](../../../../CLAUDE.md#quick-start)

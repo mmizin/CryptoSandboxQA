@@ -69,11 +69,11 @@ C4Context
 
 ## Related
 
-- [`SYSTEM-VISION.md`](SYSTEM-VISION.md) — defines the primary (QA trainee)
+- [`SYSTEM-VISION.md`](../../foundation/SYSTEM-VISION.md) — defines the primary (QA trainee)
   and secondary (training lead / provisioner) actors this diagram's `Person`
   elements are drawn from
-- [`SYSTEM-OVERVIEW.md`](SYSTEM-OVERVIEW.md) — narrative detail on the
+- [`SYSTEM-OVERVIEW.md`](../../foundation/SYSTEM-OVERVIEW.md) — narrative detail on the
   components inside the CryptoSandboxQA box
-- [`ARCHITECTURE.md`](../../ARCHITECTURE.md) § Backend application — module
+- [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) § Backend application — module
   diagram, one level of detail below this one (candidate input for a future
   C4 Container diagram)

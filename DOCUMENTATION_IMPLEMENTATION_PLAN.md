@@ -6,7 +6,24 @@
 
 **Scope:** This is a plan document. No `product-toolkit` or `architecture-toolkit` skill invocations happen until the plan is approved and execution is explicitly requested, **one feature at a time**.
 
-**Location:** All new documentation produced by this plan is written under [`docs-new/`](docs-new/). The legacy [`docs/`](docs/) directory is deprecated and will be removed once its content has been superseded by `docs-new/` — do not add new documents there.
+**Location:** All new documentation produced by this plan is written under [`docs/`](docs/), following the hybrid structure below. All pre-existing legacy documentation has been migrated into `docs/` as well (archived under `docs/architecture/history/`, or relocated as living references under `docs/engineering/`/`docs/guides/`); `old-docs/` no longer exists.
+
+**Structure** (within `docs/`):
+
+```
+docs/
+├── product/            — product discovery and intent (idea briefs)
+├── features/<slug>/    — per-feature PRD.md, DISCOVERY.md
+├── architecture/
+│   ├── adr/            — active ADR baseline (NNNN-kebab-title.md), rebuilt via architecture-toolkit; numbering continues sequentially from the legacy archive below but is NOT that archive's continuation in format or status
+│   ├── findings/       — architecture review findings registry
+│   ├── diagrams/       — C4 diagrams
+│   ├── quality-attributes/  — cross-cutting quality docs (scaffolded, empty until used)
+│   └── history/         — archived, non-active material: API_DESIGN_PLAN.md, DATABASE_DESIGN_PROPOSAL.md, legacy-adr/ (ADR-0001–0007, historical only)
+├── foundation/          — stable system knowledge (vision, glossary, domain model, standards)
+├── engineering/          — living contributor conventions (code style, naming) — not part of the PRD/ADR pipeline
+└── guides/              — living reference docs for QA/testing surfaces — not part of the PRD/ADR pipeline
+```
 
 ## Execution model
 
@@ -93,7 +110,7 @@ Complexity scale: **S** (~0.5 day) / **M** (~1–2 days) / **L** (~3–4 days) /
 | # | Feature | Phase | Priority | Complexity | Est. Effort | Dependencies | Product Docs | Architecture Docs | Artifacts (Depends on / Produces) | Status |
 |---|---------|-------|----------|------------|--------------|---------------|---------------|--------------------|-------------------------------------|--------|
 | 0 | Foundation (Vision, Glossary, Domain Model, C4 Context) | 0 | High | L | ~3d | — | Vision doc | C4 Context | Produces: SYSTEM-VISION.md, SYSTEM-OVERVIEW.md, GLOSSARY.md, DOMAIN-MODEL.md, C4-CONTEXT.md, DOCUMENTATION-STANDARDS.md | Done |
-| 1 | User Registration | 1 | High | S | ~0.5d | Foundation | PRD | Architecture Discovery, C4 (context) | Depends: GLOSSARY · Produces: PRD-001 | Not Started |
+| 1 | User Registration | 1 | High | S | ~0.5d | Foundation | PRD | Architecture Discovery, ADR ×2, C4 (confirmed not needed) | Depends: GLOSSARY · Produces: PRD-Registration, DISCOVERY, ADR-0008 (Rev.5, Accepted), ADR-0009 (Rev.4, Accepted) | **Done** — DoD met: PRD passed product-reviewer; Discovery + 2 ADRs passed architecture-reviewer (4 cycles, 19 findings, 17 resolved, 2 open by design/owner-TBD); c4-expert confirmed no C4 diagram warranted (no new container/component boundary — behavioral changes only, already documented in the ADRs' prose) |
 | 2 | User Login | 1 | High | S | ~0.5d | Registration | PRD | Architecture Discovery, C4 | Depends: PRD-001 · Produces: PRD-002 | Not Started |
 | 3 | Session Management | 1 | High | S | ~0.5d | Login | PRD | Architecture Discovery | Depends: PRD-002 · Produces: PRD-003 | Not Started |
 | 4 | Logout | 1 | Medium | S | ~0.5d | Session Mgmt | PRD | — | Depends: PRD-003 · Produces: PRD-004 | Not Started |
