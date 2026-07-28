@@ -25,3 +25,5 @@ baseline. Do not follow its format/workflow conventions for new ADRs; follow
 | [0013](./0013-rate-limiting-for-unauthenticated-auth-endpoints.md) | Rate-limit unauthenticated auth-adjacent endpoints, and close the password-reset code invalidation race with a schema-enforced unique constraint and a fail-safe conflict guard | Accepted |
 | [0014](./0014-session-revocation-on-2fa-enrollment.md) | Revoke other existing sessions when 2FA is enabled on an account, preserving the enrolling session | Accepted |
 | [0015](./0015-step-up-authentication-for-2fa-enrollment.md) | Require password re-verification (step-up authentication) before enabling 2FA | Accepted |
+| [0016](./0016-deny-admin-authority-to-impersonated-sessions.md) | Deny admin authority to any impersonated session, unconditionally — merges the original 0016/0017 pair after review | Accepted |
+| [0017](./0017-restrict-impersonation-of-admin-accounts.md) | ~~Restrict `impersonate()` from targeting another admin account~~ | Retired — merged into 0016 |
