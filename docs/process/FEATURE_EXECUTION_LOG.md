@@ -94,3 +94,16 @@ All 6 findings (F1-F6) fixed directly, plus F5 recorded as an explicit declined-
 **2026-07-29 — ADR-0020 closed out.** Both Delta Review findings (N1: conditional the email-asymmetry adoption-cost argument; N2: reframe the backfill risk as a likely silent-partial restore failure, not a loud one) applied directly, no further review spawned per explicit instruction. `Status: Proposed → Accepted`. This is the first ADR in this feature's pipeline to reach Accepted — took 5 revisions and 4 review rounds (2 Full, 1 escalated Full, 1 Delta) to get there, starting from a first draft with 3 write-path/precedent citation errors and ending with a decision the final Full Review "tried to break and could not."
 
 **Retrospective note for this ADR cycle specifically:** the review-escalation gate (report findings, wait for explicit direction before any further review or rework) combined with the decision-checkpoint pattern (isolate genuinely-owner-level calls, present tradeoffs, don't decide unilaterally) is what kept 5 revisions from compounding into an unbounded cost spiral the way the PRD stage's first 2 rounds did. Each round's fixes were scoped exactly to what was asked, nothing more; review rounds only ran when explicitly requested; and the one real owner decision each round needed (case-insensitive identity: yes; ADR-0008 dependency: depend, don't duplicate; Q-015 bundling: decline) was surfaced as a question rather than assumed. Worth carrying this exact pattern — checkpoint before rework, report before re-review, user decides escalation — into ADR-0021 and all subsequent architecture-toolkit work in this backlog, not just as a one-off recovery from the earlier cost overrun.
+
+**2026-07-29 — Feature 9 (User Profile & Settings) closed.** Final state:
+
+| Artifact | Status |
+|---|---|
+| PRD (`docs/features/user-profile-settings/PRD.md`) | **Approved** |
+| Architecture Discovery (`docs/features/user-profile-settings/DISCOVERY.md`) | **Completed** |
+| ADR-0020 (Username Identity Normalization) | **Accepted** |
+| ADR-0021 (Admin-impersonation audit metadata, Candidate #2) | **Deferred, not started** — recorded in DISCOVERY.md's Outcome note; remains a legitimate future decision (gap tracked independently as PRD Q-013), not required to close this feature |
+| C4 diagram | Confirmed not needed (no new container/component boundary) |
+| Feature documentation | **Completed** |
+
+No further review spawned per explicit instruction. Next backlog item per `DOCUMENTATION_IMPLEMENTATION_PLAN.md`: Feature 10 (User Profile Extended / Registration w/ Profile) — awaiting user go-ahead before starting.

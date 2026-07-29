@@ -120,3 +120,14 @@ impersonation audit metadata). Given this session's token budget, recommend
 pausing here for user go-ahead before invoking `adr-expert` on either —
 consistent with the Review escalation gate now recorded in
 `DOCUMENTATION_IMPLEMENTATION_PLAN.md`.
+
+**Outcome:** Candidate #1 (username identity normalization) was promoted
+and reached `ADR-0020` (Accepted). Candidate #2 (admin-impersonation audit
+metadata for profile writes — `ADR-0021`) is **deferred, not started**, by
+owner decision. It remains a legitimate future architectural decision (the
+gap `ADR-0016` flagged — profile reads/writes carry no `performedByAdmin`-
+equivalent metadata, unlike deposits/orders/wallets — is still open) but is
+not required to close Feature 9: nothing in `PRD-UserProfileSettings` or
+`ADR-0020` depends on it, and the underlying gap is tracked independently
+as PRD Q-013. Revisit when prioritized, either as its own pass or bundled
+with a future feature that touches admin audit trails more broadly.
