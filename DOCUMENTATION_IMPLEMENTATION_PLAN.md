@@ -97,6 +97,16 @@ Written once and referenced by every later PRD/ADR, so no feature has to re-expl
    - Cross-links added: PRD references the ADRs/C4 it depends on; later features reference earlier PRDs instead of re-deriving them
    - Traceability column (below) filled in with the artifact IDs actually produced
 
+## Review escalation gate
+
+**Every review finding gets reported before another review round is spawned.** When `product-reviewer` or `architecture-reviewer` finds an issue (Full Review or Delta Review), the finding is fixed and then reported back to the user as a full write-up — not silently resolved and chained into the next review round automatically. Each report states, per finding:
+
+- What was found
+- Severity (Critical / High / Medium / Low, per the reviewer's own taxonomy)
+- Which section/requirement/ADR it relates to
+
+The user then decides whether the next check is a Full Review, a Delta Review, or none at all. The orchestrator does not auto-escalate to another review round on its own judgment alone — Delta Review's own escalation triggers (unbounded changed region, new Critical/High finding) still apply and may fire, but accepting that escalation and paying for another full pass is a decision the user makes, not one made silently to reach a "clean" document. This exists because review cost compounds fast (see `docs/process/FEATURE_EXECUTION_LOG.md`, Feature 9 retrospective) and severity, not round-count, should drive whether another paid pass is worth it.
+
 ## Ordering principle
 
 Phases are ordered by **dependency**, not by the inventory's table of contents. Foundational features (identity, sessions, wallets/balances) are documented first because nearly every later feature's PRD needs to reference them.
